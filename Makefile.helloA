@@ -1,0 +1,16 @@
+TARGET = helloA
+
+OBJS = tests/helloA/main.o
+
+INCDIR =
+
+CFLAGS = -O2 -G0 -Wall
+ASFLAGS = $(CFLAGS)
+
+LIBS = -lpspdebug -lpspdisplay -lpspctrl -lpspsdk -lc -lpspuser
+
+EXTRA_TARGETS = EBOOT.PBP
+PSP_EBOOT_TITLE = HelloA
+
+PSPSDK = $(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak

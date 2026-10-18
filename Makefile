@@ -1,0 +1,59 @@
+TARGET = openlua
+PSP_EBOOT_TITLE = OpenLua
+
+LUADIR = third_party/lua/src
+STBDIR = third_party/stb
+
+LUAOBJS = \
+	$(LUADIR)/lapi.o \
+	$(LUADIR)/lauxlib.o \
+	$(LUADIR)/lbaselib.o \
+	$(LUADIR)/lcode.o \
+	$(LUADIR)/ldblib.o \
+	$(LUADIR)/ldebug.o \
+	$(LUADIR)/ldo.o \
+	$(LUADIR)/ldump.o \
+	$(LUADIR)/lfunc.o \
+	$(LUADIR)/lgc.o \
+	$(LUADIR)/linit.o \
+	$(LUADIR)/liolib.o \
+	$(LUADIR)/llex.o \
+	$(LUADIR)/lmathlib.o \
+	$(LUADIR)/lmem.o \
+	$(LUADIR)/loadlib.o \
+	$(LUADIR)/lobject.o \
+	$(LUADIR)/lopcodes.o \
+	$(LUADIR)/loslib.o \
+	$(LUADIR)/lparser.o \
+	$(LUADIR)/lstate.o \
+	$(LUADIR)/lstring.o \
+	$(LUADIR)/lstrlib.o \
+	$(LUADIR)/ltable.o \
+	$(LUADIR)/ltablib.o \
+	$(LUADIR)/ltm.o \
+	$(LUADIR)/lundump.o \
+	$(LUADIR)/lvm.o \
+	$(LUADIR)/lzio.o
+
+OBJS = engine/core/main.o \
+	engine/core/olreg.o \
+	engine/core/stb_impl.o \
+	engine/gfx/gfx.o \
+	engine/gfx/draw.o \
+	engine/img/image.o \
+	engine/input/buttons.o \
+	engine/util/timers.o \
+	$(LUAOBJS)
+
+INCDIR = . $(LUADIR) $(STBDIR)
+
+CFLAGS = -O2 -G0 -Wall
+ASFLAGS = $(CFLAGS)
+LDFLAGS = -L.
+
+LIBS = -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspgu -lpspsdk -lc -lpspuser
+
+EXTRA_TARGETS = EBOOT.PBP
+
+PSPSDK = $(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak

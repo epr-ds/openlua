@@ -1,0 +1,26 @@
+# Build artifacts
+*.o
+*.o_elf
+*.elf
+EBOOT.PBP
+PARAM.SFO
+*.pbp
+openlua_strip.elf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker cache
+docker/.cache/
+
+# Generated assets
+demos/*/output.png
+demos/*/script.lua
+test_hello/script.lua
+
+# Logs
+*.log

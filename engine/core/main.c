@@ -22,6 +22,21 @@ PSP_HEAP_SIZE_KB(20000);
 
 static FILE *g_log = NULL;
 
+/* ---- flash-based early-boot trace (always mounted, never fails) ---- */
+
+/* ---- flash-based boot trace (works on real PSP + PPSSPP) ---- */
+
+static int flash_write(const char *data, int len)
+{
+    FILE *f = fopen("flash0:/openlua_boot.txt", "a");
+    if (!f) f = fopen("app0:/boot_trace.bin", "wb"); /* fallback: app dir */
+    if (!f) f = fopen("/mnt/flash0/openlua_boot.txt", "a");
+    if (f) { fwrite(data, 1, (size_t)len, f); fclose(f); }
+
+    return 0;
+}
+
+
 static void debug_note(const char *msg)
 {
     if (!g_log)
@@ -162,17 +177,16 @@ static void fatal_show(const char *err)
 
 int main(int argc, char **argv)
 {
-    FILE *f = fopen("ms0:/openlua_early.log", "w");
-    if (f) {
-        fputs("EARLY_WRITE OK\n", f);
-        fclose(f);
-    }
+    flash_write("boot:main  ", 12);
+    // boot trace initialized
     debug_note("boot: main");
     setup_callbacks();
     chdir_to_appdir(argc > 0 ? argv[0] : NULL);
     debug_note("boot: gfx init...");
+    flash_write("boot:gfx   ", 12);
     gfx_init();
     debug_note("boot: gfx ok");
+    flash_write("boot:ok    ", 12);
 
     lua_State *L = luaL_newstate();
     if (!L)
@@ -186,6 +200,7 @@ int main(int argc, char **argv)
         fatal_show("no script.lua found in app dir");
     }
     debug_note("boot: script found");
+    flash_write("boot:script ", 12);
     debug_note(script);
 
     if (luaL_dofile(L, script) != 0) {

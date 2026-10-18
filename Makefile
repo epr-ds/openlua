@@ -43,6 +43,7 @@ OBJS = engine/core/main.o \
 	engine/img/image.o \
 	engine/input/buttons.o \
 	engine/util/timers.o \
+	engine/font/font.o \
 	$(LUAOBJS)
 
 INCDIR = . $(LUADIR) $(STBDIR)

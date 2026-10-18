@@ -1,0 +1,751 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__screen.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+screen  
+Functions
+NIL&#160;screen.print (NUMBER x, NUMBER y, STRING txt)
+&#160;Prints text on the screen ( default values ).  More...
+&#160;
+NIL&#160;screen.print (FONT fnt, NUMBER x, NUMBER y, STRING txt)
+&#160;Prints text on the screen ( custom font ).  More...
+&#160;
+NIL&#160;screen.print (NUMBER x, NUMBER y, STRING txt, NUMBER size)
+&#160;Prints text on the screen ( custom size ).  More...
+&#160;
+NIL&#160;screen.print (FONT fnt, NUMBER x, NUMBER y, STRING txt, NUMBER size)
+&#160;Prints text on the screen ( custom font and size ).  More...
+&#160;
+NIL&#160;screen.print (NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face)
+&#160;Prints text on the screen (custom size and color, default font).  More...
+&#160;
+NIL&#160;screen.print (FONT fnt, NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face)
+&#160;Prints text on the screen (custom font, size and color).  More...
+&#160;
+NIL&#160;screen.print (NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face, COLOR shadow)
+&#160;Prints text on the screen (default font, size, colors).  More...
+&#160;
+NIL&#160;screen.print (FONT fnt, NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face, COLOR shadow)
+&#160;Prints text on the screen (custom font, size and color).  More...
+&#160;
+NIL&#160;screen.print (NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face, COLOR shadow, NUMBER align)
+&#160;Prints text on the screen (default font, size, colors, and custom alignment).  More...
+&#160;
+NIL&#160;screen.print (FONT fnt, NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face, COLOR shadow, NUMBER align)
+&#160;Prints text on the screen (font, size, colors, and custom alignment).  More...
+&#160;
+NIL&#160;screen.print (NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face, COLOR shadow, NUMBER align, NUMBER w)
+&#160;Prints text on the screen, limiting the width that can occupy (default font, size, colors, and custom alignment).  More...
+&#160;
+NIL&#160;screen.print (FONT fnt, NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face, COLOR shadow, NUMBER align, NUMBER w)
+&#160;Prints text on the screen, limiting the width that can occupy (font, size, colors, and custom alignment).  More...
+&#160;
+NUMBER&#160;screen.print (NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face, COLOR shadow, NUMBER scroll, NUMBER w)
+&#160;Prints text on the screen, limiting the width that can occupy (default font, size, colors, and custom scroll).  More...
+&#160;
+NUMBER&#160;screen.print (FONT fnt, NUMBER x, NUMBER y, STRING txt, NUMBER size, COLOR face, COLOR shadow, NUMBER scroll, NUMBER w)
+&#160;Prints text on the screen, limiting the width that can occupy (font, size, colors, and custom scroll).  More...
+&#160;
+NIL&#160;screen.clip (NUMBER x, NUMBER y, NUMBER w, NUMBER h)
+&#160;Limiting the drawing area.  More...
+&#160;
+NIL&#160;screen.clip ()
+&#160;Removes the limitation of the drawing area.  More...
+&#160;
+NUMBER&#160;screen.textwidth (STRING txt)
+&#160;Gets the text width in pixels (using the default values).  More...
+&#160;
+NUMBER&#160;screen.textwidth (STRING txt, NUMBER size)
+&#160;Gets the text width in pixels (using the default font, and custom text size).  More...
+&#160;
+NUMBER&#160;screen.textwidth (FONT fnt, STRING txt)
+&#160;Gets the text width in pixels (using custom font, and 0.7 as text size).  More...
+&#160;
+NUMBER&#160;screen.textwidth (FONT fnt, STRING txt, NUMBER size)
+&#160;Gets the text width in pixels (using custom font and text size).  More...
+&#160;
+NUMBER&#160;screen.textheight ()
+&#160;Gets the text height in pixels (using the default values).  More...
+&#160;
+NUMBER&#160;screen.textheight (NUMBER size)
+&#160;Gets the text height in pixels (using the default font, and custom text size).  More...
+&#160;
+NUMBER&#160;screen.textheight (FONT fnt)
+&#160;Gets the text height in pixels (using custom font).  More...
+&#160;
+NUMBER&#160;screen.textheight (FONT fnt, NUMBER size)
+&#160;Gets the text height in pixels (using custom font and text size).  More...
+&#160;
+NIL&#160;screen.clear (COLOR bkg)
+&#160;Clears the screen with the specified color.  More...
+&#160;
+IMAGE&#160;screen.toimage ()
+&#160;Makes an image with the screen content.  More...
+&#160;
+IMAGE&#160;screen.buffertoimage ()
+&#160;Makes an image with the draw buffer content.  More...
+&#160;
+NIL&#160;screen.shot ()
+&#160;Takes a screenshot and save it in the same homebrew folder with the name "screenshot.png" (if exists, it will be overwrite).  More...
+&#160;
+NIL&#160;screen.shot (STRING path)
+&#160;Takes a screenshot and save it in the specified folder with Toma una captura de pantalla, y la guarda en la ruta y con el nombre especificados.  More...
+&#160;
+NIL&#160;screen.consoleprint (STRING txt)
+&#160;Basic routine for printing text, use a monospaced font and start printing from the top left corner (the primary use of this function is debug).  More...
+&#160;
+NIL&#160;screen.txtcolor (COLOR txtColor)
+&#160;Change the color of the text printed with screen.consoleprint().  More...
+&#160;
+NIL&#160;screen.txtbgcolor (COLOR bgColor)
+&#160;Change the background color of the text printed with screen.consoleprint().  More...
+&#160;
+NUMBER&#160;screen.consolexy ()
+&#160;Gets the cursor position used by screen.consoleprint() (column and row).  More...
+&#160;
+NIL&#160;screen.consolexy (NUMBER x, NUMBER y)
+&#160;Sets the cursor position used by screen.consoleprint() (column and row).  More...
+&#160;
+NUMBER&#160;screen.fps ()
+&#160;Computes the screen frames per second (fps).  More...
+&#160;
+NIL&#160;screen.bilinear (NUMBER state)
+&#160;Enables the bilinear filter (smoothing).  More...
+&#160;
+NUMBER&#160;screen.brightness ()
+&#160;Gets the screen brightness.  More...
+&#160;
+NIL&#160;screen.brightness (NUMBER bright)
+&#160;Sets the screen brightness.  More...
+&#160;
+NIL&#160;screen.display (NUMBER mode)
+&#160;Enable or Disable the screen.  More...
+&#160;
+NIL&#160;screen.flip ()
+&#160;Refresh the screen. Any modifications made to it (display pictures, drawn shapes or text) will not be visible until this function is called .  More...
+&#160;
+Detailed Description
+Screen managing. 
+Function Documentation
+          NIL screen.print 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt&#160;
+          )
+Prints text on the screen ( default values ). 
+Parameters
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+NoteThe default values are: size 0.7, color white, without shadow and left alingment. 
+ReturnsNada. 
+          NIL screen.print 
+          (
+          FONT&#160;
+          fnt, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt&#160;
+          )
+Prints text on the screen ( custom font ). 
+Parameters
+    fntA font previously loaded. 
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size&#160;
+          )
+Prints text on the screen ( custom size ). 
+Parameters
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          FONT&#160;
+          fnt, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size&#160;
+          )
+Prints text on the screen ( custom font and size ). 
+Parameters
+    fntA font previously loaded. 
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face&#160;
+          )
+Prints text on the screen (custom size and color, default font). 
+Parameters
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          FONT&#160;
+          fnt, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face&#160;
+          )
+Prints text on the screen (custom font, size and color). 
+Parameters
+    fntA font previously loaded. 
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face, 
+          COLOR&#160;
+          shadow&#160;
+          )
+Prints text on the screen (default font, size, colors). 
+Parameters
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+    shadowShadow color. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          FONT&#160;
+          fnt, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face, 
+          COLOR&#160;
+          shadow&#160;
+          )
+Prints text on the screen (custom font, size and color). 
+Parameters
+    fntA font previously loaded. 
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+    shadowShadow color. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face, 
+          COLOR&#160;
+          shadow, 
+          NUMBER&#160;
+          align&#160;
+          )
+Prints text on the screen (default font, size, colors, and custom alignment). 
+Parameters
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+    shadowShadow color. 
+    alignAlignment of text, one of the following constants:
+__ALEFT Left.
+__ACENTER Centred.
+__ARIGHT Right.
+__AFULL Full justify text. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          FONT&#160;
+          fnt, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face, 
+          COLOR&#160;
+          shadow, 
+          NUMBER&#160;
+          align&#160;
+          )
+Prints text on the screen (font, size, colors, and custom alignment). 
+Parameters
+    fntA font previously loaded. 
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+    shadowShadow color. 
+    alignAlignment of text, one of the following constants:
+__ALEFT Left.
+__ACENTER Centred.
+__ARIGHT Right.
+__AFULL Full justify text. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face, 
+          COLOR&#160;
+          shadow, 
+          NUMBER&#160;
+          align, 
+          NUMBER&#160;
+          w&#160;
+          )
+Prints text on the screen, limiting the width that can occupy (default font, size, colors, and custom alignment). 
+Parameters
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+    shadowShadow color. 
+    alignAlignment of text, one of the following constants:
+__ALEFT Left.
+__ACENTER Centred.
+__ARIGHT Right.
+__AFULL Full justify text. 
+    wWidth in pixels. If the text pass, will be trimmed and will continue on the next line. 
+ReturnsNothing. 
+          NIL screen.print 
+          (
+          FONT&#160;
+          fnt, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face, 
+          COLOR&#160;
+          shadow, 
+          NUMBER&#160;
+          align, 
+          NUMBER&#160;
+          w&#160;
+          )
+Prints text on the screen, limiting the width that can occupy (font, size, colors, and custom alignment). 
+Parameters
+    fntA font previously loaded. 
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+    shadowShadow color. 
+    alignAlignment of text, one of the following constants:
+__ALEFT Left.
+__ACENTER Centred.
+__ARIGHT Right.
+__AFULL Full justify text. 
+    wWidth in pixels. If the text pass, will be trimmed and will continue on the next line. 
+ReturnsNothing. 
+          NUMBER screen.print 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face, 
+          COLOR&#160;
+          shadow, 
+          NUMBER&#160;
+          scroll, 
+          NUMBER&#160;
+          w&#160;
+          )
+Prints text on the screen, limiting the width that can occupy (default font, size, colors, and custom scroll). 
+Parameters
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+    shadowShadow color. 
+    scrollScroll of text, one of the following constants:
+__SLEFT Left.
+__SRIGHT Right.
+__STHROUGH Left (Through).
+__SSEESAW Left-Right. 
+    wWidth in pixels. If the text pass, will be trimmed and will continue on the next line. 
+ReturnsA number that should happen again as coordinate X.
+Consult the following sample  for more details. 
+          NUMBER screen.print 
+          (
+          FONT&#160;
+          fnt, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size, 
+          COLOR&#160;
+          face, 
+          COLOR&#160;
+          shadow, 
+          NUMBER&#160;
+          scroll, 
+          NUMBER&#160;
+          w&#160;
+          )
+Prints text on the screen, limiting the width that can occupy (font, size, colors, and custom scroll). 
+Parameters
+    fntA font previously loaded. 
+    xX coordinate where the text is printed. 
+    yY coordinate where the text is printed. 
+    txtText to print. 
+    sizeSize of the text. There is no restriction, but are preferable sizes close to 1. 
+    faceText color 
+    shadowShadow color. 
+    scrollScroll of text, one of the following constants:
+__SLEFT Left.
+__SRIGHT Right.
+__STHROUGH Left (Through).
+__SSEESAW Left-Right. 
+    wWidth in pixels. If the text pass, will be trimmed and will continue on the next line. 
+ReturnsA number that should happen again as coordinate X.
+Consult the following sample  for more details. 
+          NIL screen.clip 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h&#160;
+          )
+Limiting the drawing area. 
+Parameters
+    xCoordinate X of the top left corner. 
+    yCoordinate Y of the top left corner. 
+    wWidth. 
+    hHeight. 
+ReturnsNothing. 
+          NIL screen.clip 
+          (
+          )
+Removes the limitation of the drawing area. 
+ReturnsNothing. 
+          NUMBER screen.textwidth 
+          (
+          STRING&#160;
+          txt)
+Gets the text width in pixels (using the default values). 
+Parameters
+    txtText to get its width. 
+ReturnsThe text width in pixels. 
+          NUMBER screen.textwidth 
+          (
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size&#160;
+          )
+Gets the text width in pixels (using the default font, and custom text size). 
+Parameters
+    txtText to get its width. 
+    sizeText size. 
+ReturnsThe text width in pixels. 
+          NUMBER screen.textwidth 
+          (
+          FONT&#160;
+          fnt, 
+          STRING&#160;
+          txt&#160;
+          )
+Gets the text width in pixels (using custom font, and 0.7 as text size). 
+Parameters
+    fntA loaded font. 
+    txtText to get its width. 
+ReturnsThe text width in pixels. 
+          NUMBER screen.textwidth 
+          (
+          FONT&#160;
+          fnt, 
+          STRING&#160;
+          txt, 
+          NUMBER&#160;
+          size&#160;
+          )
+Gets the text width in pixels (using custom font and text size). 
+Parameters
+    fntA loaded font. 
+    txtText to get its width. 
+    sizeText size. 
+ReturnsThe text width in pixels. 
+          NUMBER screen.textheight 
+          (
+          )
+Gets the text height in pixels (using the default values). 
+ReturnsThe text height in pixels. 
+          NUMBER screen.textheight 
+          (
+          NUMBER&#160;
+          size)
+Gets the text height in pixels (using the default font, and custom text size). 
+Parameters
+    sizeText size. 
+ReturnsThe text height in pixels. 
+          NUMBER screen.textheight 
+          (
+          FONT&#160;
+          fnt)
+Gets the text height in pixels (using custom font). 
+Parameters
+    fntA loaded font. 
+ReturnsThe text height in pixels. 
+          NUMBER screen.textheight 
+          (
+          FONT&#160;
+          fnt, 
+          NUMBER&#160;
+          size&#160;
+          )
+Gets the text height in pixels (using custom font and text size). 
+Parameters
+    fntA loaded font. 
+    sizeText size. 
+ReturnsThe text height in pixels. 
+          NIL screen.clear 
+          (
+          COLOR&#160;
+          bkg)
+Clears the screen with the specified color. 
+Parameters
+    bkgColor to use. 
+NoteThis function should not be used unless the intention is to paint the entire screen of a different color other than black (it does it automatically with screen.flip() ). 
+ReturnsNothing. 
+          IMAGE screen.toimage 
+          (
+          )
+Makes an image with the screen content. 
+ReturnsAn image object, ready to use. 
+          IMAGE screen.buffertoimage 
+          (
+          )
+Makes an image with the draw buffer content. 
+ReturnsAn image object, ready to use. 
+          NIL screen.shot 
+          (
+          )
+Takes a screenshot and save it in the same homebrew folder with the name "screenshot.png" (if exists, it will be overwrite). 
+ReturnsNothing. 
+          NIL screen.shot 
+          (
+          STRING&#160;
+          path)
+Takes a screenshot and save it in the specified folder with Toma una captura de pantalla, y la guarda en la ruta y con el nombre especificados. 
+Parameters
+    pathPath and name where the screenshot will be saved (only PNG format). 
+ReturnsNothing. 
+          NIL screen.consoleprint 
+          (
+          STRING&#160;
+          txt)
+Basic routine for printing text, use a monospaced font and start printing from the top left corner (the primary use of this function is debug). 
+Parameters
+    txtText to print. 
+ReturnsNothing. 
+          NIL screen.txtcolor 
+          (
+          COLOR&#160;
+          txtColor)
+Change the color of the text printed with screen.consoleprint(). 
+Parameters
+    txtColorNew text color. 
+ReturnsNothing. 
+          NIL screen.txtbgcolor 
+          (
+          COLOR&#160;
+          bgColor)
+Change the background color of the text printed with screen.consoleprint(). 
+Parameters
+    bgColorEl nuevo color del fondo del texto. Ignorar este argumento, o establecer un color completamente transparente (alpha = 0) desactiva el fondo del texto impreso. 
+ReturnsNothing. 
+          NUMBER screen.consolexy 
+          (
+          )
+Gets the cursor position used by screen.consoleprint() (column and row). 
+Returns2 numbers. First one means column, and the second the row. 
+          NIL screen.consolexy 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y&#160;
+          )
+Sets the cursor position used by screen.consoleprint() (column and row). 
+Parameters
+    xThe new cursor horizontal position (column). 
+    yThe new cursor vertical position (row). 
+ReturnsNothing. 
+          NUMBER screen.fps 
+          (
+          )
+Computes the screen frames per second (fps). 
+ReturnsThe actual framerate. 
+          NIL screen.bilinear 
+          (
+          NUMBER&#160;
+          state)
+Enables the bilinear filter (smoothing). 
+Parameters
+    stateOne of these values:
+1: Enable.
+0: Disable.
+WarningThis function could make the text blurry, so is not recommended leave it enabled unless needed. 
+ReturnsNothing. 
+          NUMBER screen.brightness 
+          (
+          )
+Gets the screen brightness. 
+ReturnsThe actual screen brightness. 
+          NIL screen.brightness 
+          (
+          NUMBER&#160;
+          bright)
+Sets the screen brightness. 
+Parameters
+    brightThe new value for the screen brightness. 
+ReturnsNothing. 
+          NIL screen.display 
+          (
+          NUMBER&#160;
+          mode)
+Enable or Disable the screen. 
+Parameters
+    modeAny of the following values:
+1: Enable.
+0: Disable.
+NoteCommon use is energy saving. 
+ReturnsNothing. 
+          NIL screen.flip 
+          (
+          )
+Refresh the screen. Any modifications made to it (display pictures, drawn shapes or text) will not be visible until this function is called . 
+ReturnsNothing. 

@@ -1,0 +1,90 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__sfont.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+sfont  
+Functions
+SFONT&#160;sfont.load (STRING path)
+&#160;Load a SFont ready to use.  More...
+&#160;
+NUMBER&#160;sfont.print (SFONT sfnt, NUMBER x, NUMBER y, STRING txt)
+&#160;Print screen text using the previously loaded Sfont.  More...
+&#160;
+NUMBER&#160;sfont.letters (SFONT sfnt)
+&#160;amount of characters of the Sfont object.  More...
+&#160;
+NUMBER&#160;sfont.width (SFONT sfnt, STRING txt)
+&#160;Sfont object text width.  More...
+&#160;
+Detailed Description
+Sfont functions. 
+Function Documentation
+          SFONT sfont.load 
+          (
+          STRING&#160;
+          path)
+Load a SFont ready to use. 
+Parameters
+    pathSfont Path. 
+ReturnsSfont-type object. 
+          NUMBER sfont.print 
+          (
+          SFONT&#160;
+          sfnt, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          STRING&#160;
+          txt&#160;
+          )
+Print screen text using the previously loaded Sfont. 
+Parameters
+    sfntSfont-type object. 
+    xX Coordinate where text will be printed. 
+    yY Coordinate where text will be printed.. 
+    txtText to print. 
+ReturnsMessage final position(X coordinate). 
+          NUMBER sfont.letters 
+          (
+          SFONT&#160;
+          sfnt)
+amount of characters of the Sfont object. 
+Parameters
+    sfntSfont-type Object. 
+ReturnsAmount of characters which Sfont object contains. 
+          NUMBER sfont.width 
+          (
+          SFONT&#160;
+          sfnt, 
+          STRING&#160;
+          txt&#160;
+          )
+Sfont object text width. 
+Parameters
+    sfntSfont object. 
+    txtText to calculate the width. 
+ReturnsText width (pixels). 

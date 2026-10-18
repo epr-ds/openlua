@@ -1,0 +1,110 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__ini.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+ini  
+Functions
+STRING&#160;ini.read (STRING path, STRING section, STRING key, STRING default)
+&#160;Read an entry of a Ini file.  More...
+&#160;
+STRING&#160;ini.read (STRING path, STRING key, STRING default)
+&#160;Read an entry of a Ini file (without section).  More...
+&#160;
+NIL&#160;ini.write (STRING path, STRING section, STRING key, STRING data)
+&#160;Write data into ini file.  More...
+&#160;
+NIL&#160;ini.write (STRING path, STRING key, STRING data)
+&#160;Write data into ini file without including section.  More...
+&#160;
+Detailed Description
+Ini files functions. 
+Function Documentation
+          STRING ini.read 
+          (
+          STRING&#160;
+          path, 
+          STRING&#160;
+          section, 
+          STRING&#160;
+          key, 
+          STRING&#160;
+          default&#160;
+          )
+Read an entry of a Ini file. 
+Parameters
+    pathPath of the ini file. 
+    sectionSection name. 
+    keyKey name. 
+    defaultDefault value returned if key not found. 
+ReturnsValue found due the key or default value. 
+          STRING ini.read 
+          (
+          STRING&#160;
+          path, 
+          STRING&#160;
+          key, 
+          STRING&#160;
+          default&#160;
+          )
+Read an entry of a Ini file (without section). 
+Parameters
+    pathPath of the ini file. 
+    keyKey name. 
+    defaultDefault value returned if key not found. 
+ReturnsValue found or default value. 
+          NIL ini.write 
+          (
+          STRING&#160;
+          path, 
+          STRING&#160;
+          section, 
+          STRING&#160;
+          key, 
+          STRING&#160;
+          data&#160;
+          )
+Write data into ini file. 
+Parameters
+    pathPath of the ini file. 
+    sectionSection name. 
+    keyKey name. 
+    dataData to write or save into the ini. 
+ReturnsNothing. 
+          NIL ini.write 
+          (
+          STRING&#160;
+          path, 
+          STRING&#160;
+          key, 
+          STRING&#160;
+          data&#160;
+          )
+Write data into ini file without including section. 
+Parameters
+    pathPath of the ini file. 
+    keyKey name. 
+    dataData to write or save into the ini. 
+ReturnsNothing. 

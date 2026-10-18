@@ -1,0 +1,115 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__sio.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+sio  
+Functions
+NUMBER&#160;sio.init ()
+&#160;Loads and starts the module.  More...
+&#160;
+NIL&#160;sio.baud (NUMBER baud)
+&#160;Sets the port baud rate (speed).  More...
+&#160;
+NIL&#160;sio.available ()
+&#160;Gets the number of bytes (characters) available for reading from the SIO port.  More...
+&#160;
+NUMBER&#160;sio.read ()
+&#160;Receives an ASCII char.  More...
+&#160;
+NIL&#160;sio.write (NUMBER data)
+&#160;Sends an ASCII char.  More...
+&#160;
+NIL&#160;sio.print (STRING msg)
+&#160;Sends a message.  More...
+&#160;
+NIL&#160;sio.putstring (STRING data, NUMBER len)
+&#160;Converts a message to ASCII, and sends it.  More...
+&#160;
+NUMBER&#160;sio.term ()
+&#160;Closes the port and stops the module.  More...
+&#160;
+Detailed Description
+Serial In Out (SIO) port. 
+Function Documentation
+          NUMBER sio.init 
+          (
+          )
+Loads and starts the module. 
+NoteYou only need to call this function once. 
+Returns1 if the module was started successfully, 0 otherwise. 
+          NIL sio.baud 
+          (
+          NUMBER&#160;
+          baud)
+Sets the port baud rate (speed). 
+Parameters
+    baudThe port baud rate. 
+NoteThere is no predetermined baud rate, should be changed to match the connected device. 
+ReturnsNothing. 
+          NIL sio.available 
+          (
+          )
+Gets the number of bytes (characters) available for reading from the SIO port. 
+NoteData are treated who have already arrived and is stored in the reception buffer SIO (Size: 1024 bytes). 
+ReturnsThe number of bytes in buffer or 0. 
+          NUMBER sio.read 
+          (
+          )
+Receives an ASCII char. 
+ReturnsA number between 0 and 255, or -1 if nothing is in buffer. 
+          NIL sio.write 
+          (
+          NUMBER&#160;
+          data)
+Sends an ASCII char. 
+Parameters
+    dataThe data to send (0-255). 
+ReturnsNothing. 
+          NIL sio.print 
+          (
+          STRING&#160;
+          msg)
+Sends a message. 
+Parameters
+    msgThe message to send. 
+ReturnsNothing. 
+          NIL sio.putstring 
+          (
+          STRING&#160;
+          data, 
+          NUMBER&#160;
+          len&#160;
+          )
+Converts a message to ASCII, and sends it. 
+Parameters
+    dataThe data to send. 
+    lenThe len of the data to send. 
+ReturnsNothing. 
+          NUMBER sio.term 
+          (
+          )
+Closes the port and stops the module. 
+Returns1 if the module was stoped successfully, 0 otherwise. 

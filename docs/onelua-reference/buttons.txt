@@ -1,0 +1,168 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__buttons.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+buttons  
+Functions
+NIL&#160;buttons.read ()
+&#160;Read the press of the buttons, saving the results in boolean constants. Thus, to determine whether you have pressed the R key, for example, will check the state of buttons.r constants directly. This is the list of the avaible constants:  More...
+&#160;
+NIL&#160;buttons.interval (NUMBER delay, NUMBER interval)
+&#160;Activate the function Autorepeat.  More...
+&#160;
+NIL&#160;buttons.interval ()
+&#160;Disables the function Autorepeat.  More...
+&#160;
+NUMBER&#160;buttons.waitforkey ()
+&#160;Stop the script execution until a control is pressed.  More...
+&#160;
+NIL&#160;buttons.waitforkey (NUMBER key)
+&#160;Stop the script execution until the indicated control is pressed (is not possible to use a control combination).  More...
+&#160;
+NIL&#160;buttons.analogtodpad (NUMBER deadzone)
+&#160;Active the analog to digital control conversion (disabled as default). When is enabled and the analog moves enough, the console "will think" it's pressing the corresponding digital directional button.  More...
+&#160;
+NIL&#160;buttons.homepopup (NUMBER state)
+&#160;Disable/enable the homescreen.  More...
+&#160;
+NUMBER&#160;buttons.assign ()
+&#160;It allows to know the allocation button.  More...
+&#160;
+Detailed Description
+Physical controls managing. 
+Function Documentation
+          NIL buttons.read 
+          (
+          )
+Read the press of the buttons, saving the results in boolean constants. Thus, to determine whether you have pressed the R key, for example, will check the state of buttons.r constants directly. This is the list of the avaible constants: 
+select
+start
+up
+down
+left
+l
+r
+triangle
+circle
+cross
+square
+hold
+play (in the wired control).
+forward (in the wired control).
+back (in the wired control).
+volup (in the wired control).
+voldown (in the wired control).
+hold (in the wired control).
+wlan (switch WiFi).
+rmexists (detects if the wired control is connected).
+analogx
+analogy
+released (newly released buttons)
+Same previous constants, but wlan, rmexists, analogx and analogy.
+held (buttons are held pressed)
+Same previous constants, but wlan, rmexists, analogx and analogy.
+	  msg, contador = true, 0	--2 simple variables...
+	  while true do
+		buttons.read()	--That's it... reading the buttons
+		  if buttons.cross then msg = not msg end	--Simple X pulsation
+			if buttons.held.up then contador = contador + 1 end	--arrows held pulsation
+			if buttons.held.down then contador = contador - 1 end
+		  if buttons.released.start then break end	--press & release Start to exit
+		  if msg then screen.print(5, 35, "Press X to make me invisible/visible!" ) end
+			screen.print(5, 5, "Up/Down to modify the counter\ncurrent value: "..contador)
+			  screen.print(5, 50, "Analog\nX: "..buttons.analogx.. "\nY: "..buttons.analogy)
+			screen.print(5, 95, "Press Start to exit")
+		screen.flip()
+	  end
+ NoteAs you can see, analogx and analogy aren't boolean, they're numbers from -128 to 127 which represents the position of the analog controller. Positive is right (for X) and down (for Y). 
+ReturnsNothing. 
+          NIL buttons.interval 
+          (
+          NUMBER&#160;
+          delay, 
+          NUMBER&#160;
+          interval&#160;
+          )
+Activate the function Autorepeat. 
+Parameters
+    delayIt is the delay measured in cycles (A typical value here is 40). 
+    intervalIt is the repeat interval measured in cycles (A typical value here is 10). 
+NoteTypical keys the user would expect to be auto-repeated are: up, down, right, left, L and R. 
+ReturnsNothing. 
+          NIL buttons.interval 
+          (
+          )
+Disables the function Autorepeat. 
+ReturnsNothing. 
+          NUMBER buttons.waitforkey 
+          (
+          )
+Stop the script execution until a control is pressed. 
+ReturnsNumerical code belonging to the control that is pressed (Same as the constants). 
+          NIL buttons.waitforkey 
+          (
+          NUMBER&#160;
+          key)
+Stop the script execution until the indicated control is pressed (is not possible to use a control combination). 
+Parameters
+    keySome of these constants(in parentheses their numeric values):
+__SELECT (1)
+__START (4)
+__UP (5)
+__RIGHT (6)
+__DOWN (7)
+__LEFT (8)
+__L (9)
+__R (10)
+__TRIANGLE (13)
+__CIRCLE (14)
+__CROSS (15)
+__SQUARE (16)
+__HOLD (18) 
+ReturnsNothing. 
+          NIL buttons.analogtodpad 
+          (
+          NUMBER&#160;
+          deadzone)
+Active the analog to digital control conversion (disabled as default). When is enabled and the analog moves enough, the console "will think" it's pressing the corresponding digital directional button. 
+Parameters
+    deadzoneSensitivity of the conversion, a number from 1 to 127 (while number is higher the sensitivity is lower. A common value is 30). Ignoring this argument (or value 0) will disable the conversion. 
+ReturnsNothing 
+          NIL buttons.homepopup 
+          (
+          NUMBER&#160;
+          state)
+Disable/enable the homescreen. 
+Parameters
+    state2 options:
+0: Disable the homescreen.
+1: Enable the homescreen.
+ReturnsNothing. 
+          NUMBER buttons.assign 
+          (
+          )
+It allows to know the allocation button. 
+Returns1. If the button assignment is X or 0 if the button assignment is or. 

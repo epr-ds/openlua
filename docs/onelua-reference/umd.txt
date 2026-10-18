@@ -1,0 +1,127 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__umd.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+umd  
+Functions
+BOOLEAN&#160;umd.init ()
+&#160;Initializes UMD acces.  More...
+&#160;
+BOOLEAN&#160;umd.present ()
+&#160;UMD inserted into the PSP.  More...
+&#160;
+STRING&#160;umd.size ()
+&#160;Calculates the inserted UMD size.  More...
+&#160;
+STRING&#160;umd.type ()
+&#160;UMD type.  More...
+&#160;
+STRING&#160;umd.gameid ()
+&#160;UMD GAMEID.  More...
+&#160;
+TABLE&#160;umd.info ()
+&#160;Obtains UMD info (only works for GAME UMDs).  More...
+&#160;
+NUMBER&#160;umd.dumpiso (STRING path)
+&#160;Dump UMD.  More...
+&#160;
+NIL&#160;umd.launch ()
+&#160;Run the UMD.  More...
+&#160;
+NIL&#160;umd.term ()
+&#160;Finishes the UMD access.  More...
+&#160;
+Detailed Description
+UMD functions 
+Function Documentation
+          BOOLEAN umd.init 
+          (
+          )
+Initializes UMD acces. 
+Returnstrue/false According to whether if inilitialize correctly. 
+NoteFor initializing correctly must have an UMD into the console. 
+          BOOLEAN umd.present 
+          (
+          )
+UMD inserted into the PSP. 
+Returnstrue/false According to whether if is an UMD into the console. 
+          STRING umd.size 
+          (
+          )
+Calculates the inserted UMD size. 
+ReturnsTotal size of the UMD in format STRING rounded 4 decimals. 
+          STRING umd.type 
+          (
+          )
+UMD type. 
+ReturnsSTRING indicating UMD type: "GAME", "VIDEO", "AUDIO" or "-". 
+          STRING umd.gameid 
+          (
+          )
+UMD GAMEID. 
+ReturnsThe UMD GAMEID. For example: "ULUS99999" 
+          TABLE umd.info 
+          (
+          )
+Obtains UMD info (only works for GAME UMDs). 
+ReturnsA table with these fields:
+APP_VER
+BOOTABLE
+CATEGORY
+DISC_ID
+DISC_NUMBER
+DISC_TOTAL
+DISC_VERSION
+GAMEDATA_ID
+HRKGMP_VER
+PARENTAL_LEVEL
+PSP_SYSTEM_VER
+REGION
+TITLE
+USE_USB
+WarningThe previous list show the most common fields, however, the returned table couldn't have all the listed fields, or even it could have other non-listed fields, so is very important to make sure any field exists before use it. 
+          NUMBER umd.dumpiso 
+          (
+          STRING&#160;
+          path)
+Dump UMD. 
+Parameters
+    pathPath where backup will be generated, it must exist and must finalize with "/". For example:("ms0:/ISO/"). 
+Note
+Path cannot have name, the GAMEID is being concatenated to the path: "ms0:/ISO/ULUS99999.ISO".
+This function can use the onDumpUmd() callback, more information here .
+Returnsa number, 1 if success, 0 otherwise. 
+          NIL umd.launch 
+          (
+          )
+Run the UMD. 
+ReturnsNothing. 
+NoteOnly run GAME UMD. 
+          NIL umd.term 
+          (
+          )
+Finishes the UMD access. 
+ReturnsNothing. 

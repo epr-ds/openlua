@@ -1,0 +1,468 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__os.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+os  
+Functions
+NIL&#160;os.debug ()
+&#160;Enables the editor in the error screen (Debugger), to edit the script.  More...
+&#160;
+NIL&#160;os.modetv (NUMBER quality)
+&#160;Enables TV out.  More...
+&#160;
+NIL&#160;os.modetv ()
+&#160;Disables TV out.  More...
+&#160;
+NUMBER&#160;os.cabletv ()
+&#160;Allows it to recognize video cable type connected.  More...
+&#160;
+NIL&#160;os.delay (NUMBER milliseconds)
+&#160;Allows a system delay.  More...
+&#160;
+STRING&#160;os.cfw ()
+&#160;Identifies the Custom Firmware (CFW) or HEN installed.  More...
+&#160;
+STRING&#160;os.versiontxt ()
+&#160;The version.txt obtained of the file flash0:/etc/version.txt.  More...
+&#160;
+STRING&#160;os.nick ()
+&#160;User Nick.  More...
+&#160;
+STRING&#160;os.mac ()
+&#160;Obtains the MAC adress of the console.  More...
+&#160;
+STRING&#160;os.language ()
+&#160;The Language set in the PSP.  More...
+&#160;
+STRING&#160;os.password ()
+&#160;Gets the console password.  More...
+&#160;
+NUMBER&#160;os.ram ()
+&#160;Obtains the free RAM.  More...
+&#160;
+NUMBER&#160;os.totalram ()
+&#160;Obtains the total amount of RAM.  More...
+&#160;
+NUMBER&#160;os.cpu ()
+&#160;The actual CPU velocity.  More...
+&#160;
+NIL&#160;os.cpu (NUMBER speed)
+&#160;Change or set up the CPU velocity to the specified velocity.  More...
+&#160;
+NUMBER&#160;os.bus ()
+&#160;Actual CPU frequency.  More...
+&#160;
+STRING&#160;os.getdate ()
+&#160;Current date and time.  More...
+&#160;
+TABLE&#160;os.infoms0 ()
+&#160;Gets the information of the storage capacity of the memory stick (ms0).  More...
+&#160;
+TABLE&#160;os.infoef0 ()
+&#160;Gets the information of the storage capacity of the internal memory of the PSP Go(ef0).  More...
+&#160;
+NIL&#160;os.message (STRING mje)
+&#160;Show a message.  More...
+&#160;
+NUMBER&#160;os.message (STRING mje, NUMBER mode)
+&#160;Show a message.  More...
+&#160;
+NUMBER&#160;os.messagebox (STRING title, STRING mje)
+&#160;Displays a message box-shaped screen.  More...
+&#160;
+NUMBER&#160;os.messagebox (STRING title, STRING mje, NUMBER button1, NUMBER assigned1)
+&#160;Displays a message box-shaped screen.  More...
+&#160;
+NUMBER&#160;os.messagebox (STRING title, STRING mje, NUMBER button1, NUMBER assigned1, NUMBER button2, NUMBER assigned2)
+&#160;Displays a message box-shaped screen.  More...
+&#160;
+NUMBER&#160;os.messagebox (STRING title, STRING mje, NUMBER button1, NUMBER assigned1, NUMBER button2, NUMBER assigned2, NUMBER button3, NUMBER assigned3)
+&#160;Displays a message box-shaped screen.  More...
+&#160;
+NIL&#160;os.restart ()
+&#160;Restart the homebrew.  More...
+&#160;
+NIL&#160;os.exit ()
+&#160;Closes the homebrew.  More...
+&#160;
+NUMBER&#160;os.initprx (STRING path, STRING argv)
+&#160;Allows to load and start an external prx module.  More...
+&#160;
+BOOLEAN&#160;os.stopprx (NUMBER id)
+&#160;Allows you to download and complete a module external prx.  More...
+&#160;
+NUMBER&#160;os.requiere (STRING path)
+&#160;Allows to use ONELua API to add external modules.  More...
+&#160;
+Detailed Description
+OS functions. 
+Function Documentation
+          NIL os.debug 
+          (
+          )
+Enables the editor in the error screen (Debugger), to edit the script. 
+ReturnsNothing. 
+          NIL os.modetv 
+          (
+          NUMBER&#160;
+          quality)
+Enables TV out. 
+Parameters
+    qualityThe pixels quality.
+__8888 (32 bits RGBA)
+__4444 (16 bits R4G4B4A4)
+__5551 (16 bits R5G5B5A1)
+__5650 (16 bits R5G5B5, no alpha channel)
+NoteRequires dvemgr.prx on the location of the pbp, is attached at the discharge and is the same found in daedalus emulator. 
+ReturnsNothing. 
+          NIL os.modetv 
+          (
+          )
+Disables TV out. 
+NoteRestart the scene and reload 3d objects after this function is used. 
+ReturnsNothing. 
+          NUMBER os.cabletv 
+          (
+          )
+Allows it to recognize video cable type connected. 
+ReturnsNumber, Returns a numeric value associated with the cable connected:
+0: No cable connected.
+1: S-Video/AV (composite).
+2: D Terminal Cable/Component Cable. 
+          NIL os.delay 
+          (
+          NUMBER&#160;
+          milliseconds)
+Allows a system delay. 
+Parameters
+    millisecondsDelay duration (in milliseconds). 
+ReturnsNothing. 
+          STRING os.cfw 
+          (
+          )
+Identifies the Custom Firmware (CFW) or HEN installed. 
+ReturnsThe version of the Custom Firmware (CFW) or HEN installed (doesn't recognize specifical versions: PRO-C1, PRO-C2, ME1.8, etc).
+"5.00 M33-X"
+"5.03 GEN"
+"5.50 GEN"
+"6.20 PRO-X"
+"6.20 ME/LME"
+"6.20 TN-X"
+"6.35 PRO-X"
+"6.35 Custom"
+"6.37 ME"
+"6.38 ME"
+"6.39 PRO-X"
+"6.39 TN"
+"6.39 ME-X"
+"6.39 PRO-X"
+"6.39 ME-9.1"
+"6.39 ME-9.2"
+"6.39 ME-9.X"
+"6.39 TN"
+"6.60 PRO-A"
+"6.60 PRO-B"
+"6.60 PRO-C"
+"6.60 ME/LME"
+"6.61 PRO-A"
+"6.61 PRO-B"
+"6.61 PRO-C"
+"6.61 ME/LME"
+"eCFW TN-VX.X"
+"eCFW ARK"
+"VHBL"
+"UNK"
+"PPSSPP"
+          STRING os.versiontxt 
+          (
+          )
+The version.txt obtained of the file flash0:/etc/version.txt. 
+ReturnsThe content of the file version.txt (only is accessible in read-only mode). 
+          STRING os.nick 
+          (
+          )
+User Nick. 
+ReturnsThe User's Nick configured in the PSP. 
+          STRING os.mac 
+          (
+          )
+Obtains the MAC adress of the console. 
+ReturnsThe MAC adress in format: XX:XX:XX:XX:XX:XX 
+          STRING os.language 
+          (
+          )
+The Language set in the PSP. 
+ReturnsThe stablished language in the PSP (capital letters). 
+          STRING os.password 
+          (
+          )
+Gets the console password. 
+ReturnsThe password configured in the console. 
+          NUMBER os.ram 
+          (
+          )
+Obtains the free RAM. 
+ReturnsThe amount of free RAM in bytes. 
+          NUMBER os.totalram 
+          (
+          )
+Obtains the total amount of RAM. 
+ReturnsThe total amount of RAM in bytes (calculated when ONElua starts). 
+          NUMBER os.cpu 
+          (
+          )
+The actual CPU velocity. 
+ReturnsThe actual CPU velocity (from 1 to 333). 
+NoteMust use with os.bus() for obtain the result like this: CPU/BUS = 333/166. 
+          NIL os.cpu 
+          (
+          NUMBER&#160;
+          speed)
+Change or set up the CPU velocity to the specified velocity. 
+Parameters
+    speedNew CPU clock velocity, from 1 to 333. 
+ReturnsNothing. 
+          NUMBER os.bus 
+          (
+          )
+Actual CPU frequency. 
+ReturnsThe actual CPU frequency (from 1 to 166). 
+NoteMust use with os.cpu() for obtain the result like this: CPU/BUS = 333/166. 
+          STRING os.getdate 
+          (
+          )
+Current date and time. 
+ReturnsThe current date and time set on the PSP in format: "DD/MM/YYYY @ HH:MM:SS" 
+          TABLE os.infoms0 
+          (
+          )
+Gets the information of the storage capacity of the memory stick (ms0). 
+ReturnsA table with these fields:
+max: Maximum capacity of the memory stick (bytes).
+free: Free capacity of the memory stick (bytes).
+used: Used capacity of the memory stick (bytes). 
+          TABLE os.infoef0 
+          (
+          )
+Gets the information of the storage capacity of the internal memory of the PSP Go(ef0). 
+ReturnsA table with these fields:
+max: Maximum capacity of the memory stick (bytes).
+free: Free capacity of the memory stick (bytes).
+used: Used capacity of the memory stick (bytes).
+          NIL os.message 
+          (
+          STRING&#160;
+          mje)
+Show a message. 
+Parameters
+    mjeThe message to show. 
+ReturnsNothing. 
+NoteOnly show "Accept" option. 
+          NUMBER os.message 
+          (
+          STRING&#160;
+          mje, 
+          NUMBER&#160;
+          mode&#160;
+          )
+Show a message. 
+Parameters
+    mjeThe message to show. 
+    modeNumeric value: 1 for advanced message (with YES or NO options). 
+ReturnsA numeric value according to the message reply:
+1: If the reply is YES.
+0: If the reply is NO.
+-1: If is CANCELLED.
+          NUMBER os.messagebox 
+          (
+          STRING&#160;
+          title, 
+          STRING&#160;
+          mje&#160;
+          )
+Displays a message box-shaped screen. 
+Parameters
+    titleIt is the title bar text box. 
+    mjeThe message text to display. 
+NoteBy placing only the Title and Message as default arguments will be shown two boxes of buttons:
+X to OK
+O to CANCEL
+ReturnsA numerical value according to the button pressed.
+1: When the answer is OK (When you press the button X).
+2: When the answer is CANCEL (When you press the button O).
+See the following sample  for more details. 
+          NUMBER os.messagebox 
+          (
+          STRING&#160;
+          title, 
+          STRING&#160;
+          mje, 
+          NUMBER&#160;
+          button1, 
+          NUMBER&#160;
+          assigned1&#160;
+          )
+Displays a message box-shaped screen. 
+Parameters
+    titleIt is the title bar text box. 
+    mjeThe message text to display. 
+    button1Button to show. 
+    assigned1Allocation Button to show (button1). 
+NoteFor values of the buttons can be used the same constants buttons.read() buttons except: HOME, NOTE y HOLD. 
+For mapping values to 5 constants can be possible (in parentheses its numerical value):
+__OK (1)
+__CANCEL (2)
+__YES (3)
+__NO (4)
+__EXIT (5) 
+ReturnsNumber, a numerical value according to the button assigned.
+1 For botón assigned __OK.
+2 For botón assigned __CANCEL.
+3 For botón assigned __YES.
+4 For botón assigned __NO
+5 For botón assigned __EXIT
+NoteIf the answer is the value __EXIT It will not return anything, as will the XMB.
+See the following sample  for more details. 
+          NUMBER os.messagebox 
+          (
+          STRING&#160;
+          title, 
+          STRING&#160;
+          mje, 
+          NUMBER&#160;
+          button1, 
+          NUMBER&#160;
+          assigned1, 
+          NUMBER&#160;
+          button2, 
+          NUMBER&#160;
+          assigned2&#160;
+          )
+Displays a message box-shaped screen. 
+Parameters
+    titleIt is the title bar text box. 
+    mjeThe message text to display. 
+    button1Button to show. 
+    assigned1Allocation Button to show (button1). 
+    button2Button to show. 
+    assigned2Allocation Button to show (button2). 
+NoteFor values of the buttons can be used the same constants buttons.read() buttons except: HOME, NOTE y HOLD. 
+For mapping values to 5 constants can be possible (in parentheses its numerical value):
+__OK (1)
+__CANCEL (2)
+__YES (3)
+__NO (4)
+__EXIT (5) 
+ReturnsNumber, a numerical value according to the button assigned.
+1 For botón assigned __OK.
+2 For botón assigned __CANCEL.
+3 For botón assigned __YES.
+4 For botón assigned __NO
+5 For botón assigned __EXIT
+NoteIf the answer is the value __EXIT It will not return anything, as will the XMB.
+See the following sample  for more details. 
+          NUMBER os.messagebox 
+          (
+          STRING&#160;
+          title, 
+          STRING&#160;
+          mje, 
+          NUMBER&#160;
+          button1, 
+          NUMBER&#160;
+          assigned1, 
+          NUMBER&#160;
+          button2, 
+          NUMBER&#160;
+          assigned2, 
+          NUMBER&#160;
+          button3, 
+          NUMBER&#160;
+          assigned3&#160;
+          )
+Displays a message box-shaped screen. 
+Parameters
+    titleIt is the title bar text box. 
+    mjeThe message text to display. 
+    button1Button to show. 
+    assigned1Allocation Button to show (button1). 
+    button2Button to show. 
+    assigned2Allocation Button to show (button2). 
+    button3Button to show. 
+    assigned3Allocation Button to show (button3). 
+NoteFor values of the buttons can be used the same constants buttons.read() buttons except: HOME, NOTE y HOLD. 
+For mapping values to 5 constants can be possible (in parentheses its numerical value):
+__OK (1)
+__CANCEL (2)
+__YES (3)
+__NO (4)
+__EXIT (5) 
+ReturnsNumber, a numerical value according to the button assigned.
+1 For botón assigned __OK.
+2 For botón assigned __CANCEL.
+3 For botón assigned __YES.
+4 For botón assigned __NO
+5 For botón assigned __EXIT
+NoteIf the answer is the value __EXIT It will not return anything, as will the XMB.
+See the following sample  for more details. 
+          NIL os.restart 
+          (
+          )
+Restart the homebrew. 
+ReturnsNothing. 
+          NIL os.exit 
+          (
+          )
+Closes the homebrew. 
+ReturnsNothing. 
+          NUMBER os.initprx 
+          (
+          STRING&#160;
+          path, 
+          STRING&#160;
+          argv&#160;
+          )
+Allows to load and start an external prx module. 
+Parameters
+    pathPath to the prx. 
+    argvOptionally, you can send a string as an argument to the module. 
+ReturnsA numerical value, in this case id, 0 in case of error, or greater success. 
+          BOOLEAN os.stopprx 
+          (
+          NUMBER&#160;
+          id)
+Allows you to download and complete a module external prx. 
+Parameters
+    idid of the prx. 
+Returnstrue if success, false otherwise. 
+          NUMBER os.requiere 
+          (
+          STRING&#160;
+          path)
+Allows to use ONELua API to add external modules. 
+Parameters
+    pathPath to the prx. 
+Returns1 if success, 0 otherwise. 

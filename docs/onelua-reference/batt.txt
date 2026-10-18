@@ -1,0 +1,180 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__batt.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+battery  
+Functions
+BOOLEAN&#160;batt.exists ()
+&#160;Battery connected into the PSP.  More...
+&#160;
+BOOLEAN&#160;batt.charging ()
+&#160;Charging Battery.  More...
+&#160;
+NUMBER&#160;batt.lifepercent ()
+&#160;Remaining percentage (%).  More...
+&#160;
+NUMBER&#160;batt.lifetimemin ()
+&#160;Remaining time (min).  More...
+&#160;
+STRING&#160;batt.lifetime ()
+&#160;Remaining time (hour:min).  More...
+&#160;
+NUMBER&#160;batt.temp ()
+&#160;Battery temperature.  More...
+&#160;
+STRING&#160;batt.volt ()
+&#160;Battery voltage.  More...
+&#160;
+STRING&#160;batt.remaincap ()
+&#160;Remaining capacity of the battery.  More...
+&#160;
+STRING&#160;batt.fullcap ()
+&#160;Total capacity of the battery.  More...
+&#160;
+BOOLEAN&#160;batt.low ()
+&#160;Low Battery.  More...
+&#160;
+STRING&#160;batt.serial ()
+&#160;Allows to know the serial number of the Battery.  More...
+&#160;
+STRING&#160;batt.mode ()
+&#160;The mode in which the battery is.  More...
+&#160;
+NUMBER&#160;batt.tonormal ()
+&#160;Converts the battery to "NORMAL" mode.  More...
+&#160;
+NUMBER&#160;batt.topandora ()
+&#160;Converts the battery to "PANDORA" mode.  More...
+&#160;
+NUMBER&#160;batt.toautoboot ()
+&#160;Converts the battery to "AUTOBOOT" mode.  More...
+&#160;
+NUMBER&#160;batt.backupbat (STRING path)
+&#160;Makes an EEPROM backup.  More...
+&#160;
+NUMBER&#160;batt.restorebat (STRING path)
+&#160;Restores an EEPROM backup.  More...
+&#160;
+Detailed Description
+Battery functions. 
+Function Documentation
+          BOOLEAN batt.exists 
+          (
+          )
+Battery connected into the PSP. 
+Returnstrue/false If Battery is connected or not. 
+          BOOLEAN batt.charging 
+          (
+          )
+Charging Battery. 
+Returnstrue/false If Battery is charging or not. 
+          NUMBER batt.lifepercent 
+          (
+          )
+Remaining percentage (%). 
+ReturnsRemaining percentage of our Battery [0-100]%. 
+          NUMBER batt.lifetimemin 
+          (
+          )
+Remaining time (min). 
+ReturnsRemaining time of our battery in minutes. 
+          STRING batt.lifetime 
+          (
+          )
+Remaining time (hour:min). 
+ReturnsRemaining time of our battery in hours and minutes. 
+          NUMBER batt.temp 
+          (
+          )
+Battery temperature. 
+ReturnsBattery temperature in degrees (ºC). 
+          STRING batt.volt 
+          (
+          )
+Battery voltage. 
+ReturnsBattery voltage in volts, or "-" if an error has occurred. 
+          STRING batt.remaincap 
+          (
+          )
+Remaining capacity of the battery. 
+ReturnsRemaining charge capacity of the battery (mAh), or "-" if an error has occurred. 
+          STRING batt.fullcap 
+          (
+          )
+Total capacity of the battery. 
+ReturnsTotal charge capacity of the battery (mAh), or "-" if an error has occurred. 
+          BOOLEAN batt.low 
+          (
+          )
+Low Battery. 
+Returnstrue/false If our battery level is low or not. 
+          STRING batt.serial 
+          (
+          )
+Allows to know the serial number of the Battery. 
+ReturnsBattery serial number. 
+          STRING batt.mode 
+          (
+          )
+The mode in which the battery is. 
+ReturnsMode of the battery:
+"PANDORA"
+"AUTOBOOT"
+"NORMAL"
+"-"
+          NUMBER batt.tonormal 
+          (
+          )
+Converts the battery to "NORMAL" mode. 
+Returns1 if success, 0 otherwise. 
+          NUMBER batt.topandora 
+          (
+          )
+Converts the battery to "PANDORA" mode. 
+Returns1 if success, 0 otherwise. 
+          NUMBER batt.toautoboot 
+          (
+          )
+Converts the battery to "AUTOBOOT" mode. 
+Returns1 if success, 0 otherwise. 
+          NUMBER batt.backupbat 
+          (
+          STRING&#160;
+          path)
+Makes an EEPROM backup. 
+Parameters
+    pathThe path to save the backup. 
+NoteThe filename should have the extension (.bin). Example: "ms0:/eeprom.bin" 
+Returns1 if success, 0 otherwise. 
+          NUMBER batt.restorebat 
+          (
+          STRING&#160;
+          path)
+Restores an EEPROM backup. 
+Parameters
+    pathThe path to the backup. 
+NoteThe filename should have the extension (.bin). Example: "ms0:/eeprom.bin" 
+Returns1 if success, 0 otherwise. 

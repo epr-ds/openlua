@@ -1,0 +1,465 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__files.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+files  
+Functions
+BOOLEAN&#160;files.exists (STRING path)
+&#160;Allows to find if a file or folder exists.  More...
+&#160;
+STRING&#160;files.cdir ()
+&#160;Allows to know the actual work path.  More...
+&#160;
+NIL&#160;files.cdir (STRING path)
+&#160;Change the work path to the specified path.  More...
+&#160;
+STRING&#160;files.nofile (STRING path)
+&#160;Remove the file from a specified path.  More...
+&#160;
+STRING&#160;files.nopath (STRING path)
+&#160;Remove the folder from a specified path.  More...
+&#160;
+NUMBER&#160;files.rename (STRING name, STRING new)
+&#160;Allows to rename a file or folder.  More...
+&#160;
+NUMBER&#160;files.copy (STRING src, STRING dst)
+&#160;Copy a file or folder recursively and overwrite the files in the destination folder.  More...
+&#160;
+NUMBER&#160;files.move (STRING src, STRING dst)
+&#160;Move a file or folder recursively and overwrite the files in the destination folder.  More...
+&#160;
+BOOLEAN&#160;files.delete (STRING path)
+&#160;Delete a file or folder recursively.  More...
+&#160;
+NIL&#160;files.mkdir (STRING path)
+&#160;Create a folder.  More...
+&#160;
+NUMBER&#160;files.size (STRING path)
+&#160;File/Folder Size (Bytes).  More...
+&#160;
+STRING&#160;files.ext (STRING path)
+&#160;Allows to know the extension of a file.  More...
+&#160;
+TABLE&#160;files.list (STRING path)
+&#160;List a directory including folders and files.  More...
+&#160;
+TABLE&#160;files.listfiles (STRING path)
+&#160;List a directory including only files.  More...
+&#160;
+TABLE&#160;files.listdirs (STRING path)
+&#160;List a directory including only folders.  More...
+&#160;
+TABLE&#160;files.scan (STRING src)
+&#160;Gets a content list of a compressed file (zip or rar).  More...
+&#160;
+NUMBER&#160;files.extractfile (STRING src, STRING filename, STRING dst)
+&#160;Extracts an specific file inside a compressed file (zip or rar).  More...
+&#160;
+NUMBER&#160;files.extractfile (STRING src, STRING filename, STRING dst, STRING pass)
+&#160;Extracts an specific file inside a compressed file (zip or rar).  More...
+&#160;
+NUMBER&#160;files.threadextractfile (STRING src, STRING filename, STRING dst)
+&#160;Extracts an specific file inside a compressed file (zip or rar) in mode THREAD.  More...
+&#160;
+NUMBER&#160;files.threadextractfile (STRING src, STRING filename, STRING dst, STRING pass)
+&#160;Extracts an specific file inside a compressed file (zip or rar) in mode THREAD.  More...
+&#160;
+NUMBER&#160;files.extract (STRING src, STRING dst)
+&#160;Function for extracting files in .zip and .rar.  More...
+&#160;
+NUMBER&#160;files.extract (STRING src, STRING dst, STRING pass)
+&#160;Function for extracting files in .zip and .rar.  More...
+&#160;
+NUMBER&#160;files.threadextract (STRING src, STRING dst)
+&#160;Function for extracting files in .zip and .rar in mode THREAD.  More...
+&#160;
+NUMBER&#160;files.threadextract (STRING src, STRING dst, STRING pass)
+&#160;Function for extracting files in .zip and .rar in mode THREAD.  More...
+&#160;
+Detailed Description
+File managing. 
+Function Documentation
+          BOOLEAN files.exists 
+          (
+          STRING&#160;
+          path)
+Allows to find if a file or folder exists. 
+Parameters
+    pathPath of the file or folder. 
+Returnstrue/false Depending on whether the file / folder exists. 
+          STRING files.cdir 
+          (
+          )
+Allows to know the actual work path. 
+ReturnsThe path of our actual directory. 
+          NIL files.cdir 
+          (
+          STRING&#160;
+          path)
+Change the work path to the specified path. 
+Parameters
+    pathThe new work path. 
+ReturnsNothing. 
+          STRING files.nofile 
+          (
+          STRING&#160;
+          path)
+Remove the file from a specified path. 
+Parameters
+    pathThe path of the file / folder. 
+ReturnsThe path name without file. 
+          STRING files.nopath 
+          (
+          STRING&#160;
+          path)
+Remove the folder from a specified path. 
+Parameters
+    pathThe path of the file / folder. 
+ReturnsThe file name. 
+          NUMBER files.rename 
+          (
+          STRING&#160;
+          name, 
+          STRING&#160;
+          new&#160;
+          )
+Allows to rename a file or folder. 
+Parameters
+    nameThe path of the file / folder. 
+    newThe new name of the file / folder. 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.copy 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          dst&#160;
+          )
+Copy a file or folder recursively and overwrite the files in the destination folder. 
+Parameters
+    srcThe path of the file / folder to copy. 
+    dstThe path of the folder destination. 
+NoteThis function can use the onCopyFiles() callback, more info here . 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.move 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          dst&#160;
+          )
+Move a file or folder recursively and overwrite the files in the destination folder. 
+Parameters
+    srcThe path of the file / folder to move. 
+    dstThe path of the folder destination. 
+NoteIf the destination file or path does not exist, the directory will be created. 
+Returns1 if success, 0 otherwise. 
+          BOOLEAN files.delete 
+          (
+          STRING&#160;
+          path)
+Delete a file or folder recursively. 
+Parameters
+    pathThe path of the file / folder. 
+Returnstrue if success, false otherwise. 
+NoteAll folders and files included will be deleted. 
+          NIL files.mkdir 
+          (
+          STRING&#160;
+          path)
+Create a folder. 
+Parameters
+    pathPath of the folder to create. 
+ReturnsNothing. 
+          NUMBER files.size 
+          (
+          STRING&#160;
+          path)
+File/Folder Size (Bytes). 
+Parameters
+    pathFile/Folder Path. 
+ReturnsThe file/folder size in bytes. 
+          STRING files.ext 
+          (
+          STRING&#160;
+          path)
+Allows to know the extension of a file. 
+Parameters
+    pathFile Path 
+Returnsfile extension. 
+          TABLE files.list 
+          (
+          STRING&#160;
+          path)
+List a directory including folders and files. 
+Parameters
+    pathDirectory path. 
+ReturnsA table with these fields:
+name: file or folder name(STRING).
+path: Full path of the file or folder(STRING).
+ctime: The date of creation of the file or folder (STRING).
+atime: The date when last access of the file or folder (STRING).
+mtime: The date when last modification of the file or folder (STRING).
+mode: Those Are the access rights in the following order: "R" for Reading, "W" for Writing and "X" for Executable. In case of not having access will be displayed as follows: "---".
+size: size in bytes, only for files (NUMBER).
+ext: File extension, if available (STRING).
+directory: true/false depending on whether the field is a directory or not (BOOLEAN).
+NoteIf an error occurs will not generate the table, will return nil. 
+          TABLE files.listfiles 
+          (
+          STRING&#160;
+          path)
+List a directory including only files. 
+Parameters
+    pathDirectory path. 
+ReturnsA table with these fields:
+name: file name(STRING).
+path: Full path of the file (STRING).
+ctime: The date of creation of the file(STRING).
+atime: The date when last access of the file (STRING).
+mtime: The date when last modification of the file (STRING).
+mode: Those Are the access rights in the following order: "R" for Reading, "W" for Writing and "X" for Executable. In case of not having access will be displayed as follows: "---".
+size: size in bytes (NUMBER).
+ext: File extension, if available (STRING).
+NoteIf an error occurs will not generate the table, will return nil. 
+          TABLE files.listdirs 
+          (
+          STRING&#160;
+          path)
+List a directory including only folders. 
+Parameters
+    pathDirectory path. 
+ReturnsA table with these fields:
+name: folder name(STRING).
+path: Full path of the folder(STRING).
+ctime: The date of creation of the folder (STRING).
+atime: The date when last access of the folder (STRING).
+mtime: The date when last modification of the folder (STRING).
+mode: Those Are the access rights in the following order: "R" for Reading, "W" for Writing and "X" for Executable. In case of not having access will be displayed as follows: "---".
+NoteIf an error occurs will not generate the table, will return nil. 
+          TABLE files.scan 
+          (
+          STRING&#160;
+          src)
+Gets a content list of a compressed file (zip or rar). 
+Parameters
+    srcPath to the compressed file. 
+ReturnsA table with these fields:
+name: Filename (including the folder name if the file is inside it).
+size: Uncompressed file size in bytes.
+NoteIn case of error returns nil. 
+          NUMBER files.extractfile 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          filename, 
+          STRING&#160;
+          dst&#160;
+          )
+Extracts an specific file inside a compressed file (zip or rar). 
+Parameters
+    srcPath to the compressed file. 
+    filenameFile to extract (can be easily obtained using files.scan()). 
+    dstPath where the file will be extracted. 
+Note
+This function can use the onExtractFiles() callback, more info here .
+If the destination path doesn't exist, will be automatically created. 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.extractfile 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          filename, 
+          STRING&#160;
+          dst, 
+          STRING&#160;
+          pass&#160;
+          )
+Extracts an specific file inside a compressed file (zip or rar). 
+Parameters
+    srcPath to the compressed file. 
+    filenameFile to extract (can be easily obtained using files.scan()). 
+    dstPath where the file will be extracted. 
+    passKey or Password if required. 
+Note
+This function can use the onExtractFiles() callback, more info here .
+If the destination path doesn't exist, will be automatically created. 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.threadextractfile 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          filename, 
+          STRING&#160;
+          dst&#160;
+          )
+Extracts an specific file inside a compressed file (zip or rar) in mode THREAD. 
+Parameters
+    srcPath to the compressed file. 
+    filenameFile to extract (can be easily obtained using files.scan()). 
+    dstPath where the file will be extracted. This is a list of all of the available constants and their values:
+__FILES_THREAD_FILE
+Allows the name of the current file that is this drawing.
+__FILES_THREAD_STATE
+Lets you know the status of the extraction.
+0: no extraction or is starting.
+1: Extraction completed successfully.
+2: Extraction in progress.
+-1: occurred an error in extracting.
+__FILES_THREAD_SIZE
+Allow cononer the number of bytes to extract from the current file.
+__FILES_THREAD_WRITTEN
+Allows to know the number of bytes written for the current file.
+Note
+This function allows you to continue with the script, so it runs on a secondary manner, for greater use, refer to the Examples of use of OneLua examples.
+If the destination path doesn't exist, will be automatically created. 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.threadextractfile 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          filename, 
+          STRING&#160;
+          dst, 
+          STRING&#160;
+          pass&#160;
+          )
+Extracts an specific file inside a compressed file (zip or rar) in mode THREAD. 
+Parameters
+    srcPath to the compressed file. 
+    filenameFile to extract (can be easily obtained using files.scan()). 
+    dstPath where the file will be extracted. 
+    passKey or Password if required. This is a list of all of the available constants and their values:
+__FILES_THREAD_FILE
+Allows the name of the current file that is this drawing.
+__FILES_THREAD_STATE
+Lets you know the status of the extraction.
+0: no extraction or is starting.
+1: Extraction completed successfully.
+2: Extraction in progress.
+-1: occurred an error in extracting.
+__FILES_THREAD_SIZE
+Allow cononer the number of bytes to extract from the current file.
+__FILES_THREAD_WRITTEN
+Allows to know the number of bytes written for the current file.
+Note
+This function allows you to continue with the script, so it runs on a secondary manner, for greater use, refer to the Examples of use of OneLua examples.
+If the destination path doesn't exist, will be automatically created. 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.extract 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          dst&#160;
+          )
+Function for extracting files in .zip and .rar. 
+Parameters
+    srcIs the path of the file to extract. 
+    dstIs the path where the files will be extracted. 
+Note
+This function can use the onExtractFiles() callback, more info here .
+If the destination path doesn't exist, will be automatically created. 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.extract 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          dst, 
+          STRING&#160;
+          pass&#160;
+          )
+Function for extracting files in .zip and .rar. 
+Parameters
+    srcIs the path of the file to extract. 
+    dstIs the path where the files will be extracted. 
+    passKey or Password if required. 
+Note
+This function can use the onExtractFiles() callback, more info here .
+If the destination path doesn't exist, will be automatically created. 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.threadextract 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          dst&#160;
+          )
+Function for extracting files in .zip and .rar in mode THREAD. 
+Parameters
+    srcIs the path of the file to extract. 
+    dstIs the path where the files will be extracted. This is a list of all of the available constants and their values:
+__FILES_THREAD_FILE
+Allows the name of the current file that is this drawing.
+__FILES_THREAD_STATE
+Lets you know the status of the extraction.
+0: no extraction or is starting.
+1: Extraction completed successfully.
+2: Extraction in progress.
+-1: occurred an error in extracting.
+__FILES_THREAD_SIZE
+Allow cononer the number of bytes to extract from the current file.
+__FILES_THREAD_WRITTEN
+Allows to know the number of bytes written for the current file.
+Note
+This function allows you to continue with the script, so it runs on a secondary manner, for greater use, refer to the Examples of use of OneLua examples.
+If the destination path doesn't exist, will be automatically created. 
+Returns1 if success, 0 otherwise. 
+          NUMBER files.threadextract 
+          (
+          STRING&#160;
+          src, 
+          STRING&#160;
+          dst, 
+          STRING&#160;
+          pass&#160;
+          )
+Function for extracting files in .zip and .rar in mode THREAD. 
+Parameters
+    srcIs the path of the file to extract. 
+    dstIs the path where the files will be extracted. 
+    passKey or Password if required. This is a list of all of the available constants and their values:
+__FILES_THREAD_FILE
+Allows the name of the current file that is this drawing.
+__FILES_THREAD_STATE
+Lets you know the status of the extraction.
+0: no extraction or is starting.
+1: Extraction completed successfully.
+2: Extraction in progress.
+-1: occurred an error in extracting.
+__FILES_THREAD_SIZE
+Allow cononer the number of bytes to extract from the current file.
+__FILES_THREAD_WRITTEN
+Allows to know the number of bytes written for the current file.
+Note
+This function allows you to continue with the script, so it runs on a secondary manner, for greater use, refer to the Examples of use of OneLua examples.
+If the destination path doesn't exist, will be automatically created. 
+Returns1 if success, 0 otherwise. 

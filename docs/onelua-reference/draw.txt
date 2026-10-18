@@ -1,0 +1,407 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__draw.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+draw  
+Functions
+NIL&#160;draw.line (NUMBER x1, NUMBER y1, NUMBER x2, NUMBER y2, COLOR myColor)
+&#160;Draws a straight line between points x1,y1 and x2,y2.  More...
+&#160;
+NIL&#160;draw.gradline (NUMBER x1, NUMBER y1, NUMBER x2, NUMBER y2, COLOR c1, COLOR c2)
+&#160;Draw a straight line between points x1, y1 and x2, y2 with gradient effect.  More...
+&#160;
+NIL&#160;draw.rect (NUMBER x, NUMBER y, NUMBER w, NUMBER h, COLOR myColor)
+&#160;Draws an unfilled rectangle.  More...
+&#160;
+NIL&#160;draw.fillrect (NUMBER x, NUMBER y, NUMBER w, NUMBER h, COLOR myColor)
+&#160;Draws a filled rectangle.  More...
+&#160;
+NIL&#160;draw.gradrect (NUMBER x, NUMBER y, NUMBER w, NUMBER h, COLOR c1, COLOR c2, COLOR c3, COLOR c4)
+&#160;Draws a filled rectangle with custom gradient.  More...
+&#160;
+NIL&#160;draw.gradrect (NUMBER x, NUMBER y, NUMBER w, NUMBER h, COLOR c1, COLOR c2, NUMBER mode)
+&#160;Draw a rectangle filled with a predefined gradient (5 possibilities).  More...
+&#160;
+NIL&#160;draw.filltriangle (NUMBER x1, NUMBER y1, NUMBER x2, NUMBER y2, NUMBER x3, NUMBER y3, COLOR myColor)
+&#160;Draws a filled triangle.  More...
+&#160;
+NIL&#160;draw.gradtriangle (NUMBER x1, NUMBER y1, NUMBER x2, NUMBER y2, NUMBER x3, NUMBER y3, COLOR c1, COLOR c2, COLOR c3)
+&#160;Draws a filled triangle with a gradient effect..  More...
+&#160;
+NIL&#160;draw.circle (NUMBER x, NUMBER y, NUMBER radius, COLOR myColor, NUMBER sections)
+&#160;Draw a circle unfilled.  More...
+&#160;
+NIL&#160;draw.gradcircle (NUMBER x, NUMBER y, NUMBER radius, COLOR c1, COLOR c2, NUMBER sections)
+&#160;Draws a filled circle with gradient effect.  More...
+&#160;
+NIL&#160;draw.circlesection (NUMBER x, NUMBER y, NUMBER radius, COLOR c, NUMBER mode)
+&#160;Draw a circle section.  More...
+&#160;
+NIL&#160;draw.gradarc (NUMBER x, NUMBER y, NUMBER radius, COLOR c1, COLOR c2, NUMBER gradinitial, NUMBER gradfinal, NUMBER sections)
+&#160;Draw an arc with gradient effect.  More...
+&#160;
+NIL&#160;draw.framearc (NUMBER x, NUMBER y, NUMBER radius, COLOR c, NUMBER gradinitial, NUMBER gradfinal, NUMBER sections)
+&#160;Draw an arc with edge and gradient effect.  More...
+&#160;
+Detailed Description
+Drawing basic forms. 
+Function Documentation
+          NIL draw.line 
+          (
+          NUMBER&#160;
+          x1, 
+          NUMBER&#160;
+          y1, 
+          NUMBER&#160;
+          x2, 
+          NUMBER&#160;
+          y2, 
+          COLOR&#160;
+          myColor&#160;
+          )
+Draws a straight line between points x1,y1 and x2,y2. 
+Parameters
+    x1Coordinate X of the initial point. 
+    y1coordinate Y of the initial point. 
+    x2Coordinate X of the final point. 
+    y2Coordinate Y of the initial point. 
+    myColorA color for draw the line. 
+ReturnsNothing. 
+          NIL draw.gradline 
+          (
+          NUMBER&#160;
+          x1, 
+          NUMBER&#160;
+          y1, 
+          NUMBER&#160;
+          x2, 
+          NUMBER&#160;
+          y2, 
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2&#160;
+          )
+Draw a straight line between points x1, y1 and x2, y2 with gradient effect. 
+Parameters
+    x1Coordinate X of the initial point. 
+    y1coordinate Y of the initial point. 
+    x2Coordinate X of the final point. 
+    y2Coordinate Y of the initial point. 
+    c1First color of the gradient. 
+    c2Second color of the gradient. 
+ReturnsNada. 
+          NIL draw.rect 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h, 
+          COLOR&#160;
+          myColor&#160;
+          )
+Draws an unfilled rectangle. 
+Parameters
+    xCoordinate X of the top left corner. 
+    yCoordinate Y of the top left corner. 
+    wWidth. 
+    hHeight. 
+    myColorA color for draw the rectangle. 
+ReturnsNothing. 
+          NIL draw.fillrect 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h, 
+          COLOR&#160;
+          myColor&#160;
+          )
+Draws a filled rectangle. 
+Parameters
+    xCoordinate X of the top left corner. 
+    yCoordinate Y of the top left corner. 
+    wWidth. 
+    hHeight. 
+    myColorA color for draw and fill the rectangle. 
+ReturnsNothing. 
+          NIL draw.gradrect 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h, 
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2, 
+          COLOR&#160;
+          c3, 
+          COLOR&#160;
+          c4&#160;
+          )
+Draws a filled rectangle with custom gradient. 
+Parameters
+    xCoordinate X of the top left corner. 
+    yCoordinate Y of the top left corner. 
+    wWidth. 
+    hHeight. 
+    c1Top left corner color. 
+    c2Top right corner color. 
+    c3Bottom left corner color. 
+    c4Bottom right corner color. 
+ReturnsNothing. 
+          NIL draw.gradrect 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h, 
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2, 
+          NUMBER&#160;
+          mode&#160;
+          )
+Draw a rectangle filled with a predefined gradient (5 possibilities). 
+Parameters
+    xCoordinate X of the top left corner. 
+    yCoordinate Y of the top left corner. 
+    wWidth. 
+    hHeight. 
+    c1First color of the gradient. 
+    c2Second color of the gradient. 
+    modeGradient type, some of those constants (numeric value in parenthesis):
+__HORIZONTAL (0)
+__VERTICAL (1)
+__DIAGONAL (2)
+__DOUBLEHOR (3)
+__DOUBLEVER (4) 
+ReturnsNothing. 
+          NIL draw.filltriangle 
+          (
+          NUMBER&#160;
+          x1, 
+          NUMBER&#160;
+          y1, 
+          NUMBER&#160;
+          x2, 
+          NUMBER&#160;
+          y2, 
+          NUMBER&#160;
+          x3, 
+          NUMBER&#160;
+          y3, 
+          COLOR&#160;
+          myColor&#160;
+          )
+Draws a filled triangle. 
+Parameters
+    x1Coordinate X of point 1 of the triangle. 
+    y1Coordinate Y of point 1 of the triangle. 
+    x2Coordinate X of point 2 of the triangle. 
+    y2Coordinate Y of point 2 of the triangle. 
+    x3Coordinate X of point 3 of the triangle. 
+    y3Coordinate Y of point 3 of the triangle. 
+    myColorA color to draw and fill the triangle. 
+ReturnsNothing. 
+          NIL draw.gradtriangle 
+          (
+          NUMBER&#160;
+          x1, 
+          NUMBER&#160;
+          y1, 
+          NUMBER&#160;
+          x2, 
+          NUMBER&#160;
+          y2, 
+          NUMBER&#160;
+          x3, 
+          NUMBER&#160;
+          y3, 
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2, 
+          COLOR&#160;
+          c3&#160;
+          )
+Draws a filled triangle with a gradient effect.. 
+Parameters
+    x1Coordinate X of point 1 of the triangle. 
+    y1Coordinate Y of point 1 of the triangle. 
+    x2Coordinate X of point 2 of the triangle. 
+    y2Coordinate Y of point 2 of the triangle. 
+    x3Coordinate X of point 3 of the triangle. 
+    y3Coordinate Y of point 3 of the triangle. 
+    c1First color of the gradient. 
+    c2Second color of the gradient. 
+    c3Third color of the gradient. 
+ReturnsNothing. 
+          NIL draw.circle 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          radius, 
+          COLOR&#160;
+          myColor, 
+          NUMBER&#160;
+          sections&#160;
+          )
+Draw a circle unfilled. 
+Parameters
+    xCoordinate X of circle origin. 
+    yCoordinate Y of circle origin. 
+    radiusCircle radius. 
+    myColorA color to draw the circle. 
+    sectionsNumber of triangles used to estimate a circle, a common value is 30. 
+ReturnsNothing. 
+          NIL draw.gradcircle 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          radius, 
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2, 
+          NUMBER&#160;
+          sections&#160;
+          )
+Draws a filled circle with gradient effect. 
+Parameters
+    xCoordinate X of circle origin. 
+    yCoordinate Y of circle origin. 
+    radiusCircle radius. 
+    c1First color of the gradient. 
+    c2Second color of the gradient. 
+    sectionsNumber of triangles used to estimate a circle, a common value is 30. 
+ReturnsNothing. 
+          NIL draw.circlesection 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          radius, 
+          COLOR&#160;
+          c, 
+          NUMBER&#160;
+          mode&#160;
+          )
+Draw a circle section. 
+Parameters
+    xCoordinate X of circle origin. 
+    yCoordinate Y of circle origin. 
+    radiusCircle radius. 
+    cA color to draw the circle section. 
+    modenumber indicating the circle section to draw:
+1 Draw the upper-left circle section.
+2 Draw the upper-right circle section.
+3 Draw the botton-left circle section.
+4 Draw the bottom-right circle section. 
+ReturnsNothing. 
+          NIL draw.gradarc 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          radius, 
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2, 
+          NUMBER&#160;
+          gradinitial, 
+          NUMBER&#160;
+          gradfinal, 
+          NUMBER&#160;
+          sections&#160;
+          )
+Draw an arc with gradient effect. 
+Parameters
+    xCoordinate X of circle origin. 
+    yCoordinate Y of circle origin. 
+    radiusCircle radius. 
+    c1First color of the gradient. 
+    c2Second color of the gradient. 
+    gradinitialInitial degrees to draw an arc. 
+    gradfinalFinal degrees to draw an arc. 
+    sectionsNumber of triangles used to estimate a circle, a common value is 30. 
+ReturnsNothing. 
+          NIL draw.framearc 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          radius, 
+          COLOR&#160;
+          c, 
+          NUMBER&#160;
+          gradinitial, 
+          NUMBER&#160;
+          gradfinal, 
+          NUMBER&#160;
+          sections&#160;
+          )
+Draw an arc with edge and gradient effect. 
+Parameters
+    xCoordinate X of circle origin. 
+    yCoordinate Y of circle origin. 
+    radiusCircle radius. 
+    cColor of the gradient. 
+    gradinitialInitial degrees to draw an arc. 
+    gradfinalFinal degrees to draw an arc. 
+    sectionsNumber of triangles used to estimate a circle, a common value is 30. 
+ReturnsNothing. 

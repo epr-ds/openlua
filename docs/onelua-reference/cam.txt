@@ -1,0 +1,319 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__cam.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+cam  
+Functions
+NUMBER&#160;cam.init ()
+&#160;We load and start the module.  More...
+&#160;
+NUMBER&#160;cam.begin ()
+&#160;Configures and starts the camera for making video.  More...
+&#160;
+BOOLEAN&#160;cam.state ()
+&#160;It allows to know the status of the cam module.  More...
+&#160;
+BOOLEAN&#160;cam.available ()
+&#160;It allows to know the status of the connection of the camera into the USB port.  More...
+&#160;
+NIL&#160;cam.render (NUMBER x, NUMBER y)
+&#160;Displays the current image the camera sees.  More...
+&#160;
+NIL&#160;cam.render (NUMBER x, NUMBER y, NUMBER w, NUMBER h)
+&#160;Muestra en pantalla la imágen actual que vé la cámara, aplicando un escalado.  More...
+&#160;
+NUMBER&#160;cam.shot (STRING path)
+&#160;Take a snapshot of the current image the camera sees and stores on the route and with the specified name.  More...
+&#160;
+IMAGE&#160;cam.toimage ()
+&#160;Create a copy of the current image the camera sees.  More...
+&#160;
+NUMBER&#160;cam.direction ()
+&#160;It allows to know the direction of the camera lens.  More...
+&#160;
+NUMBER&#160;cam.brightness ()
+&#160;It allows to know the current brightness of the camera.  More...
+&#160;
+NIL&#160;cam.brightness (NUMBER value)
+&#160;It allows setting the brightness of the camera.  More...
+&#160;
+NUMBER&#160;cam.contrast ()
+&#160;It allows to know the current contrast of the camera.  More...
+&#160;
+NIL&#160;cam.contrast (NUMBER value)
+&#160;It allows setting the contrast of the camera.  More...
+&#160;
+NUMBER&#160;cam.sharpness ()
+&#160;It allows to know the current sharpness of the camera.  More...
+&#160;
+NIL&#160;cam.sharpness (NUMBER value)
+&#160;It allows setting the sharpness of the camera.  More...
+&#160;
+NUMBER&#160;cam.saturation ()
+&#160;It allows to know the current saturation of the camera.  More...
+&#160;
+NIL&#160;cam.saturation (NUMBER value)
+&#160;It allows setting the saturation of the camera.  More...
+&#160;
+NUMBER&#160;cam.zoom ()
+&#160;It allows to know the current zoom of the camera.  More...
+&#160;
+NIL&#160;cam.zoom (NUMBER value)
+&#160;It allows setting the zoom of the camera.  More...
+&#160;
+NUMBER&#160;cam.evlevel ()
+&#160;It allows to know the current evlevel of the camera.  More...
+&#160;
+NIL&#160;cam.evlevel (NUMBER value)
+&#160;It allows setting the evlevel of the camera.  More...
+&#160;
+NUMBER&#160;cam.effect ()
+&#160;It allows to know the current effect of the camera.  More...
+&#160;
+NIL&#160;cam.effect (NUMBER value)
+&#160;It allows setting the effect of the camera.  More...
+&#160;
+NUMBER&#160;cam.autoreverse ()
+&#160;It allows to know the current autoreverse state of the camera.  More...
+&#160;
+NIL&#160;cam.autoreverse (NUMBER mode)
+&#160;It allows setting the autoreverse of the camera.  More...
+&#160;
+NUMBER&#160;cam.mirror ()
+&#160;It allows to know the current mirror of the camera.  More...
+&#160;
+NIL&#160;cam.mirror (NUMBER value)
+&#160;It allows setting the mirror of the camera.  More...
+&#160;
+NUMBER&#160;cam.term ()
+&#160;Unloaded and finish the module.  More...
+&#160;
+Detailed Description
+Management USB camera (GO! CAM). 
+Function Documentation
+          NUMBER cam.init 
+          (
+          )
+We load and start the module. 
+NoteOnce started the cam module, you can not use the USB module. 
+Returns1/0 It will be 1 if successful, otherwise 0. 
+          NUMBER cam.begin 
+          (
+          )
+Configures and starts the camera for making video. 
+NoteThe cam module requires this previously initiated. 
+Returns1/0 It will be 1 if successful, otherwise 0. 
+          BOOLEAN cam.state 
+          (
+          )
+It allows to know the status of the cam module. 
+Returnstrue/false Depending on whether the cam module is started. 
+          BOOLEAN cam.available 
+          (
+          )
+It allows to know the status of the connection of the camera into the USB port. 
+Returnstrue/false Depending on whether the camera is connected. 
+          NIL cam.render 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y&#160;
+          )
+Displays the current image the camera sees. 
+Parameters
+    xcoordinate X where the image is displayed. 
+    ycoordinate Y where the image is displayed. 
+ReturnsNothing. 
+          NIL cam.render 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h&#160;
+          )
+Muestra en pantalla la imágen actual que vé la cámara, aplicando un escalado. 
+Parameters
+    xcoordinate X where the image is displayed. 
+    ycoordinate Y where the image is displayed. 
+    wThe new image width (in pixels). 
+    hThe new image height (in pixels). 
+ReturnsNothing. 
+          NUMBER cam.shot 
+          (
+          STRING&#160;
+          path)
+Take a snapshot of the current image the camera sees and stores on the route and with the specified name. 
+Parameters
+    pathPath and name of the snapshot (.PNG format). 
+Returns1/0 It will be 1 if successful, otherwise 0. 
+          IMAGE cam.toimage 
+          (
+          )
+Create a copy of the current image the camera sees. 
+ReturnsOne object type image, ready for use, or nil if there was an error. 
+          NUMBER cam.direction 
+          (
+          )
+It allows to know the direction of the camera lens. 
+Returns1/0 It will be 1 in this case towards the user, otherwise 0. 
+          NUMBER cam.brightness 
+          (
+          )
+It allows to know the current brightness of the camera. 
+ReturnsThe current brightness, a value between 0 and 255, -1 on error. 
+          NIL cam.brightness 
+          (
+          NUMBER&#160;
+          value)
+It allows setting the brightness of the camera. 
+Parameters
+    valueThe new value for setting the brightness of the camera, values between 0 and 255, the common value is 128. 
+ReturnsNothing. 
+          NUMBER cam.contrast 
+          (
+          )
+It allows to know the current contrast of the camera. 
+ReturnsThe current contrast, a value between 0 and 255, -1 on error. 
+          NIL cam.contrast 
+          (
+          NUMBER&#160;
+          value)
+It allows setting the contrast of the camera. 
+Parameters
+    valueThe new value for setting the contrast of the camera, values between 0 and 255, the common value is 64. 
+ReturnsNothing. 
+          NUMBER cam.sharpness 
+          (
+          )
+It allows to know the current sharpness of the camera. 
+ReturnsThe current sharpness, a value between 0 and 255, -1 on error. 
+          NIL cam.sharpness 
+          (
+          NUMBER&#160;
+          value)
+It allows setting the sharpness of the camera. 
+Parameters
+    valueThe new value for setting the sharpness of the camera, values between 0 and 255, the common value is 0. 
+ReturnsNothing. 
+          NUMBER cam.saturation 
+          (
+          )
+It allows to know the current saturation of the camera. 
+ReturnsThe current saturation, a value between 0 and 255, -1 on error. 
+          NIL cam.saturation 
+          (
+          NUMBER&#160;
+          value)
+It allows setting the saturation of the camera. 
+Parameters
+    valueThe new value for setting the saturation of the camera, values between 0 and 255, the common value is 125. 
+ReturnsNothing. 
+          NUMBER cam.zoom 
+          (
+          )
+It allows to know the current zoom of the camera. 
+ReturnsThe current zoom, a value between 1 and 5, -1 on error. 
+          NIL cam.zoom 
+          (
+          NUMBER&#160;
+          value)
+It allows setting the zoom of the camera. 
+Parameters
+    valueThe new value for setting the zoom of the camera, values between 1 and 5. 
+ReturnsNothing. 
+          NUMBER cam.evlevel 
+          (
+          )
+It allows to know the current evlevel of the camera. 
+ReturnsThe current evlevel, a value between 1 and 17, -1 on error. 
+          NIL cam.evlevel 
+          (
+          NUMBER&#160;
+          value)
+It allows setting the evlevel of the camera. 
+Parameters
+    valueThe new value for setting the evlevel of the camera, values between 1 and 17, the common value is 8. 
+ReturnsNothing. 
+          NUMBER cam.effect 
+          (
+          )
+It allows to know the current effect of the camera. 
+ReturnsThe current effect, a value between 1 and 7, -1 on error. 
+          NIL cam.effect 
+          (
+          NUMBER&#160;
+          value)
+It allows setting the effect of the camera. 
+Parameters
+    valueSome of these constants(in parentheses their numeric values):
+__CAM_FX_NORMAL (1)
+__CAM_FX_NEGATIVE (2)
+__CAM_FX_BLACKWHITE (3)
+__CAM_FX_SEPIA (4)
+__CAM_FX_BLUE (5)
+__CAM_FX_RED (6)
+__CAM_FX_GREEN (7) 
+ReturnsNothing. 
+          NUMBER cam.autoreverse 
+          (
+          )
+It allows to know the current autoreverse state of the camera. 
+Returns1/0 It will be 1 if enabled, otherwise 0. 
+          NIL cam.autoreverse 
+          (
+          NUMBER&#160;
+          mode)
+It allows setting the autoreverse of the camera. 
+Parameters
+    modeAny of the following values:
+1: Activate.
+0: Deactivate.
+NoteBy default it is enabled to start the camera. 
+ReturnsNothing. 
+          NUMBER cam.mirror 
+          (
+          )
+It allows to know the current mirror of the camera. 
+ReturnsThe current mirror, -1 on error. 
+          NIL cam.mirror 
+          (
+          NUMBER&#160;
+          value)
+It allows setting the mirror of the camera. 
+Parameters
+    valueThe new value for setting the mirror of the camera, values between 1 and 0. 
+ReturnsNothing. 
+          NUMBER cam.term 
+          (
+          )
+Unloaded and finish the module. 
+NoteOnce finished the cam module, you can use the USB module. 
+Returns1/0 It will be 1 if successful, otherwise 0. 

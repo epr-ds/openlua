@@ -1,0 +1,65 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__font.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+font  
+Functions
+FONT&#160;font.load (STRING path)
+&#160;Load a font for use it later.  More...
+&#160;
+NIL&#160;font.setdefault (FONT fnt)
+&#160;Sets a font as default for the function screen.print().  More...
+&#160;
+NIL&#160;font.setdefault (STRING path)
+&#160;Sets a font as default for the function screen.print().  More...
+&#160;
+Detailed Description
+Manage pgf fonts. 
+Function Documentation
+          FONT font.load 
+          (
+          STRING&#160;
+          path)
+Load a font for use it later. 
+Parameters
+    pathPath to the font to load (pgf format). 
+ReturnsFont object type, ready to use. 
+          NIL font.setdefault 
+          (
+          FONT&#160;
+          fnt)
+Sets a font as default for the function screen.print(). 
+Parameters
+    fnta font already loaded. You can omit this argument, then returns the OneLua's default font. 
+ReturnsNothing. 
+          NIL font.setdefault 
+          (
+          STRING&#160;
+          path)
+Sets a font as default for the function screen.print(). 
+Parameters
+    pathPath to the font to load (pgf format). 
+ReturnsNothing. 

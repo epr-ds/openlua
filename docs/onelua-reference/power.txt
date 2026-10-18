@@ -1,0 +1,81 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__power.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+power  
+Functions
+BOOLEAN&#160;power.plugged ()
+&#160;Power supply cable connected.  More...
+&#160;
+NIL&#160;power.suspend ()
+&#160;Let console in stand-by mode.  More...
+&#160;
+BOOLEAN&#160;power.lock ()
+&#160;Locks the power supply switch.  More...
+&#160;
+BOOLEAN&#160;power.unlock ()
+&#160;Unlock power supply switch.  More...
+&#160;
+NIL&#160;power.tick ()
+&#160;Keeps the console awake, avoiding entering to suspend mode.  More...
+&#160;
+NIL&#160;power.off ()
+&#160;Shutdown console.  More...
+&#160;
+Detailed Description
+Power supply functions. 
+Function Documentation
+          BOOLEAN power.plugged 
+          (
+          )
+Power supply cable connected. 
+Returnstrue/false Depending on whether the cable is connected. 
+          NIL power.suspend 
+          (
+          )
+Let console in stand-by mode. 
+ReturnsNothing. 
+          BOOLEAN power.lock 
+          (
+          )
+Locks the power supply switch. 
+Returnstrue/false Depending on whether the switch is blocked. 
+NoteIf the switch is putted in stand-by mode, or you use one of those functions: power.suspend() or power.off() when the switch is unlocked with the power.unlock() the console will enter stand-by mode or will shutdown. 
+          BOOLEAN power.unlock 
+          (
+          )
+Unlock power supply switch. 
+Returnstrue/false Depending on whether the switch is unlocked. 
+          NIL power.tick 
+          (
+          )
+Keeps the console awake, avoiding entering to suspend mode. 
+ReturnsNothing. 
+          NIL power.off 
+          (
+          )
+Shutdown console. 
+ReturnsNothing. 

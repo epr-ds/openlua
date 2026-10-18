@@ -1,0 +1,719 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__image.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+image  
+Functions
+IMAGE&#160;image.loadfromdata (STRING data, NUMBER type)
+&#160;Load an image, from memory data.  More...
+&#160;
+IMAGE&#160;image.load (STRING path)
+&#160;Loads an image to RAM.  More...
+&#160;
+IMAGE&#160;image.load (STRING path, COLOR mask)
+&#160;Loads an image to RAM becoming transparent pixels which have the indicated color.  More...
+&#160;
+IMAGE&#160;image.load (STRING path, NUMBER w, NUMBER h)
+&#160;Loads an image to RAM as a sprite.  More...
+&#160;
+IMAGE&#160;image.load (STRING path, NUMBER w, NUMBER h, COLOR mask)
+&#160;Loads an image to RAM as a sprite, becoming transparent pixels which have the indicated color.  More...
+&#160;
+IMAGE&#160;image.loadv (STRING path)
+&#160;Loads an image to VRAM.  More...
+&#160;
+IMAGE&#160;image.loadv (STRING path, COLOR mask)
+&#160;Loads an image to VRAM becoming transparent pixels which have the indicated color.  More...
+&#160;
+IMAGE&#160;image.loadv (STRING path, NUMBER w, NUMBER h)
+&#160;Loads an image to VRAM as a sprite.  More...
+&#160;
+IMAGE&#160;image.loadv (STRING path, NUMBER w, NUMBER h, COLOR mask)
+&#160;Loads an image to VRAM as a sprite, becoming transparent pixels which have the indicated color.  More...
+&#160;
+NIL&#160;image.move (IMAGE img)
+&#160;Move an image from RAM to VRAM or VRAM to RAM.  More...
+&#160;
+IMAGE&#160;image.new (NUMBER w, NUMBER h, COLOR fill)
+&#160;Creates a rectangular image, filled with the specified color.  More...
+&#160;
+NIL&#160;image.blit (IMAGE img, NUMBER x, NUMBER y)
+&#160;Displays an entire screen image.  More...
+&#160;
+NIL&#160;image.blit (IMAGE img, NUMBER x, NUMBER y, NUMBER alpha)
+&#160;Displays an entire screen image, applying transparency.  More...
+&#160;
+NIL&#160;image.blit (IMAGE img, NUMBER x, NUMBER y, NUMBER xi, NUMBER yi, NUMBER w, NUMBER h)
+&#160;Displays a part of a screen image.  More...
+&#160;
+NIL&#160;image.blit (IMAGE img, NUMBER x, NUMBER y, NUMBER xi, NUMBER yi, NUMBER w, NUMBER h, NUMBER alpha)
+&#160;Displays a part of a screen image, applying transparency.  More...
+&#160;
+NIL&#160;image.blitsprite (IMAGE img, NUMBER x, NUMBER y, NUMBER frame)
+&#160;Displays one frame of a image loaded as sprite.  More...
+&#160;
+NIL&#160;image.blitsprite (IMAGE img, NUMBER x, NUMBER y, NUMBER frame, NUMBER alpha)
+&#160;Displays one frame of a image loaded as sprite with transparency.  More...
+&#160;
+NIL&#160;image.blitadd (IMAGE img, NUMBER x, NUMBER y, NUMBER coef)
+&#160;Displays an entire screen image, with color addition.  More...
+&#160;
+NIL&#160;image.blitsub (IMAGE img, NUMBER x, NUMBER y, NUMBER coef)
+&#160;Displays an entire screen image, with color substraction.  More...
+&#160;
+NIL&#160;image.blittint (IMAGE img, NUMBER x, NUMBER y, COLOR color)
+&#160;Displays an entire screen image, with effect tint.  More...
+&#160;
+NIL&#160;image.fliph (IMAGE img)
+&#160;Flips an image horizontally.  More...
+&#160;
+NIL&#160;image.flipv (IMAGE img)
+&#160;Flips an image vertically.  More...
+&#160;
+NIL&#160;image.center (IMAGE img)
+&#160;Change the blit point (the point where the image is displayed) to the center of the image.  More...
+&#160;
+NIL&#160;image.center (IMAGE img, NUMBER xi, NUMBER yi)
+&#160;Change the blit point (the point where the image is displayed) to the specified point.  More...
+&#160;
+NIL&#160;image.rotate (IMAGE img, NUMBER angle)
+&#160;Rotate an image about its blit point.  More...
+&#160;
+NUMBER&#160;image.getw (IMAGE img)
+&#160;Obtains the image width in pixels.  More...
+&#160;
+NUMBER&#160;image.geth (IMAGE img)
+&#160;Obtains the image height in pixels.  More...
+&#160;
+NUMBER&#160;image.getrealw (IMAGE img)
+&#160;Obtains the REAL image width in pixels.  More...
+&#160;
+NUMBER&#160;image.getrealh (IMAGE img)
+&#160;Obtains the REAL image height in pixels.  More...
+&#160;
+NIL&#160;image.resize (IMAGE img, NUMBER w, NUMBER h)
+&#160;Resizes an image.  More...
+&#160;
+NIL&#160;image.scale (IMAGE img, NUMBER percent)
+&#160;Scale an image according to the percentage.  More...
+&#160;
+NIL&#160;image.clear (IMAGE img, COLOR fill)
+&#160;Fills an image with the specified color.  More...
+&#160;
+NIL&#160;image.reset (IMAGE img)
+&#160;Returns an image to the values ​​it had when it was loaded / created (in other words, removes all effects applied).  More...
+&#160;
+NIL&#160;image.copy (IMAGE img)
+&#160;Make a copy of the specified image.  More...
+&#160;
+NIL&#160;image.save (IMAGE img, STRING path)
+&#160;Save an image to the specified path (it should include the filename and its extension, only png).  More...
+&#160;
+COLOR&#160;image.pixel (IMAGE img, NUMBER x, NUMBER y)
+&#160;Get a pixel from the specified image.  More...
+&#160;
+NIL&#160;image.pixel (IMAGE img, NUMBER x, NUMBER y, COLOR color)
+&#160;Set a pixel of an image.  More...
+&#160;
+IMAGE&#160;image.fxgrey (IMAGE img)
+&#160;Creates a copy of the img, with the effect of scaling applied gray.  More...
+&#160;
+IMAGE&#160;image.fxinvert (IMAGE img)
+&#160;Creates a copy of the img, with the effect of inverted colors.  More...
+&#160;
+IMAGE&#160;image.fxsepia (IMAGE img)
+&#160;Creates a copy of the img, with sepia effect.  More...
+&#160;
+IMAGE&#160;image.fxold (IMAGE img)
+&#160;Creates a copy of the img, with the effect of old (old stained).  More...
+&#160;
+IMAGE&#160;image.fxold (IMAGE img, NUMBER porcent)
+&#160;Creates a copy of the img, with the effect of old (old stained).  More...
+&#160;
+Detailed Description
+Using images. 
+Function Documentation
+          IMAGE image.loadfromdata 
+          (
+          STRING&#160;
+          data, 
+          NUMBER&#160;
+          type&#160;
+          )
+Load an image, from memory data. 
+Parameters
+    dataBinary data. 
+    typeImage type. The numerical value into parentheses.
+__PNG (0)
+__JPG (1)
+__GIF (2)
+__BMP (3) 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.load 
+          (
+          STRING&#160;
+          path)
+Loads an image to RAM. 
+Parameters
+    pathPath to the image to load(formats png, jpg, bmp or gif. Maximum size 512x512 px. Doesn't support animated gifs). 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.load 
+          (
+          STRING&#160;
+          path, 
+          COLOR&#160;
+          mask&#160;
+          )
+Loads an image to RAM becoming transparent pixels which have the indicated color. 
+Parameters
+    pathPath to the image to load(formats png, jpg, bmp or gif. Maximum size 512x512 px. Doesn't support animated gifs). 
+    maskColor of the pixels that will become transparent. 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.load 
+          (
+          STRING&#160;
+          path, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h&#160;
+          )
+Loads an image to RAM as a sprite. 
+Parameters
+    pathPath to the image to load(formats png, jpg, bmp or gif. Maximum size 512x512 px. Doesn't support animated gifs). 
+    wWidth of each frame of the sprite. 
+    hHeight of each frame of the sprite. 
+NoteImages loaded as sprite can only be displayed on the screen with image.blitsprite(). 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.load 
+          (
+          STRING&#160;
+          path, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h, 
+          COLOR&#160;
+          mask&#160;
+          )
+Loads an image to RAM as a sprite, becoming transparent pixels which have the indicated color. 
+Parameters
+    pathPath to the image to load(formats png, jpg, bmp or gif. Maximum size 512x512 px. Doesn't support animated gifs). 
+    wWidth of each frame of the sprite. 
+    hHeight of each frame of the sprite. 
+    maskColor of the pixels that will become transparent. 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.loadv 
+          (
+          STRING&#160;
+          path)
+Loads an image to VRAM. 
+Parameters
+    pathPath to the image to load(formats png, jpg, bmp or gif. Maximum size 512x512 px. Doesn't support animated gifs). 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.loadv 
+          (
+          STRING&#160;
+          path, 
+          COLOR&#160;
+          mask&#160;
+          )
+Loads an image to VRAM becoming transparent pixels which have the indicated color. 
+Parameters
+    pathPath to the image to load(formats png, jpg, bmp or gif. Maximum size 512x512 px. Doesn't support animated gifs). 
+    maskColor of the pixels that will become transparent. 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.loadv 
+          (
+          STRING&#160;
+          path, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h&#160;
+          )
+Loads an image to VRAM as a sprite. 
+Parameters
+    pathPath to the image to load(formats png, jpg, bmp or gif. Maximum size 512x512 px. Doesn't support animated gifs). 
+    wWidth of each frame of the sprite. 
+    hHeight of each frame of the sprite. 
+NoteImages loaded as sprite can only be displayed on the screen with image.blitsprite(). 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.loadv 
+          (
+          STRING&#160;
+          path, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h, 
+          COLOR&#160;
+          mask&#160;
+          )
+Loads an image to VRAM as a sprite, becoming transparent pixels which have the indicated color. 
+Parameters
+    pathPath to the image to load(formats png, jpg, bmp or gif. Maximum size 512x512 px. Doesn't support animated gifs). 
+    wWidth of each frame of the sprite. 
+    hHeight of each frame of the sprite. 
+    maskColor of the pixels that will become transparent. 
+ReturnsAn image type object, ready to use. 
+          NIL image.move 
+          (
+          IMAGE&#160;
+          img)
+Move an image from RAM to VRAM or VRAM to RAM. 
+Parameters
+    imgAn image type object. 
+ReturnsNothing. 
+          IMAGE image.new 
+          (
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h, 
+          COLOR&#160;
+          fill&#160;
+          )
+Creates a rectangular image, filled with the specified color. 
+Parameters
+    wWidth of the image. 
+    hHeight of the image. 
+    fillColor to fill the image. 
+ReturnsAn image type object, ready to use. 
+          NIL image.blit 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y&#160;
+          )
+Displays an entire screen image. 
+Parameters
+    imgAn image type object. 
+    xX coordinate where the image is displayed. 
+    yY coordinate where the image is displayed. 
+NoteThe image is displayed with its upper left corner at the point indicated by the coordinates, unless another point is established with image.center(). 
+ReturnsNothing. 
+          NIL image.blit 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          alpha&#160;
+          )
+Displays an entire screen image, applying transparency. 
+Parameters
+    imgAn image type object. 
+    xX coordinate where the image is displayed. 
+    yY coordinate where the image is displayed. 
+    alphaTransparency level (0 to 255), more lower value is, more transparent image becomes. 
+ReturnsNothing. 
+          NIL image.blit 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          xi, 
+          NUMBER&#160;
+          yi, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h&#160;
+          )
+Displays a part of a screen image. 
+Parameters
+    imgAn image type object. 
+    xX coordinate where the image is displayed. 
+    yY coordinate where the image is displayed. 
+    xiX coordinate (relative to the upper left corner of the picture) from where you take the part to show. 
+    yiY coordinate (relative to the upper left corner of the picture) from where you take the part to show. 
+    wWidth of the part to be displayed. 
+    hHeight of the portion to be displayed. 
+ReturnsNothing. 
+          NIL image.blit 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          xi, 
+          NUMBER&#160;
+          yi, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h, 
+          NUMBER&#160;
+          alpha&#160;
+          )
+Displays a part of a screen image, applying transparency. 
+Parameters
+    imgAn image type object. 
+    xX coordinate where the image is displayed. 
+    yY coordinate where the image is displayed. 
+    xiX coordinate (relative to the upper left corner of the picture) from where you take the part to show. 
+    yiY coordinate (relative to the upper left corner of the picture) from where you take the part to show. 
+    wWidth of the part to be displayed. 
+    hHeight of the portion to be displayed. 
+    alphaTransparency level (0 to 255), more lower value is, more transparent image becomes. 
+ReturnsNothing. 
+          NIL image.blitsprite 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          frame&#160;
+          )
+Displays one frame of a image loaded as sprite. 
+Parameters
+    imgA image loaded as sprite. 
+    xX coordinate where the picture is displayed. 
+    yY coordinate where the picture is displayed. 
+    frameFrame to display (numbered from left to right and top to bottom, starting with 0). 
+ReturnsNothing. 
+          NIL image.blitsprite 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          frame, 
+          NUMBER&#160;
+          alpha&#160;
+          )
+Displays one frame of a image loaded as sprite with transparency. 
+Parameters
+    imgA image loaded as sprite. 
+    xX coordinate where the picture is displayed. 
+    yY coordinate where the picture is displayed. 
+    frameFrame to display (numbered from left to right and top to bottom, starting with 0). 
+    alphaTransparency level (from 0 to 255), more lower value is, more transparent image becomes. 
+ReturnsNothing. 
+          NIL image.blitadd 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          coef&#160;
+          )
+Displays an entire screen image, with color addition. 
+Parameters
+    imgAn image type object. 
+    xX coordinate where the image is displayed. 
+    yY coordinate where the image is displayed. 
+    coefEffect level addition colors (from 0 to 255), the default value is 255. 
+ReturnsNothing. 
+          NIL image.blitsub 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          coef&#160;
+          )
+Displays an entire screen image, with color substraction. 
+Parameters
+    imgAn image type object. 
+    xX coordinate where the image is displayed. 
+    yY coordinate where the image is displayed. 
+    coefEffect level subtraction colors (from 0 to 255), the default value is 255. 
+ReturnsNothing. 
+          NIL image.blittint 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          COLOR&#160;
+          color&#160;
+          )
+Displays an entire screen image, with effect tint. 
+Parameters
+    imgAn image type object. 
+    xX coordinate where the image is displayed. 
+    yY coordinate where the image is displayed. 
+    colorColor to tint the image. 
+ReturnsNothing. 
+          NIL image.fliph 
+          (
+          IMAGE&#160;
+          img)
+Flips an image horizontally. 
+Parameters
+    imgAn image type object. 
+ReturnsNothing. 
+          NIL image.flipv 
+          (
+          IMAGE&#160;
+          img)
+Flips an image vertically. 
+Parameters
+    imgAn image type object. 
+ReturnsNothing. 
+          NIL image.center 
+          (
+          IMAGE&#160;
+          img)
+Change the blit point (the point where the image is displayed) to the center of the image. 
+Parameters
+    imgAn image type object. 
+ReturnsNothing. 
+          NIL image.center 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          xi, 
+          NUMBER&#160;
+          yi&#160;
+          )
+Change the blit point (the point where the image is displayed) to the specified point. 
+Parameters
+    imgAn image type object. 
+    xiX coordinate of the new blit point. 
+    yiY coordinate of the new blit point. 
+ReturnsNothing. 
+          NIL image.rotate 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          angle&#160;
+          )
+Rotate an image about its blit point. 
+Parameters
+    imgAn image type object. 
+    angleRotation angle in degrees. 
+ReturnsNothing. 
+          NUMBER image.getw 
+          (
+          IMAGE&#160;
+          img)
+Obtains the image width in pixels. 
+Parameters
+    imgAn image type object. 
+NoteIf the image was modified with image.resize(), the returned value will not be real. In case you need the real value, use image.getrealw(). 
+ReturnsThe width of the specified image. 
+          NUMBER image.geth 
+          (
+          IMAGE&#160;
+          img)
+Obtains the image height in pixels. 
+Parameters
+    imgAn image type object. 
+NoteIf the image was modified with image.resize(), the returned value will not be real. In case you need the real value, use image.getrealw(). 
+ReturnsThe height of the specified image. 
+          NUMBER image.getrealw 
+          (
+          IMAGE&#160;
+          img)
+Obtains the REAL image width in pixels. 
+Parameters
+    imgAn image type object. 
+ReturnsThe REAL width of the specified image. 
+          NUMBER image.getrealh 
+          (
+          IMAGE&#160;
+          img)
+Obtains the REAL image height in pixels. 
+Parameters
+    imgAn image type object. 
+ReturnsThe REAL height of the specified image. 
+          NIL image.resize 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h&#160;
+          )
+Resizes an image. 
+Parameters
+    imgAn image type object. 
+    wThe new width of the image (in pixels). 
+    hThe new height of the image (in pixels). 
+ReturnsNothing. 
+          NIL image.scale 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          percent&#160;
+          )
+Scale an image according to the percentage. 
+Parameters
+    imgAn image type object. 
+    percentThe percentage of the scale to carry out. 
+ReturnsNothing. 
+          NIL image.clear 
+          (
+          IMAGE&#160;
+          img, 
+          COLOR&#160;
+          fill&#160;
+          )
+Fills an image with the specified color. 
+Parameters
+    imgAn image type object. 
+    fillThe color to fill the image. 
+ReturnsNothing. 
+          NIL image.reset 
+          (
+          IMAGE&#160;
+          img)
+Returns an image to the values ​​it had when it was loaded / created (in other words, removes all effects applied). 
+Parameters
+    imgAn image type object. 
+ReturnsNothing. 
+          NIL image.copy 
+          (
+          IMAGE&#160;
+          img)
+Make a copy of the specified image. 
+Parameters
+    imgAn image object. 
+ReturnsA copy of the given image. 
+          NIL image.save 
+          (
+          IMAGE&#160;
+          img, 
+          STRING&#160;
+          path&#160;
+          )
+Save an image to the specified path (it should include the filename and its extension, only png). 
+Parameters
+    imgAn image object. 
+    pathThe path, filename and extension of the image. 
+ReturnsNothing. 
+          COLOR image.pixel 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y&#160;
+          )
+Get a pixel from the specified image. 
+Parameters
+    imgAn image object. 
+    xPixel position in X axis. 
+    yPixel position in Y axis. 
+ReturnsPixelcolor at that position. 
+NoteAlso returns the color of the pixel in decimal number. 
+          NIL image.pixel 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          COLOR&#160;
+          color&#160;
+          )
+Set a pixel of an image. 
+Parameters
+    imgAn image object. 
+    xPixel position in X axis. 
+    yPixel position in Y axis. 
+    colorNew color for this pixel. 
+ReturnsNothing. 
+          IMAGE image.fxgrey 
+          (
+          IMAGE&#160;
+          img)
+Creates a copy of the img, with the effect of scaling applied gray. 
+Parameters
+    imgAn image object. 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.fxinvert 
+          (
+          IMAGE&#160;
+          img)
+Creates a copy of the img, with the effect of inverted colors. 
+Parameters
+    imgAn image object. 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.fxsepia 
+          (
+          IMAGE&#160;
+          img)
+Creates a copy of the img, with sepia effect. 
+Parameters
+    imgAn image object. 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.fxold 
+          (
+          IMAGE&#160;
+          img)
+Creates a copy of the img, with the effect of old (old stained). 
+Parameters
+    imgAn image object. 
+ReturnsAn image type object, ready to use. 
+          IMAGE image.fxold 
+          (
+          IMAGE&#160;
+          img, 
+          NUMBER&#160;
+          porcent&#160;
+          )
+Creates a copy of the img, with the effect of old (old stained). 
+Parameters
+    imgAn image object. 
+    porcentPercentage of effect to apply. 
+ReturnsAn image type object, ready to use. 

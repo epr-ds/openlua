@@ -1,0 +1,549 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__texture.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+texture 3DModulo 3D  
+Functions
+TEXTURE3D&#160;texture3d.load (STRING path, NUMBER load)
+&#160;Loads an image as 3D texture (in RAM or VRAM).  More...
+&#160;
+TEXTURE3D&#160;texture3d.new (NUMBER width, NUMBER height, NUMBER load)
+&#160;Makes an empty texture.  More...
+&#160;
+NIL&#160;texture3d.setcustom (MODEL3D Model, NUMBER object, NUMBER texture, TEXTURE3D texture3d)
+&#160;Replaces the model's texture with another previously made or loaded.  More...
+&#160;
+NIL&#160;texture3d.quality (TEXTURE3D texture, NUMBER quality)
+&#160;Sets the texture quality.  More...
+&#160;
+NIL&#160;texture3d.quality (MODEL3D Model, NUMBER object, NUMBER texture, NUMBER quality)
+&#160;Sets the texture quality of an specific texture inside a 3D model.  More...
+&#160;
+NIL&#160;texture3d.position (TEXTURE3D texture, NUMBER posx, NUMBER posy)
+&#160;Changes the position of a texture drawn in 2D with texture3d.draw().  More...
+&#160;
+NIL&#160;texture3d.scaling (TEXTURE3D texture, NUMBER scalx, NUMBER scaly)
+&#160;Changes the size of a texture drawn in 2D with texture3d.draw().  More...
+&#160;
+NIL&#160;texture3d.envmap (TEXTURE3D texture, NUMBER mapx, NUMBER mapy, NUMBER maprot)
+&#160;Changes the position and rotation of a texture in environmental mode (env_map).  More...
+&#160;
+NIL&#160;texture3d.envmap (MODEL3D Model, NUMBER object, NUMBER texture, NUMBER mapx, NUMBER mapy, NUMBER maprot)
+&#160;Changes the position and rotation of a texture inside a 3D model in environmental mode (env_map).  More...
+&#160;
+NIL&#160;texture3d.setmulti (MODEL3D Model, NUMBER object, NUMBER texture, TEXTURE3D texture3d)
+&#160;Applies a semi transparent texture over another inside a 3D model.  More...
+&#160;
+NIL&#160;texture3d.mapping (TEXTURE3D texture3d, NUMBER mapping, NUMBER l0, NUMBER l1)
+&#160;Sets the texture mapping mode.  More...
+&#160;
+NIL&#160;texture3d.mapping (MODEL3D Model, NUMBER object, NUMBER texture, NUMBER mapping, NUMBER l0, NUMBER l1)
+&#160;Sets the mapping mode of a texture inside a 3D model.  More...
+&#160;
+NIL&#160;texture3d.setframes (TEXTURE3D texture3d, NUMBER frames)
+&#160;Defines the number of frames of an animated texture (the frames are aligned vertically).  More...
+&#160;
+NIL&#160;texture3d.setframes (MODEL3D Model, NUMBER object, NUMBER texture, NUMBER frames)
+&#160;Defines the number of frames of an animated texture inside a 3D model (the frames are aligned vertically).  More...
+&#160;
+NIL&#160;texture3d.frame (TEXTURE3D texture3d, NUMBER frame)
+&#160;Sets the frame to show of an animated texture.  More...
+&#160;
+NIL&#160;texture3d.frame (MODEL3D Model, NUMBER object, NUMBER texture, NUMBER frame)
+&#160;Sets the frame to show of an animated texture.  More...
+&#160;
+NIL&#160;texture3d.trans (TEXTURE3D texture3d, NUMBER u, NUMBER v)
+&#160;Modifies the mapping coordinates of a texture.  More...
+&#160;
+NIL&#160;texture3d.trans (MODEL3D Model, NUMBER object, NUMBER texture, NUMBER u, NUMBER v)
+&#160;Modifies the mapping coordinates of a texture inside a 3D model.  More...
+&#160;
+NIL&#160;texture3d.render (TEXTURE3D texture3d)
+&#160;Captures the image seen by the camera and saves it in a texture.  More...
+&#160;
+NIL&#160;texture3d.render (MODEL3D Model, NUMBER object, NUMBER texture)
+&#160;Captures the image seen by the camera and saves it in a texture inside a 3D model.  More...
+&#160;
+NIL&#160;texture3d.draw (TEXTURE3D texture3d)
+&#160;Draws a 3D texture in 2D mode (using amg.mode2d()).  More...
+&#160;
+NIL&#160;texture3d.filter (MODEL3D Model, NUMBER filter)
+&#160;Change texture filter.  More...
+&#160;
+NIL&#160;texture3d.filter (MODEL3D Model, NUMBER object, NUMBER filter)
+&#160;Change texture filter.  More...
+&#160;
+NIL&#160;texture3d.allocshared (NUMBER w, NUMBER h)
+&#160;Reserves VRAM space for shared textures.  More...
+&#160;
+NIL&#160;texture3d.freeshared ()
+&#160;Frees the allocated space in VRAM for shared textures.  More...
+&#160;
+NIL&#160;texture3d.tovram (TEXTURE3D texture3d)
+&#160;Moves a texture to VRAM.  More...
+&#160;
+NIL&#160;texture3d.tovram (MODEL3D Model, NUMBER object, NUMBER texture)
+&#160;Moves a texture inside a 3D model to VRAM.  More...
+&#160;
+NIL&#160;texture3d.finish ()
+&#160;Ends the image capture of texture3d.render().  More...
+&#160;
+Detailed Description
+Using 3D textures. 
+Function Documentation
+          TEXTURE3D texture3d.load 
+          (
+          STRING&#160;
+          path, 
+          NUMBER&#160;
+          load&#160;
+          )
+Loads an image as 3D texture (in RAM or VRAM). 
+Parameters
+    pathPath to the texture file. 
+    loadTexture location, one of these constants:
+__RAM
+__VRAM
+NoteThe textures are always square images (same width as height), unless the texture is animated, in this case the texture is sorted in square frames aligned vertically. 
+ReturnsA texture3d object, ready to use. 
+          TEXTURE3D texture3d.new 
+          (
+          NUMBER&#160;
+          width, 
+          NUMBER&#160;
+          height, 
+          NUMBER&#160;
+          load&#160;
+          )
+Makes an empty texture. 
+Parameters
+    widthTexture width. 
+    heightTexture height. 
+    loadTexture location, one of these constants:
+__RAM
+__VRAM
+NoteThe textures are always square images (same width as height), except if the texture is animated, in this case the texture is sorted in square frames aligned vertically. 
+ReturnsA texture3d object, ready to use. 
+          NIL texture3d.setcustom 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture, 
+          TEXTURE3D&#160;
+          texture3d&#160;
+          )
+Replaces the model's texture with another previously made or loaded. 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureThe object texture. 
+    texture3dThe new texture for the object. 
+ReturnsNothing. 
+          NIL texture3d.quality 
+          (
+          TEXTURE3D&#160;
+          texture, 
+          NUMBER&#160;
+          quality&#160;
+          )
+Sets the texture quality. 
+Parameters
+    textureA 3D texture. 
+    qualityThe texture quality:. Can be one of these constants:
+__8888
+__4444
+__5551
+__5650
+ReturnsNothing. 
+          NIL texture3d.quality 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture, 
+          NUMBER&#160;
+          quality&#160;
+          )
+Sets the texture quality of an specific texture inside a 3D model. 
+Parameters
+    ModelA 3D model. 
+    objectThe object inside the 3D model. 
+    textureThe object texture. 
+    qualityThe texture quality. Can be one of these constants:
+__8888
+__4444
+__5551
+__5650
+ReturnsNothing. 
+          NIL texture3d.position 
+          (
+          TEXTURE3D&#160;
+          texture, 
+          NUMBER&#160;
+          posx, 
+          NUMBER&#160;
+          posy&#160;
+          )
+Changes the position of a texture drawn in 2D with texture3d.draw(). 
+Parameters
+    textureA texture. 
+    posxThe mapping X position (0 by default). 
+    posyThe mapping Y position (0 by default). 
+ReturnsNothing. 
+          NIL texture3d.scaling 
+          (
+          TEXTURE3D&#160;
+          texture, 
+          NUMBER&#160;
+          scalx, 
+          NUMBER&#160;
+          scaly&#160;
+          )
+Changes the size of a texture drawn in 2D with texture3d.draw(). 
+Parameters
+    textureA texture. 
+    scalxX size (1 by default). 
+    scalyY size (1 by default). 
+ReturnsNothing. 
+          NIL texture3d.envmap 
+          (
+          TEXTURE3D&#160;
+          texture, 
+          NUMBER&#160;
+          mapx, 
+          NUMBER&#160;
+          mapy, 
+          NUMBER&#160;
+          maprot&#160;
+          )
+Changes the position and rotation of a texture in environmental mode (env_map). 
+Parameters
+    textureA texture. 
+    mapxX position (0 by default). 
+    mapyY position (0 by default). 
+    maprotRotation (0 by default). 
+ReturnsNothing. 
+          NIL texture3d.envmap 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture, 
+          NUMBER&#160;
+          mapx, 
+          NUMBER&#160;
+          mapy, 
+          NUMBER&#160;
+          maprot&#160;
+          )
+Changes the position and rotation of a texture inside a 3D model in environmental mode (env_map). 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureThe object texture. 
+    mapxX position (0 by default). 
+    mapyY position (0 by default). 
+    maprotRotation (0 by default). 
+ReturnsNothing. 
+          NIL texture3d.setmulti 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture, 
+          TEXTURE3D&#160;
+          texture3d&#160;
+          )
+Applies a semi transparent texture over another inside a 3D model. 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureThe object texture. 
+    texture3dThe applied texture. 
+ReturnsNothing. 
+          NIL texture3d.mapping 
+          (
+          TEXTURE3D&#160;
+          texture3d, 
+          NUMBER&#160;
+          mapping, 
+          NUMBER&#160;
+          l0, 
+          NUMBER&#160;
+          l1&#160;
+          )
+Sets the texture mapping mode. 
+Parameters
+    texture3dA 3D texture. 
+    mappingMapping mode, one of these constants:
+__ENV (environmental, simulate reflections).
+__COORDS (default mode).
+    l0The lights to use as columns for the ambiental mapping matrix. 
+    l1The sencond light to use (the matrix size is 2x3). 
+ReturnsNothing. 
+          NIL texture3d.mapping 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture, 
+          NUMBER&#160;
+          mapping, 
+          NUMBER&#160;
+          l0, 
+          NUMBER&#160;
+          l1&#160;
+          )
+Sets the mapping mode of a texture inside a 3D model. 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureThe object texture. 
+    mappingMapping mode, one of these constants:
+__ENV (environmental, simulate reflections).
+__COORDS (default mode).
+    l0The lights to use as columns for the ambiental mapping matrix. 
+    l1The sencond light to use (the matrix size is 2x3). 
+ReturnsNothing. 
+          NIL texture3d.setframes 
+          (
+          TEXTURE3D&#160;
+          texture3d, 
+          NUMBER&#160;
+          frames&#160;
+          )
+Defines the number of frames of an animated texture (the frames are aligned vertically). 
+Parameters
+    texture3dA 3D texture. 
+    framesNumber of frames. 
+ReturnsNothing. 
+          NIL texture3d.setframes 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture, 
+          NUMBER&#160;
+          frames&#160;
+          )
+Defines the number of frames of an animated texture inside a 3D model (the frames are aligned vertically). 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureThe object texture. 
+    framesNumber of frames 
+ReturnsNothing. 
+          NIL texture3d.frame 
+          (
+          TEXTURE3D&#160;
+          texture3d, 
+          NUMBER&#160;
+          frame&#160;
+          )
+Sets the frame to show of an animated texture. 
+Parameters
+    texture3dA 3D texture. 
+    frameThe frame to show. 
+ReturnsNothing. 
+          NIL texture3d.frame 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture, 
+          NUMBER&#160;
+          frame&#160;
+          )
+Sets the frame to show of an animated texture. 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureThe object texture. 
+    frameThe frame to show. 
+ReturnsNothing. 
+          NIL texture3d.trans 
+          (
+          TEXTURE3D&#160;
+          texture3d, 
+          NUMBER&#160;
+          u, 
+          NUMBER&#160;
+          v&#160;
+          )
+Modifies the mapping coordinates of a texture. 
+Parameters
+    texture3dA 3D texture. 
+    uMapping U position. 
+    vMapping V position. 
+ReturnsNothing. 
+          NIL texture3d.trans 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture, 
+          NUMBER&#160;
+          u, 
+          NUMBER&#160;
+          v&#160;
+          )
+Modifies the mapping coordinates of a texture inside a 3D model. 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureThe object texture. 
+    uMapping U position. 
+    vMapping V position. 
+ReturnsNothing. 
+          NIL texture3d.render 
+          (
+          TEXTURE3D&#160;
+          texture3d)
+Captures the image seen by the camera and saves it in a texture. 
+Parameters
+    texture3dA 3D texture. 
+NoteThis function should be used before amg.update(). 
+3D texture must be loaded to VRAM with texture3d.load(). 
+ReturnsNothing. 
+          NIL texture3d.render 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture&#160;
+          )
+Captures the image seen by the camera and saves it in a texture inside a 3D model. 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureThe object texture. 
+NoteThis function should be used before amg.update(). 
+Texture must be transferred to VRAM texture3d.tovram(), before using it. 
+ReturnsNothing. 
+          NIL texture3d.draw 
+          (
+          TEXTURE3D&#160;
+          texture3d)
+Draws a 3D texture in 2D mode (using amg.mode2d()). 
+Parameters
+    texture3dA 3D texture. 
+ReturnsNothing. 
+          NIL texture3d.filter 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          filter&#160;
+          )
+Change texture filter. 
+Parameters
+    ModelThe 3D model. 
+    filterFilter for the texture. It can be one of the following constants:
+__NEAR (No filter, pixelated).
+__LINEAR (Linear filter, smooth).
+ReturnsNothing. 
+          NIL texture3d.filter 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          filter&#160;
+          )
+Change texture filter. 
+Parameters
+    ModelThe 3D model. 
+    objectThe object inside the 3D model. 
+    filterFilter for the texture. It can be one of the following constants:
+__NEAR (No filter, pixelated).
+__LINEAR (Linear filter, smooth).
+ReturnsNothing. 
+          NIL texture3d.allocshared 
+          (
+          NUMBER&#160;
+          w, 
+          NUMBER&#160;
+          h&#160;
+          )
+Reserves VRAM space for shared textures. 
+Parameters
+    wTexture width. 
+    hTexture height. 
+NoteYou can use this function to reserve VRAM space to transfer RAM textures (slower to show) to VRAM (faster), improving performance. 
+ReturnsNothing. 
+          NIL texture3d.freeshared 
+          (
+          )
+Frees the allocated space in VRAM for shared textures. 
+ReturnsNothing. 
+          NIL texture3d.tovram 
+          (
+          TEXTURE3D&#160;
+          texture3d)
+Moves a texture to VRAM. 
+Parameters
+    texture3dA 3D texture. 
+ReturnsNothing. 
+          NIL texture3d.tovram 
+          (
+          MODEL3D&#160;
+          Model, 
+          NUMBER&#160;
+          object, 
+          NUMBER&#160;
+          texture&#160;
+          )
+Moves a texture inside a 3D model to VRAM. 
+Parameters
+    ModelA 3D model. 
+    objectAn object inside the 3D model. 
+    textureA 3D texture. 
+ReturnsNothing. 
+          NIL texture3d.finish 
+          (
+          )
+Ends the image capture of texture3d.render(). 
+ReturnsNothing. 

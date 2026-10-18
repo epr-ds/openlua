@@ -1,0 +1,126 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__savedata.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+savedata  
+Functions
+BOOLEAN&#160;data.save (STRING data, STRING gametittle, STRING gameid, STRING subtittle, STRING description, NUMBER mode)
+&#160;Allows to save the game.  More...
+&#160;
+BOOLEAN&#160;data.save (STRING data, STRING gametittle, STRING gameid, STRING subtittle, STRING description, NUMBER mode, STRING resources)
+&#160;Allows to save the game.  More...
+&#160;
+STRING&#160;data.load (STRING gameid, NUMBER mode)
+&#160;Allows to load a savegame.  More...
+&#160;
+STRING&#160;data.delete (STRING gameid)
+&#160;Allows to delete savedata.  More...
+&#160;
+Detailed Description
+Savegames. 
+Function Documentation
+          BOOLEAN data.save 
+          (
+          STRING&#160;
+          data, 
+          STRING&#160;
+          gametittle, 
+          STRING&#160;
+          gameid, 
+          STRING&#160;
+          subtittle, 
+          STRING&#160;
+          description, 
+          NUMBER&#160;
+          mode&#160;
+          )
+Allows to save the game. 
+Parameters
+    dataData to save (up to 256 chars). 
+    gametittleTitle which is shown on the VSH or the save/load dialog (up to 128 chars). 
+    gameidOur game ID, specially for distinguish our savedatas (up to 13 chars). 
+    subtittleSavedata subtitle (up to 128 chars). 
+    descriptionDetails or description of the savedata (up to 1024 chars). 
+    modeMode of saving data:
+0 For show save dialog (5 slots).
+1 Autosave (dialog not shown).
+Returnstrue If saving data success, false otherwise. 
+          BOOLEAN data.save 
+          (
+          STRING&#160;
+          data, 
+          STRING&#160;
+          gametittle, 
+          STRING&#160;
+          gameid, 
+          STRING&#160;
+          subtittle, 
+          STRING&#160;
+          description, 
+          NUMBER&#160;
+          mode, 
+          STRING&#160;
+          resources&#160;
+          )
+Allows to save the game. 
+Parameters
+    dataData to save (up to 256 chars). 
+    gametittleTitle which is shown on the VSH or the save/load dialog (up to 128 chars). 
+    gameidOur game ID, specially for distinguish our savedatas (up to 13 chars). 
+    subtittleSavedata subtitle (up to 128 chars). 
+    descriptionDetails or description of the savedata (up to 1024 chars). 
+    modeMode of saving data:
+0 For show save dialog (5 slots).
+1 Autosave (dialog not shown).
+    resourcesPath which contains the resources which will be saved or shown in our savedata. The resources you can customize are these, and must match the name:
+ICON0.PNG Savedata icon, size 144*80.
+ICON1.PMF Video to be shown on the savedata (only at XMB).
+PIC1.PNG Background image for the savedata, size 480*272
+PREVIEW.PNG Icon to be shown in the save dialog.
+SND0.AT3 Sound to play in the savedata, .at3 format and XMB only.
+Returnstrue If save success or false otherwise. 
+          STRING data.load 
+          (
+          STRING&#160;
+          gameid, 
+          NUMBER&#160;
+          mode&#160;
+          )
+Allows to load a savegame. 
+Parameters
+    gameidMust be the same ID used in the data.save() function. 
+    modeLoad mode:
+0 for show the load dialog and choose savedata,
+1 Autoload, loads the oldest savedata(requests confirmation).
+ReturnsThe loaded data, or nil in case of error. 
+          STRING data.delete 
+          (
+          STRING&#160;
+          gameid)
+Allows to delete savedata. 
+Parameters
+    gameidMust be the same ID used in the data.save() function. 
+ReturnsNothing. Due on the Delete savedata dialog will indicate the result. 

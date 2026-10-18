@@ -1,0 +1,94 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__timers.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+timers  
+Functions
+TIMER&#160;timer.new ()
+&#160;Create a timer.  More...
+&#160;
+TIMER&#160;timer.new (NUMBER time)
+&#160;Create a timer.  More...
+&#160;
+NUMBER&#160;timer.start ()
+&#160;Start timer.  More...
+&#160;
+NUMBER&#160;timer.stop ()
+&#160;Stop timer.  More...
+&#160;
+NUMBER&#160;timer.reset ()
+&#160;Restart timer.  More...
+&#160;
+NUMBER&#160;timer.reset (NUMBER time)
+&#160;Restart timer.  More...
+&#160;
+NUMBER&#160;timer.time ()
+&#160;Current time of the timer.  More...
+&#160;
+Detailed Description
+Timers. 
+Function Documentation
+          TIMER timer.new 
+          (
+          )
+Create a timer. 
+Returnsa timer-type object. 
+          TIMER timer.new 
+          (
+          NUMBER&#160;
+          time)
+Create a timer. 
+Parameters
+    timeStarting time for the timer. 
+Returnsa timer-type object. 
+          NUMBER timer.start 
+          (
+          )
+Start timer. 
+ReturnsThe time when was started in milliseconds. 
+          NUMBER timer.stop 
+          (
+          )
+Stop timer. 
+ReturnsThe time when was stopped in milliseconds. 
+          NUMBER timer.reset 
+          (
+          )
+Restart timer. 
+ReturnsThe time when was restarted in milliseconds. 
+          NUMBER timer.reset 
+          (
+          NUMBER&#160;
+          time)
+Restart timer. 
+Parameters
+    timeStarting time for the timer. 
+ReturnsThe time when was restarted in milliseconds. 
+          NUMBER timer.time 
+          (
+          )
+Current time of the timer. 
+ReturnsCurrent time of the timer in milliseconds. 

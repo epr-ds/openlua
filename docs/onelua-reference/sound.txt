@@ -1,0 +1,227 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__sound.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+sound  
+Functions
+SOUND&#160;sound.load (STRING path)
+&#160;Loads a sound for playing it later.  More...
+&#160;
+NIL&#160;sound.play (SOUND snd)
+&#160;Play a sound object in specified channel (a free channel).  More...
+&#160;
+NIL&#160;sound.play (SOUND snd, NUMBER channel)
+&#160;Play a sound object in specified channel.  More...
+&#160;
+NIL&#160;sound.loop (SOUND snd)
+&#160;Apply/Remove the effect loop to an object type sound.  More...
+&#160;
+BOOLEAN&#160;sound.looping (SOUND snd)
+&#160;It allows to know whether a type this sound in loop mode.  More...
+&#160;
+NIL&#160;sound.pause (SOUND snd)
+&#160;Pause/Resume a sound object.  More...
+&#160;
+NIL&#160;sound.pause (SOUND snd, NUMBER mode)
+&#160;Pause/Resume a sound object.  More...
+&#160;
+BOOLEAN&#160;sound.playing (SOUND snd)
+&#160;It allows to know if a sound is playing.  More...
+&#160;
+NIL&#160;sound.stop (SOUND snd)
+&#160;Stop a sound object.  More...
+&#160;
+BOOLEAN&#160;sound.endstream (SOUND snd)
+&#160;It allows to know if a sound is finished.  More...
+&#160;
+NUMBER&#160;sound.vol (SOUND snd)
+&#160;It allows to know the volume of a sound.  More...
+&#160;
+NIL&#160;sound.vol (SOUND snd, NUMBER percentage)
+&#160;A sound volume allows to set.  More...
+&#160;
+TABLE&#160;sound.getid3 (STRING path)
+&#160;Get ID3 info (only MP3 files)  More...
+&#160;
+BOOLEAN&#160;sound.extractcover (STRING mp3, STRING path)
+&#160;Extract the image (cover) from a mp3 file.  More...
+&#160;
+TABLE&#160;sound.vis (SOUND snd)
+&#160;Internal interface to display waveform.  More...
+&#160;
+Detailed Description
+Sound functions. 
+Function Documentation
+          SOUND sound.load 
+          (
+          STRING&#160;
+          path)
+Loads a sound for playing it later. 
+Parameters
+    pathPath of the file to load(mp3, s3m, bgm or wav). 
+ReturnsA Sound object, ready to be played. 
+          NIL sound.play 
+          (
+          SOUND&#160;
+          snd)
+Play a sound object in specified channel (a free channel). 
+Parameters
+    sndA sound object. 
+ReturnsNothing. 
+          NIL sound.play 
+          (
+          SOUND&#160;
+          snd, 
+          NUMBER&#160;
+          channel&#160;
+          )
+Play a sound object in specified channel. 
+Parameters
+    sndA sound object. 
+    channelChannel where the object will be played(8 channels numbered from 1 to 8). 
+ReturnsNothing. 
+          NIL sound.loop 
+          (
+          SOUND&#160;
+          snd)
+Apply/Remove the effect loop to an object type sound. 
+Parameters
+    sndA sound object. 
+NoteIf you have the effect loop removes it, otherwise applies it. 
+ReturnsNothing. 
+          BOOLEAN sound.looping 
+          (
+          SOUND&#160;
+          snd)
+It allows to know whether a type this sound in loop mode. 
+Parameters
+    sndA sound object. 
+Returnstrue if it has the effect, false otherwise. 
+          NIL sound.pause 
+          (
+          SOUND&#160;
+          snd)
+Pause/Resume a sound object. 
+Parameters
+    sndA sound object. 
+ReturnsNothing. 
+          NIL sound.pause 
+          (
+          SOUND&#160;
+          snd, 
+          NUMBER&#160;
+          mode&#160;
+          )
+Pause/Resume a sound object. 
+Parameters
+    sndA sound object. 
+    modePause mode:
+-1 if sound object is in pause it will resume, if not in pause, it will.
+0 Resume the sound object if it is in pause.
+1 Pause the sound object if it is playing.
+ReturnsNothing. 
+          BOOLEAN sound.playing 
+          (
+          SOUND&#160;
+          snd)
+It allows to know if a sound is playing. 
+Parameters
+    sndA sound object. 
+Returnstrue, If the sound object is in State "play", otherwise returns false. 
+          NIL sound.stop 
+          (
+          SOUND&#160;
+          snd)
+Stop a sound object. 
+Parameters
+    sndA sound object. 
+ReturnsNothing. 
+          BOOLEAN sound.endstream 
+          (
+          SOUND&#160;
+          snd)
+It allows to know if a sound is finished. 
+Parameters
+    sndA sound object. 
+NoteThe completed state, applies if I just sound or if a stop is made. 
+Returnstrue, If the sound object is in State "Finalized", otherwise returns false. 
+          NUMBER sound.vol 
+          (
+          SOUND&#160;
+          snd)
+It allows to know the volume of a sound. 
+Parameters
+    sndA sound object. 
+ReturnsA number with a value of 0 - 100% of the volume of the sound. 
+          NIL sound.vol 
+          (
+          SOUND&#160;
+          snd, 
+          NUMBER&#160;
+          percentage&#160;
+          )
+A sound volume allows to set. 
+Parameters
+    sndA sound object. 
+    percentageA number with a value of 0 - 100% 
+ReturnsNothing. 
+          TABLE sound.getid3 
+          (
+          STRING&#160;
+          path)
+Get ID3 info (only MP3 files) 
+Parameters
+    pathPath to the MP3 file. 
+ReturnsA table with this fields:
+title (STRING).
+artist (STRING).
+album (STRING).
+year (STRING).
+genre (STRING).
+comment (STRING).
+track (NUMBER).
+version (STRING).
+cover (IMAGE).
+          BOOLEAN sound.extractcover 
+          (
+          STRING&#160;
+          mp3, 
+          STRING&#160;
+          path&#160;
+          )
+Extract the image (cover) from a mp3 file. 
+Parameters
+    mp3Path to the MP3 file. 
+    pathThe Path where is going to extract the "cover" image. 
+ReturnsTrue if the imagen extract correctly, False if does not extract correctly. 
+          TABLE sound.vis 
+          (
+          SOUND&#160;
+          snd)
+Internal interface to display waveform. 
+Parameters
+    sndAn object type sound. 
+ReturnsA table of 256 numeric fields with the values, of the waveform at that moment. 

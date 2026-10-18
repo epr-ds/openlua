@@ -1,0 +1,247 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__hardware.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+hardware  
+Functions
+STRING&#160;hw.baryon ()
+&#160;Baryon value.  More...
+&#160;
+STRING&#160;hw.tachyon ()
+&#160;Tachyon value.  More...
+&#160;
+NUMBER&#160;hw.pommel ()
+&#160;Pommel value.  More...
+&#160;
+STRING&#160;hw.fuseid ()
+&#160;Gets the FuseId value.  More...
+&#160;
+STRING&#160;hw.fusecfg ()
+&#160;Gets the FuseCfg value.  More...
+&#160;
+STRING&#160;hw.kirk ()
+&#160;Gets the Kirk value.  More...
+&#160;
+STRING&#160;hw.spock ()
+&#160;Gets the Spock value.  More...
+&#160;
+STRING&#160;hw.nandseed ()
+&#160;Gets the Nand-Seed (IdsScramble) value.  More...
+&#160;
+STRING&#160;hw.ofwinitial ()
+&#160;Gets the console factory firmware.  More...
+&#160;
+STRING&#160;hw.board ()
+&#160;Identifies motherboard type.  More...
+&#160;
+STRING&#160;hw.gen ()
+&#160;Identifies motherboard generation.  More...
+&#160;
+STRING&#160;hw.region ()
+&#160;Identifies the PSP region configured.  More...
+&#160;
+STRING&#160;hw.getmodel ()
+&#160;Identifies the PSP model.  More...
+&#160;
+BOOLEAN&#160;hw.pandora ()
+&#160;Show if the motherboard can pandorize the battery.  More...
+&#160;
+STRING&#160;hw.nand ()
+&#160;Calculates the NAND size.  More...
+&#160;
+NUMBER&#160;hw.volume ()
+&#160;Show the actual volume.  More...
+&#160;
+NUMBER&#160;hw.volume (NUMBER level)
+&#160;Configure the current volume.  More...
+&#160;
+NUMBER&#160;hw.mute ()
+&#160;Detects if PSP is in "mute"..  More...
+&#160;
+NIL&#160;hw.mute (NUMBER mode)
+&#160;It allows setting the state of the "mute".  More...
+&#160;
+NUMBER&#160;hw.headphone ()
+&#160;It allows to know if the headphones are connected.  More...
+&#160;
+NUMBER&#160;hw.audioout (NUMBER mode)
+&#160;Allows set or force the audio output from the speakers and headphones.  More...
+&#160;
+NUMBER&#160;hw.led (NUMBER led, NUMBER state)
+&#160;Allows set or force the state of the LEDs.  More...
+&#160;
+Detailed Description
+Hardware functions. 
+Function Documentation
+          STRING hw.baryon 
+          (
+          )
+Baryon value. 
+ReturnsPSP motherboard Baryon value. 
+          STRING hw.tachyon 
+          (
+          )
+Tachyon value. 
+ReturnsPSP motherboard Tachyon value. 
+          NUMBER hw.pommel 
+          (
+          )
+Pommel value. 
+ReturnsPSP motherboard Pommel value. 
+          STRING hw.fuseid 
+          (
+          )
+Gets the FuseId value. 
+ReturnsThe FuseId value. 
+          STRING hw.fusecfg 
+          (
+          )
+Gets the FuseCfg value. 
+ReturnsThe FuseCfg value. 
+          STRING hw.kirk 
+          (
+          )
+Gets the Kirk value. 
+ReturnsThe Kirk value. 
+          STRING hw.spock 
+          (
+          )
+Gets the Spock value. 
+ReturnsThe Spock value. 
+          STRING hw.nandseed 
+          (
+          )
+Gets the Nand-Seed (IdsScramble) value. 
+ReturnsThe Nand-Seed (IdsScramble) value. 
+          STRING hw.ofwinitial 
+          (
+          )
+Gets the console factory firmware. 
+ReturnsThe console factory firmware. 
+          STRING hw.board 
+          (
+          )
+Identifies motherboard type. 
+ReturnsMotherboard type. 
+          STRING hw.gen 
+          (
+          )
+Identifies motherboard generation. 
+ReturnsMotherboard generation: "g01" to "g10". 
+          STRING hw.region 
+          (
+          )
+Identifies the PSP region configured. 
+ReturnsRegion configured:
+Japan
+America
+Australia
+United Kingdom
+Europe
+Korea
+Hong-Kong
+Taiwan
+Russia
+China
+Mexico
+"--"
+          STRING hw.getmodel 
+          (
+          )
+Identifies the PSP model. 
+ReturnsIdentified model: "1000", "2000", "3000", "Go", "Street", "Vita" , "UNK" , "Emulator". 
+          BOOLEAN hw.pandora 
+          (
+          )
+Show if the motherboard can pandorize the battery. 
+Returnstrue/false according to whether the motherboard can pandorize the battery. 
+          STRING hw.nand 
+          (
+          )
+Calculates the NAND size. 
+ReturnsThe NAND size in the form: "64MB". 
+          NUMBER hw.volume 
+          (
+          )
+Show the actual volume. 
+ReturnsActual level of the volume. 
+          NUMBER hw.volume 
+          (
+          NUMBER&#160;
+          level)
+Configure the current volume. 
+Parameters
+    levelA number between 1-30. 
+ReturnsThe current volume level. 
+          NUMBER hw.mute 
+          (
+          )
+Detects if PSP is in "mute".. 
+ReturnsA numeric value, 1 if it is in "mute", 0 if not. 
+          NIL hw.mute 
+          (
+          NUMBER&#160;
+          mode)
+It allows setting the state of the "mute". 
+Parameters
+    modeAny of the following values:
+1: Activate.
+0: Deactivate.
+ReturnsNothing. 
+          NUMBER hw.headphone 
+          (
+          )
+It allows to know if the headphones are connected. 
+ReturnsA number 1 if they are connected, 0 otherwise. 
+          NUMBER hw.audioout 
+          (
+          NUMBER&#160;
+          mode)
+Allows set or force the audio output from the speakers and headphones. 
+Parameters
+    modeAny of the following values:
+1: Speakers.
+0: Headphones.
+ReturnsIt will be 0 if successful, otherwise somewhat less than 0. 
+          NUMBER hw.led 
+          (
+          NUMBER&#160;
+          led, 
+          NUMBER&#160;
+          state&#160;
+          )
+Allows set or force the state of the LEDs. 
+Parameters
+    ledAny of the following values:
+0: Led MS.
+1: Led Wlan.
+2: Led Power.
+3: Led BT.
+    stateAny of the following values:
+1: Activate.
+0: Deactivate.
+NoteThis feature only enables or disables the LEDs, not turn on or off. 
+ReturnsIt will be 0 if successful, otherwise somewhat less than 0. 

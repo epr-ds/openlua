@@ -1,0 +1,100 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__splash.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+splash  
+Functions
+NIL&#160;splash.oldschool ()
+&#160;Show the OldSchool Library Splash (Oslib).  More...
+&#160;
+NIL&#160;splash.old ()
+&#160;Show the OneLua splash (OLD).  More...
+&#160;
+NIL&#160;splash.old (STRING path)
+&#160;Show a splash using a specified image (OLD).  More...
+&#160;
+NIL&#160;splash.old (TABLE imgs)
+&#160;Show a splash (OLD) using specified images (one by one, as a Slideshow).  More...
+&#160;
+NIL&#160;splash.show ()
+&#160;Show the OneLua splash.  More...
+&#160;
+NIL&#160;splash.show (STRING path)
+&#160;Show a splash using a specified image (NEW).  More...
+&#160;
+NIL&#160;splash.show (TABLE imgs)
+&#160;Show a splash (NEW) using specified images (one by one, as a Slideshow).  More...
+&#160;
+Detailed Description
+Images for use as an introduction. 
+Function Documentation
+          NIL splash.oldschool 
+          (
+          )
+Show the OldSchool Library Splash (Oslib). 
+ReturnsNothing. 
+          NIL splash.old 
+          (
+          )
+Show the OneLua splash (OLD). 
+ReturnsNothing. 
+          NIL splash.old 
+          (
+          STRING&#160;
+          path)
+Show a splash using a specified image (OLD). 
+Parameters
+    pathimage path. 
+ReturnsNothing. 
+          NIL splash.old 
+          (
+          TABLE&#160;
+          imgs)
+Show a splash (OLD) using specified images (one by one, as a Slideshow). 
+Parameters
+    imgsa table with paths of the images to show. 
+ReturnsNothing. 
+          NIL splash.show 
+          (
+          )
+Show the OneLua splash. 
+ReturnsNothing. 
+          NIL splash.show 
+          (
+          STRING&#160;
+          path)
+Show a splash using a specified image (NEW). 
+Parameters
+    pathimage path. 
+ReturnsNothing. 
+          NIL splash.show 
+          (
+          TABLE&#160;
+          imgs)
+Show a splash (NEW) using specified images (one by one, as a Slideshow). 
+Parameters
+    imgsa table with paths of the images to show. 
+ReturnsNothing. 

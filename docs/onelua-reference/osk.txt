@@ -1,0 +1,149 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__osk.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+osk  
+Functions
+STRING&#160;osk.init (STRING desc, STRING text)
+&#160;Initializes Sony keyboard.  More...
+&#160;
+STRING&#160;osk.init (STRING desc, STRING text, NUMBER type)
+&#160;Initializes Sony keyboard.  More...
+&#160;
+STRING&#160;osk.init (STRING desc, STRING text, NUMBER type, NUMBER textmax)
+&#160;Initializes Sony keyboard.  More...
+&#160;
+STRING&#160;osk.init (STRING desc, STRING text, NUMBER type, NUMBER textmax, NUMBER lines)
+&#160;Initializes Sony keyboard.  More...
+&#160;
+STRING&#160;osk.init (STRING desc, STRING text, NUMBER type, NUMBER textmax, NUMBER lines, NUMBBER mode)
+&#160;Initializes Sony keyboard.  More...
+&#160;
+Detailed Description
+Keyboard managing. 
+Function Documentation
+          STRING osk.init 
+          (
+          STRING&#160;
+          desc, 
+          STRING&#160;
+          text&#160;
+          )
+Initializes Sony keyboard. 
+Parameters
+    descDescription shown bottom right. 
+    textInitial text. 
+ReturnsText inserted with the keyboard, or nil if the user cancels the operation. 
+          STRING osk.init 
+          (
+          STRING&#160;
+          desc, 
+          STRING&#160;
+          text, 
+          NUMBER&#160;
+          type&#160;
+          )
+Initializes Sony keyboard. 
+Parameters
+    descDescription shown bottom right. 
+    textInitial text. 
+    typeKeyboard mode: 1 for normal mode, 2 for numeric mode. 
+ReturnsText inserted with the keyboard, or nil if the user cancels the operation. 
+          STRING osk.init 
+          (
+          STRING&#160;
+          desc, 
+          STRING&#160;
+          text, 
+          NUMBER&#160;
+          type, 
+          NUMBER&#160;
+          textmax&#160;
+          )
+Initializes Sony keyboard. 
+Parameters
+    descDescription shown bottom right. 
+    textInitial text. 
+    typeKeyboard mode: 1 for normal mode, 2 for numeric mode. 
+    textmaxMax. number of characters to insert with the keyboard. 
+ReturnsText inserted with the keyboard, or nil if the user cancels the operation. 
+          STRING osk.init 
+          (
+          STRING&#160;
+          desc, 
+          STRING&#160;
+          text, 
+          NUMBER&#160;
+          type, 
+          NUMBER&#160;
+          textmax, 
+          NUMBER&#160;
+          lines&#160;
+          )
+Initializes Sony keyboard. 
+Parameters
+    descDescription shown bottom right. 
+    textInitial text. 
+    typeKeyboard mode: 1 for normal mode, 2 for numeric mode. 
+    textmaxMax. number of characters to insert with the keyboard. 
+    linesMax. number of lines to insert with the keyboard. 
+ReturnsText inserted with the keyboard, or nil if the user cancels the operation. 
+          STRING osk.init 
+          (
+          STRING&#160;
+          desc, 
+          STRING&#160;
+          text, 
+          NUMBER&#160;
+          type, 
+          NUMBER&#160;
+          textmax, 
+          NUMBER&#160;
+          lines, 
+          NUMBBER&#160;
+          mode&#160;
+          )
+Initializes Sony keyboard. 
+Parameters
+    descDescription shown bottom right. 
+    textInitial text. 
+    typeKeyboard mode: 1 for normal mode, 2 for numeric mode. 
+    textmaxMax. number of characters to insert with the keyboard. 
+    linesMax. number of lines to insert with the keyboard. 
+    modeLanguage of the keyboard, must indicate a numeric value:
+0 Japanese.
+1 English.
+2 Spanish.
+3 German.
+4 Italian.
+5 Dutch.
+6 Portuguese.
+7 Russian.
+8 Korean.
+9 Tradicional Chinese.
+10 Simplified Chinese.
+-1 Language configured for the PSP Firmware.
+ReturnsText inserted with the keyboard, or nil if the user cancels the operation. 

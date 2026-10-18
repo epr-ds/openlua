@@ -1,0 +1,116 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__maps.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+maps  
+Functions
+MAP&#160;map.new (IMAGE tileset, TABLE mapData, NUMBER TileX, NUMBER TileY)
+&#160;Cretes a map.  More...
+&#160;
+NIL&#160;map.blit (MAP map, NUMBER x, NUMBER y)
+&#160;Blits a map.  More...
+&#160;
+NUMBER&#160;map.sizex (MAP map)
+&#160;It returns a map width.  More...
+&#160;
+NUMBER&#160;map.sizey (MAP map)
+&#160;It returns a map height.  More...
+&#160;
+NIL&#160;map.set (MAP map, NUMBER tilex, NUMBER tiley, NUMBER value)
+&#160;Sets the desired tile in a specific position.  More...
+&#160;
+Detailed Description
+Uso de mapas. 
+Function Documentation
+          MAP map.new 
+          (
+          IMAGE&#160;
+          tileset, 
+          TABLE&#160;
+          mapData, 
+          NUMBER&#160;
+          TileX, 
+          NUMBER&#160;
+          TileY&#160;
+          )
+Cretes a map. 
+Parameters
+    tilesetPath to a previously loaded tileset (png or jpg, max size = 512x512 pixels). 
+    mapDataArray containing map data. 
+    TileXTile width in pixels. 
+    TileYTile height in pixels. 
+NoteIt is recommended: GBA graphics by brunni, to generate maps. 
+Tileset must be an image with these width sizes in pixels: 8,16,32,64,128,256,512. 
+Returnsa "map" type object, ready to use. 
+          NIL map.blit 
+          (
+          MAP&#160;
+          map, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y&#160;
+          )
+Blits a map. 
+Parameters
+    map"map" type object. 
+    xHorizontal map position. 
+    yVertical map position. 
+ReturnsNothing. 
+          NUMBER map.sizex 
+          (
+          MAP&#160;
+          map)
+It returns a map width. 
+Parameters
+    mapA map type object. 
+ReturnsMap width. 
+          NUMBER map.sizey 
+          (
+          MAP&#160;
+          map)
+It returns a map height. 
+Parameters
+    mapA map type object. 
+ReturnsMap Height. 
+          NIL map.set 
+          (
+          MAP&#160;
+          map, 
+          NUMBER&#160;
+          tilex, 
+          NUMBER&#160;
+          tiley, 
+          NUMBER&#160;
+          value&#160;
+          )
+Sets the desired tile in a specific position. 
+Parameters
+    mapA map type object. 
+    tilexPosition of the tile x. 
+    tileyPosition of the tile y. 
+    valuenumber to be drawn at that position. 
+ReturnsNothing. 

@@ -1,0 +1,56 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__ftp.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+ftp  
+Functions
+BOOLEAN&#160;ftp.init ()
+&#160;Initializes the module FTP.  More...
+&#160;
+BOOLEAN&#160;ftp.term ()
+&#160;Finalize the FTP module.  More...
+&#160;
+BOOLEAN&#160;ftp.state ()
+&#160;Allows you to know the status of the FTP module.  More...
+&#160;
+Detailed Description
+Management of the FTP functions, File Net Server. 
+Function Documentation
+          BOOLEAN ftp.init 
+          (
+          )
+Initializes the module FTP. 
+Returnstrue if success, false otherwise. 
+          BOOLEAN ftp.term 
+          (
+          )
+Finalize the FTP module. 
+Returnstrue if success, false otherwise. 
+          BOOLEAN ftp.state 
+          (
+          )
+Allows you to know the status of the FTP module. 
+Returnstrue/false depending on whether this started or not. 

@@ -1,0 +1,209 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__game.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+game  
+Functions
+IMAGE&#160;game.geticon0 (STRING path)
+&#160;Load the ICON0.png stored in an EBOOT.PBP/ISO/CSO to use it after.  More...
+&#160;
+IMAGE&#160;game.getpic0 (STRING path)
+&#160;Load the PIC0.png stored in an EBOOT.PBP/ISO/CSO to use it after.  More...
+&#160;
+IMAGE&#160;game.getpic1 (STRING path)
+&#160;Load the PIC1.png stored in an EBOOT.PBP/ISO/CSO to use it after.  More...
+&#160;
+TABLE&#160;game.info (STRING path)
+&#160;Get the info stored in the PARAM.SFO file of an EBOOT.PBP/ISO/CSO.  More...
+&#160;
+NIL&#160;game.unpack (STRING path, STRING dst)
+&#160;Unpack an EBOOT.PBP.  More...
+&#160;
+NIL&#160;game.unpack (STRING path, STRING dst, NUMBER all)
+&#160;Unpack an EBOOT.PBP.  More...
+&#160;
+NUMBER&#160;game.pack (STRING resources, STRING dst)
+&#160;Packs the resources from an EBOOT.PBP and creates a new EBOOT.PBP.  More...
+&#160;
+NUMBER&#160;game.add (STRING path, STRING resources, NUMBER index)
+&#160;Adds or Replaces a resource of the EBOOT.PBP.  More...
+&#160;
+NUMBER&#160;game.remove (STRING path, NUMBER index)
+&#160;Removes a resource of the EBOOT.PBP.  More...
+&#160;
+NIL&#160;game.launch (STRING path)
+&#160;Launch an EBOOT.PBP/ISO/CSO (can be a homebrew, a PSX game or a PSN game).  More...
+&#160;
+Detailed Description
+EBOOT.PBP/ISO/CSO files functions. 
+Function Documentation
+          IMAGE game.geticon0 
+          (
+          STRING&#160;
+          path)
+Load the ICON0.png stored in an EBOOT.PBP/ISO/CSO to use it after. 
+Parameters
+    pathPath to the EBOOT.PBP/ISO/CSO. 
+ReturnsAn IMAGE object (return nil if the EBOOT.PBP/ISO/CSO doesn't have ICON0.png). 
+          IMAGE game.getpic0 
+          (
+          STRING&#160;
+          path)
+Load the PIC0.png stored in an EBOOT.PBP/ISO/CSO to use it after. 
+Parameters
+    pathPath to the EBOOT.PBP/ISO/CSO. 
+ReturnsAn IMAGE object (return nil if the EBOOT.PBP/ISO/CSO doesn't have PIC0.png). 
+          IMAGE game.getpic1 
+          (
+          STRING&#160;
+          path)
+Load the PIC1.png stored in an EBOOT.PBP/ISO/CSO to use it after. 
+Parameters
+    pathPath to the EBOOT.PBP/ISO/CSO. 
+ReturnsAn IMAGE object (return nil if the EBOOT.PBP/ISO/CSO doesn't have PIC1.png). 
+          TABLE game.info 
+          (
+          STRING&#160;
+          path)
+Get the info stored in the PARAM.SFO file of an EBOOT.PBP/ISO/CSO. 
+Parameters
+    pathPath to the EBOOT.PBP/ISO/CSO. 
+ReturnsA table with these fields:
+APP_VER
+BOOTABLE
+CATEGORY
+DISC_ID
+DISC_NUMBER
+DISC_TOTAL
+DISC_VERSION
+GAMEDATA_ID
+HRKGMP_VER
+PARENTAL_LEVEL
+PSP_SYSTEM_VER
+REGION
+TITLE
+USE_USB 
+WarningThe previous list show the most common fields, however, the returned table couldn't have all the listed fields, or even it could have other non-listed fields, so is very important to make sure any field exists before use it. 
+          NIL game.unpack 
+          (
+          STRING&#160;
+          path, 
+          STRING&#160;
+          dst&#160;
+          )
+Unpack an EBOOT.PBP. 
+Parameters
+    pathPath to the EBOOT.PBP. 
+    dstPath where the resources will be unpacked. 
+ReturnsNothing. 
+Note
+This function can use the onPbpUnpack() callback, more info here .
+The resources to unpack could be any of these: PARAM.SFO, ICON0.PNG, ICON1.PNG o ICON1.PMF, PIC0.PNG, PIC1.PNG, SND0.AT3, DATA.PSP, DATA.PSAR. 
+          NIL game.unpack 
+          (
+          STRING&#160;
+          path, 
+          STRING&#160;
+          dst, 
+          NUMBER&#160;
+          all&#160;
+          )
+Unpack an EBOOT.PBP. 
+Parameters
+    pathPath to the EBOOT.PBP. 
+    dstPath where the resources will be unpacked. 
+    all(Optional) Pass 1 to extract DATA.PSAR. 
+ReturnsNothing. 
+Note
+This function can use the onPbpUnpack() callback, more info here .
+The resources to unpack could be any of these: PARAM.SFO, ICON0.PNG, ICON1.PNG o ICON1.PMF, PIC0.PNG, PIC1.PNG, SND0.AT3, DATA.PSP, DATA.PSAR. 
+          NUMBER game.pack 
+          (
+          STRING&#160;
+          resources, 
+          STRING&#160;
+          dst&#160;
+          )
+Packs the resources from an EBOOT.PBP and creates a new EBOOT.PBP. 
+Parameters
+    resourcesPath to the Resources. 
+    dstPath where the EBOOT.PBP will be created. 
+ReturnsNumber, If the EBOOT.PBP is created correctly it will return 1, else return 0. 
+Note
+This function allows us to use the callback onPbpPack(), more information here . 
+          NUMBER game.add 
+          (
+          STRING&#160;
+          path, 
+          STRING&#160;
+          resources, 
+          NUMBER&#160;
+          index&#160;
+          )
+Adds or Replaces a resource of the EBOOT.PBP. 
+Parameters
+    pathPath to the EBOOT.PBP. 
+    resourcesPath to the Resource to add or replace. 
+    indexResource constant. This is the list of the avaible constants:
+__SFO (1)
+__ICON0 (2)
+__ICON1 (3)
+__PIC0 (4)
+__PIC1 (5)
+__AT3 (6) 
+ReturnsNumber, If the EBOOT.PBP is created correctly it will return 1, if there is an error It will return 0. 
+Note
+This function allows us to use the callback onPbpPack(), more information here . 
+          NUMBER game.remove 
+          (
+          STRING&#160;
+          path, 
+          NUMBER&#160;
+          index&#160;
+          )
+Removes a resource of the EBOOT.PBP. 
+Parameters
+    pathPath to the EBOOT.PBP. 
+    indexResource constant. This is the list of the avaible constants:
+__SFO (1)
+__ICON0 (2)
+__ICON1 (3)
+__PIC0 (4)
+__PIC1 (5)
+__AT3 (6) 
+ReturnsNumber, If the EBOOT.PBP is created correctly it will return 1, else return 0. 
+Note
+This function allows us to use the callback onPbpPack(), more information here . 
+          NIL game.launch 
+          (
+          STRING&#160;
+          path)
+Launch an EBOOT.PBP/ISO/CSO (can be a homebrew, a PSX game or a PSN game). 
+Parameters
+    pathPath to the EBOOT.PBP/ISO/CSO. 
+Note
+If you add the "onelua_rdriver.prx" file inside seplugins, when you close the game or homebrew it will return to OneLua. 
+ReturnsNothing. 

@@ -1,0 +1,292 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__amg.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+amg 3DModulo 3D  
+Functions
+NIL&#160;amg.init ()
+&#160;Initializes the 3D engine.  More...
+&#160;
+NIL&#160;amg.quality (NUMBER quality)
+&#160;Sets the quality used to load textures.  More...
+&#160;
+NIL&#160;amg.begin ()
+&#160;Begins 3D rendering.  More...
+&#160;
+NIL&#160;amg.mode2d (NUMBER state)
+&#160;Enables/Disables the 2D mode.  More...
+&#160;
+NIL&#160;amg.update ()
+&#160;Refreshes the screen and draws 3D content.  More...
+&#160;
+NIL&#160;amg.renderstyle (NUMBER type)
+&#160;Change the 3D render mode.  More...
+&#160;
+NIL&#160;amg.perspective (NUMBER value)
+&#160;Sets the FOV (Field of view).  More...
+&#160;
+NIL&#160;amg.light (NUMBER light, NUMBER state)
+&#160;Enables/Disables 1 of the 4 available light sources.  More...
+&#160;
+NIL&#160;amg.poslight (NUMBER light, TABLE pos)
+&#160;Changes a light position.  More...
+&#160;
+NIL&#160;amg.typelight (NUMBER light, NUMBER type)
+&#160;Sets the light type.  More...
+&#160;
+NIL&#160;amg.colorlight (NUMBER light, COLOR diffuse, COLOR ambient, COLOR specular)
+&#160;Sets the light color.  More...
+&#160;
+NIL&#160;amg.spotlight (NUMBER light, TABLE pos, NUMBER spotexp, NUMBER spotcut)
+&#160;Configures a focal light (as a lighthouse): SPOTLIGHT.  More...
+&#160;
+NIL&#160;amg.setlightmap (STRING path)
+&#160;Changes the light map for Cel-Shading.  More...
+&#160;
+NIL&#160;amg.fog (NUMBER near, NUMBER far, COLOR color)
+&#160;Enables the fog.  More...
+&#160;
+NIL&#160;amg.fog ()
+&#160;Disables the fog.  More...
+&#160;
+BOOLEAN&#160;amg.raytracing (TABLE pos, TABLE vector)
+&#160;Makes a Ray Tracing test (checks for colisions between a straight line and 3D objects)  More...
+&#160;
+NIL&#160;amg.gravity (NUMBER x, NUMBER y, NUMBER z)
+&#160;Sets the 3D world gravity.  More...
+&#160;
+NIL&#160;amg.screenshot (STRING path)
+&#160;Save an image to the specified path (it should include the filename and its extension, only png).  More...
+&#160;
+NIL&#160;amg.finish ()
+&#160;Finishes the 3D engine.  More...
+&#160;
+Detailed Description
+3D world properties. 
+Function Documentation
+          NIL amg.init 
+          (
+          )
+Initializes the 3D engine. 
+NoteOnce 3D engine has been initialized, each of the onelua's graphics functions must be called inside amg.mode2d(). 
+ReturnsNothing. 
+          NIL amg.quality 
+          (
+          NUMBER&#160;
+          quality)
+Sets the quality used to load textures. 
+Parameters
+    qualityThe texture quality. Can one of these constants:
+__8888 (32 bits RGBA)
+__4444 (16 bits R4G4B4A4)
+__5551 (16 bits R5G5B5A1)
+__5650 (16 bits R5G5B5, no alpha channel)
+ReturnsNothing. 
+          NIL amg.begin 
+          (
+          )
+Begins 3D rendering. 
+NoteYou need to call this function before drawing any 3D object. 
+ReturnsNothing. 
+          NIL amg.mode2d 
+          (
+          NUMBER&#160;
+          state)
+Enables/Disables the 2D mode. 
+Parameters
+    statePass 1 to enable, 0 to disable. 
+NoteIf the 2D mode is enabled you can draw images or text, but you should disable it before call screen.flip() to process images or text drawn. 
+ReturnsNothing. 
+          NIL amg.update 
+          (
+          )
+Refreshes the screen and draws 3D content. 
+NoteThis function is equivalent to screen.flip(), but for 3D content (you should call both functions if you're mixing 2D and 3D contents). 
+ReturnsNothing. 
+          NIL amg.renderstyle 
+          (
+          NUMBER&#160;
+          type)
+Change the 3D render mode. 
+Parameters
+    typeOne of the following constants:
+__POINTS (Draws only vertices as points)
+__LINES (Draws lines between vertices)
+__TRIANGLES (Draws faces and lighting)
+NoteDefault value is __TRIANGLES. 
+ReturnsNothing. 
+          NIL amg.perspective 
+          (
+          NUMBER&#160;
+          value)
+Sets the FOV (Field of view). 
+Parameters
+    valuePerspective FOV in degrees (75.0 by default). Must be in degrees. 
+Note3D programs usually have a value of 35 by default, this is the value which seems better according to the real world. 
+ReturnsNothing. 
+          NIL amg.light 
+          (
+          NUMBER&#160;
+          light, 
+          NUMBER&#160;
+          state&#160;
+          )
+Enables/Disables 1 of the 4 available light sources. 
+Parameters
+    lightThe light to enable (any value between 1 to 4). 
+    statePass 1 to enable, 0 to disable. 
+ReturnsNothing. 
+          NIL amg.poslight 
+          (
+          NUMBER&#160;
+          light, 
+          TABLE&#160;
+          pos&#160;
+          )
+Changes a light position. 
+Parameters
+    lightThe light to move (any value between 1 to 4). 
+    posA table with the position values for the 3 axes (x,y,z). 
+ReturnsNothing. 
+          NIL amg.typelight 
+          (
+          NUMBER&#160;
+          light, 
+          NUMBER&#160;
+          type&#160;
+          )
+Sets the light type. 
+Parameters
+    lightThe light to edit (any value between 1 to 4). 
+    typeThe light type, one of these constants:
+__DIRECTIONAL (Directional lights)
+__POINT (Pointlight lights)
+__SPOT (Spot lights)
+ReturnsNothing. 
+          NIL amg.colorlight 
+          (
+          NUMBER&#160;
+          light, 
+          COLOR&#160;
+          diffuse, 
+          COLOR&#160;
+          ambient, 
+          COLOR&#160;
+          specular&#160;
+          )
+Sets the light color. 
+Parameters
+    lightThe light to edit (any value between 1 to 4). 
+    diffuseThe color for the diffuse component. 
+    ambientThe color for the ambiental component. 
+    specularThe color for the specular component. 
+ReturnsNothing. 
+          NIL amg.spotlight 
+          (
+          NUMBER&#160;
+          light, 
+          TABLE&#160;
+          pos, 
+          NUMBER&#160;
+          spotexp, 
+          NUMBER&#160;
+          spotcut&#160;
+          )
+Configures a focal light (as a lighthouse): SPOTLIGHT. 
+Parameters
+    lightThe light to edit (any value between 1 to 4). 
+    posA table with the position values for the 3 axes (x,y,z). 
+    spotexpSets the light size. 
+    spotcutSets the angle of aperture of the light (in degrees). 
+ReturnsNothing. 
+          NIL amg.setlightmap 
+          (
+          STRING&#160;
+          path)
+Changes the light map for Cel-Shading. 
+Parameters
+    pathPath to the light map (an image, the smaller the better). 
+ReturnsNothing. 
+          NIL amg.fog 
+          (
+          NUMBER&#160;
+          near, 
+          NUMBER&#160;
+          far, 
+          COLOR&#160;
+          color&#160;
+          )
+Enables the fog. 
+Parameters
+    nearValue where the fog starts (Z axis). 
+    farValue where the fog ends (Z axis). 
+    colorFog color. 
+ReturnsNothing. 
+          NIL amg.fog 
+          (
+          )
+Disables the fog. 
+ReturnsNothing. 
+          BOOLEAN amg.raytracing 
+          (
+          TABLE&#160;
+          pos, 
+          TABLE&#160;
+          vector&#160;
+          )
+Makes a Ray Tracing test (checks for colisions between a straight line and 3D objects) 
+Parameters
+    posA table with the ray position values for the 3 axes (x,y,z). 
+    vectorA table with the ray direction vector values for the 3 axes (x,y,z). 
+Returnstrue/false If the ray colided with an object. 
+          NIL amg.gravity 
+          (
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y, 
+          NUMBER&#160;
+          z&#160;
+          )
+Sets the 3D world gravity. 
+Parameters
+    xX component if the gravity vector. 
+    yY component if the gravity vector. 
+    zZ component if the gravity vector. 
+ReturnsNothing. 
+          NIL amg.screenshot 
+          (
+          STRING&#160;
+          path)
+Save an image to the specified path (it should include the filename and its extension, only png). 
+Parameters
+    pathThe path, filename and extension png of the image. 
+ReturnsNothing. 
+          NIL amg.finish 
+          (
+          )
+Finishes the 3D engine. 
+ReturnsNothing. 

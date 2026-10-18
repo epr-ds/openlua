@@ -1,0 +1,209 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__adhoc.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+adhoc  
+Functions
+NUMBER&#160;adhoc.init ()
+&#160;Initialize Adhoc module.  More...
+&#160;
+NUMBER&#160;adhoc.init (STRING gameid)
+&#160;Initialize Adhoc module.  More...
+&#160;
+STRING&#160;adhoc.getmac ()
+&#160;Obtain physical address (MAC) of our console.  More...
+&#160;
+TABLE&#160;adhoc.scan ()
+&#160;Obtain a list of available PSP consoles to successfully make an adhoc connection.  More...
+&#160;
+NUMBER&#160;adhoc.gettotal ()
+&#160;Allows to know the number of the remote PSP available.  More...
+&#160;
+BOOLEAN&#160;adhoc.sendrequest (NUMBER index)
+&#160;Request connection to a remote PSP for a time lapse of 30 seconds.  More...
+&#160;
+BOOLEAN&#160;adhoc.sendrequest (NUMBER index, NUMBER timeout)
+&#160;Request connection to a remote PSP.  More...
+&#160;
+TABLE&#160;adhoc.getrequest ()
+&#160;Allow to know which PSP requested a connection.  More...
+&#160;
+NIL&#160;adhoc.accept (NUMBER index)
+&#160;Accept connection request.  More...
+&#160;
+NIL&#160;adhoc.reject (NUMBER index)
+&#160;Rejects connection request.  More...
+&#160;
+NUMBER&#160;adhoc.send (NUMBER index, STRING data)
+&#160;Send data to a Remote PSP (when accepted or successfully connection).  More...
+&#160;
+NUMBER&#160;adhoc.send (NUMBER index, STRING data, NUMBER size)
+&#160;Send data to a Remote PSP (when accepted or successfully connection).  More...
+&#160;
+STRING&#160;adhoc.recv (NUMBER index, NUMBER size)
+&#160;Allow to receive data from a Remote PSP (when accepted or successfully connection).  More...
+&#160;
+NIL&#160;adhoc.term ()
+&#160;Finalizes adhoc module.  More...
+&#160;
+Detailed Description
+Adhoc functions. 
+Function Documentation
+          NUMBER adhoc.init 
+          (
+          )
+Initialize Adhoc module. 
+ReturnsA number, showing the result of the connection: 1 if the connection was successful, 0 otherwise 
+          NUMBER adhoc.init 
+          (
+          STRING&#160;
+          gameid)
+Initialize Adhoc module. 
+Parameters
+    gameidThis is the gameid to be shown as an identifier in the adhoc mode (Maximum 9 characters and must be uppercase). 
+ReturnsA number, showing the result of the connection: 1 if the connection was successful, 0 otherwise 
+          STRING adhoc.getmac 
+          (
+          )
+Obtain physical address (MAC) of our console. 
+ReturnsMAC address in format: XX:XX:XX:XX:XX:XX 
+          TABLE adhoc.scan 
+          (
+          )
+Obtain a list of available PSP consoles to successfully make an adhoc connection. 
+ReturnsA table with those fields:
+name: Name of the remote PSP (Nick).
+mac: MAC address of the remote PSP.
+state: Current status of the remote PSP. The numerical value into parentheses. 
+__JOINED              (1)             A remote PSP has joined.
+__SELECTED            (2)             A remote PSP has selected me.
+__REJECTED            (4)             Request rejected.
+__CANCELED            (5)             Request cancelled.
+__ACCEPTED            (6)             Request accepted.
+__ESTABLISHED         (7)             Connection established.
+__DISCONNECTED        (10)            A PSP has been disconnected.
+          NUMBER adhoc.gettotal 
+          (
+          )
+Allows to know the number of the remote PSP available. 
+ReturnsTotal number of remote PSP available. 
+          BOOLEAN adhoc.sendrequest 
+          (
+          NUMBER&#160;
+          index)
+Request connection to a remote PSP for a time lapse of 30 seconds. 
+Parameters
+    indexindex obtained from the adhoc.scan() table. 
+NoteThis function allows to use the callback onAdhocConnection(), more info here . 
+Returnstrue As if the connection was accepted / established or False otherwise. 
+          BOOLEAN adhoc.sendrequest 
+          (
+          NUMBER&#160;
+          index, 
+          NUMBER&#160;
+          timeout&#160;
+          )
+Request connection to a remote PSP. 
+Parameters
+    indexindex obtained from the adhoc.scan() table. 
+    timeout(optional) time limit which the application will remain the connection opened. Default to 30 seconds if there is no value. 
+NoteThis function allows to use the callback onAdhocConnection(), more info here . 
+Returnstrue/false As if the connection was accepted / established or rejected. 
+          TABLE adhoc.getrequest 
+          (
+          )
+Allow to know which PSP requested a connection. 
+ReturnsUna tabla con el PSP remoto que ha enviado una solicitud.
+name: Nombre del PSP remoto (Nick).
+mac: Es la dirección mac del PSP remoto.
+state: Es el estado actual del PSP remoto. En paréntesis el valor numérico. 
+__JOINED              (1)             A remote PSP has joined.
+__SELECTED            (2)             A remote PSP has selected me.
+__REJECTED            (4)             Request rejected.
+__CANCELED            (5)             Request cancelled.
+__ACCEPTED            (6)             Request accepted.
+__ESTABLISHED         (7)             Connection established.
+__DISCONNECTED        (10)            A PSP has been disconnected.
+          NIL adhoc.accept 
+          (
+          NUMBER&#160;
+          index)
+Accept connection request. 
+Parameters
+    indexIndex of the PSP which request connection. 
+ReturnsNothing. 
+          NIL adhoc.reject 
+          (
+          NUMBER&#160;
+          index)
+Rejects connection request. 
+Parameters
+    indexIndex of the PSP which request connection. 
+ReturnsNothing. 
+          NUMBER adhoc.send 
+          (
+          NUMBER&#160;
+          index, 
+          STRING&#160;
+          data&#160;
+          )
+Send data to a Remote PSP (when accepted or successfully connection). 
+Parameters
+    indexIndex of the PSP which you want to send data or message. 
+    dataString with the message or text. 
+ReturnsThe number of bytes sent. 
+          NUMBER adhoc.send 
+          (
+          NUMBER&#160;
+          index, 
+          STRING&#160;
+          data, 
+          NUMBER&#160;
+          size&#160;
+          )
+Send data to a Remote PSP (when accepted or successfully connection). 
+Parameters
+    indexIndex of the PSP which you want to send data or message. 
+    dataString with the message or text. 
+    sizeSize data to be sending. 
+ReturnsThe number of bytes sent. 
+          STRING adhoc.recv 
+          (
+          NUMBER&#160;
+          index, 
+          NUMBER&#160;
+          size&#160;
+          )
+Allow to receive data from a Remote PSP (when accepted or successfully connection). 
+Parameters
+    indexIndex of the PSP which you want to receive data or messages. 
+    sizeSize data to be received for save them in buffer. Default to 1024 if there is no value. 
+ReturnsThe data plus the number of bytes received. 
+          NIL adhoc.term 
+          (
+          )
+Finalizes adhoc module. 
+Returnsnothing. 

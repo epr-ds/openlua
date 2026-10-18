@@ -1,0 +1,287 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__color.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+color  
+Functions
+NIL&#160;color.loadpalette ()
+&#160;Loads a palette of 17 basic colors, ready to use (see example). Colors are:  More...
+&#160;
+COLOR&#160;color.new (NUMBER R, NUMBER G, NUMBER B)
+&#160;Creates a new solid color from the specified values (from 0 to 255 for each channel).  More...
+&#160;
+COLOR&#160;color.new (NUMBER R, NUMBER G, NUMBER B, NUMBER A)
+&#160;Creates a new semitransparent color from the specified values (from 0 to 255 for each channel).  More...
+&#160;
+COLOR&#160;color.blend (COLOR c1, COLOR c2)
+&#160;Mix two colors.  More...
+&#160;
+COLOR&#160;color.mix (COLOR c1, COLOR c2, NUMBER percent1, NUMBER percent2)
+&#160;Brief two blend colors using the given percentages.  More...
+&#160;
+COLOR&#160;color.add (COLOR c1, COLOR c2)
+&#160;IAddition two colors.  More...
+&#160;
+COLOR&#160;color.sub (COLOR c1, COLOR c2)
+&#160;Subtracts two colors.  More...
+&#160;
+COLOR&#160;color.fxgray (COLOR myColor)
+&#160;Converts a color to gray scale.  More...
+&#160;
+COLOR&#160;color.fxinvert (COLOR myColor)
+&#160;Converts a color to its inverted State.  More...
+&#160;
+NUMBER&#160;color.r (COLOR myColor)
+&#160;Obtains the red channel value of the specified color.  More...
+&#160;
+COLOR&#160;color.r (COLOR myColor, NUMBER value)
+&#160;Modifies the red channel value of the specified color.  More...
+&#160;
+NUMBER&#160;color.g (COLOR myColor)
+&#160;Obtains the green channel value of the specified color.  More...
+&#160;
+COLOR&#160;color.g (COLOR myColor, NUMBER value)
+&#160;Modifies the green channel value of the specified color.  More...
+&#160;
+NUMBER&#160;color.b (COLOR myColor)
+&#160;Obtains the blue channel value of the specified color.  More...
+&#160;
+COLOR&#160;color.b (COLOR myColor, NUMBER value)
+&#160;Modifies the blue channel value of the specified color.  More...
+&#160;
+NUMBER&#160;color.a (COLOR myColor)
+&#160;Obtains the alpha channel value of the specified color.  More...
+&#160;
+COLOR&#160;color.a (COLOR myColor, NUMBER value)
+&#160;Modifies the alpha channel value of the specified color.  More...
+&#160;
+Detailed Description
+Color managing. 
+Function Documentation
+          NIL color.loadpalette 
+          (
+          )
+Loads a palette of 17 basic colors, ready to use (see example). Colors are: 
+red (255,0,0)
+green (0,255,0)
+blue (0,0,255)
+cyan (0,255,255)
+magenta (255,0,255)
+yellow (255,255,0)
+maroon (127,0,0)
+grass (0,127,0)
+navy (0,0,127)
+turquoise (0,127,127)
+violet (127,0,127)
+olive (127,127,0)
+white (255,255,255)
+gray (127,127,127)
+black (0,0,0)
+orange (255,130,0)
+chocolate (195,65,0) ReturnsNothing. 
+          COLOR color.new 
+          (
+          NUMBER&#160;
+          R, 
+          NUMBER&#160;
+          G, 
+          NUMBER&#160;
+          B&#160;
+          )
+Creates a new solid color from the specified values (from 0 to 255 for each channel). 
+Parameters
+    RRed channel value. 
+    GGreen channel value. 
+    BBlue channel value. 
+ReturnsA color object, ready to use. 
+          COLOR color.new 
+          (
+          NUMBER&#160;
+          R, 
+          NUMBER&#160;
+          G, 
+          NUMBER&#160;
+          B, 
+          NUMBER&#160;
+          A&#160;
+          )
+Creates a new semitransparent color from the specified values (from 0 to 255 for each channel). 
+Parameters
+    RRed channel value. 
+    GGreen channel value. 
+    BBlue channel value. 
+    AAlpha channel value (transparency). 
+ReturnsA color object, ready to use. 
+          COLOR color.blend 
+          (
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2&#160;
+          )
+Mix two colors. 
+Parameters
+    c1Color one. 
+    c2Color two. 
+ReturnsA color object, ready to use. 
+          COLOR color.mix 
+          (
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2, 
+          NUMBER&#160;
+          percent1, 
+          NUMBER&#160;
+          percent2&#160;
+          )
+Brief two blend colors using the given percentages. 
+Parameters
+    c1Color one. 
+    c2Color two. 
+    percent1Percentage of Color one. 
+    percent2Percentage of Color two. 
+ReturnsA color object, ready to use. 
+          COLOR color.add 
+          (
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2&#160;
+          )
+IAddition two colors. 
+Parameters
+    c1Color one. 
+    c2Color two. 
+ReturnsA color object, ready to use. 
+          COLOR color.sub 
+          (
+          COLOR&#160;
+          c1, 
+          COLOR&#160;
+          c2&#160;
+          )
+Subtracts two colors. 
+Parameters
+    c1Color one. 
+    c2Color two. 
+ReturnsA color object, ready to use. 
+          COLOR color.fxgray 
+          (
+          COLOR&#160;
+          myColor)
+Converts a color to gray scale. 
+Parameters
+    myColora color to process. 
+ReturnsA color object, ready to use. 
+          COLOR color.fxinvert 
+          (
+          COLOR&#160;
+          myColor)
+Converts a color to its inverted State. 
+Parameters
+    myColora color to process. 
+ReturnsA color object, ready to use. 
+          NUMBER color.r 
+          (
+          COLOR&#160;
+          myColor)
+Obtains the red channel value of the specified color. 
+Parameters
+    myColora color to process. 
+ReturnsThe red channel value of the specified color. 
+          COLOR color.r 
+          (
+          COLOR&#160;
+          myColor, 
+          NUMBER&#160;
+          value&#160;
+          )
+Modifies the red channel value of the specified color. 
+Parameters
+    myColora color to process. 
+    valueThe new value for the red channel. 
+ReturnsA color, with the red channel modified. 
+          NUMBER color.g 
+          (
+          COLOR&#160;
+          myColor)
+Obtains the green channel value of the specified color. 
+Parameters
+    myColora color to process. 
+ReturnsThe green channel value of the specified color. 
+          COLOR color.g 
+          (
+          COLOR&#160;
+          myColor, 
+          NUMBER&#160;
+          value&#160;
+          )
+Modifies the green channel value of the specified color. 
+Parameters
+    myColora color to process. 
+    valueThe new value for the green channel. 
+ReturnsA color, with the green channel modified. 
+          NUMBER color.b 
+          (
+          COLOR&#160;
+          myColor)
+Obtains the blue channel value of the specified color. 
+Parameters
+    myColora color to process. 
+ReturnsThe blue channel value of the specified color. 
+          COLOR color.b 
+          (
+          COLOR&#160;
+          myColor, 
+          NUMBER&#160;
+          value&#160;
+          )
+Modifies the blue channel value of the specified color. 
+Parameters
+    myColora color to process. 
+    valueThe new value for the blue channel. 
+ReturnsA color, with the blue channel modified. 
+          NUMBER color.a 
+          (
+          COLOR&#160;
+          myColor)
+Obtains the alpha channel value of the specified color. 
+Parameters
+    myColora color to process. 
+ReturnsThe alpha channel value of the specified color. 
+          COLOR color.a 
+          (
+          COLOR&#160;
+          myColor, 
+          NUMBER&#160;
+          value&#160;
+          )
+Modifies the alpha channel value of the specified color. 
+Parameters
+    myColora color to process. 
+    valueThe new value for the alpha channel. 
+ReturnsA color, with the alpha channel modified. 

@@ -1,0 +1,89 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__pmf.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+pmf  
+Functions
+NIL&#160;pmf.run (STRING path)
+&#160;Play a pmf file.  More...
+&#160;
+NIL&#160;pmf.run (STRING path, NUMBER x, NUMBER y)
+&#160;Play a pmf file with coordinates.  More...
+&#160;
+NIL&#160;pmf.play ()
+&#160;Sets the pmf, in State "play" mode.  More...
+&#160;
+NIL&#160;pmf.pause ()
+&#160;Sets the pmf, in State "paused" mode.  More...
+&#160;
+NIL&#160;pmf.stop ()
+&#160;Sets the pmf, State marked "stop" mode, terminates the execution of a pmf.  More...
+&#160;
+Detailed Description
+Management of the PMF, Viewer Multimedia "PMF" functions. 
+Function Documentation
+          NIL pmf.run 
+          (
+          STRING&#160;
+          path)
+Play a pmf file. 
+Parameters
+    pathIt is the path of the file to play. 
+NoteThis function can use the onPmfPlay() callback, more info here . 
+ReturnsNothing. 
+          NIL pmf.run 
+          (
+          STRING&#160;
+          path, 
+          NUMBER&#160;
+          x, 
+          NUMBER&#160;
+          y&#160;
+          )
+Play a pmf file with coordinates. 
+Parameters
+    pathIt is the path of the file to play. 
+    xCoordinate X where you to render frames. 
+    yCoordinate Y where you to render frames. 
+ReturnsNothing. 
+          NIL pmf.play 
+          (
+          )
+Sets the pmf, in State "play" mode. 
+NoteThis function can use the onPmfPlay() callback, more info here . 
+ReturnsNothing. 
+          NIL pmf.pause 
+          (
+          )
+Sets the pmf, in State "paused" mode. 
+NoteThis function can use the onPmfPlay() callback, more info here . 
+ReturnsNothing. 
+          NIL pmf.stop 
+          (
+          )
+Sets the pmf, State marked "stop" mode, terminates the execution of a pmf. 
+ó* NoteThis function can use the onPmfPlay() callback, more info here . 
+ReturnsNothing. 

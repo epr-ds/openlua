@@ -1,0 +1,104 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__usb.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+usb  
+Functions
+NIL&#160;usb.mstick ()
+&#160;Initialize USB connection accessing to the memory stick.  More...
+&#160;
+NIL&#160;usb.umd ()
+&#160;Initialize USB connection accessing to the UMD disc.  More...
+&#160;
+NIL&#160;usb.flash0 ()
+&#160;Initialize USB connection accessing to the flash0 (read-only mode).  More...
+&#160;
+NIL&#160;usb.flash1 ()
+&#160;Initialize USB connection accessing to the flash1 (read-only mode).  More...
+&#160;
+NIL&#160;usb.flash2 ()
+&#160;Initialize USB connection accessing to the flash2 (read-only mode).  More...
+&#160;
+NIL&#160;usb.flash3 ()
+&#160;Initialize USB connection accessing to the flash3 (read-only mode).  More...
+&#160;
+NIL&#160;usb.stop ()
+&#160;Stop USB connection.  More...
+&#160;
+BOOLEAN&#160;usb.isconnected ()
+&#160;Checks if the connection was successful (in other words, checks if PC have access to the console storage).  More...
+&#160;
+BOOLEAN&#160;usb.isactive ()
+&#160;Checks if connection still active. This function only checks if there was an attempt to activate the USB connection, but not checks if PC have access (for example, if we call to usb.mstick() without connecting the USB wire this function will return true, but usb.isconnected() will return false).  More...
+&#160;
+Detailed Description
+Manage USB connection. 
+Function Documentation
+          NIL usb.mstick 
+          (
+          )
+Initialize USB connection accessing to the memory stick. 
+ReturnsNothing. 
+          NIL usb.umd 
+          (
+          )
+Initialize USB connection accessing to the UMD disc. 
+ReturnsNothing. 
+          NIL usb.flash0 
+          (
+          )
+Initialize USB connection accessing to the flash0 (read-only mode). 
+ReturnsNothing. 
+          NIL usb.flash1 
+          (
+          )
+Initialize USB connection accessing to the flash1 (read-only mode). 
+ReturnsNothing. 
+          NIL usb.flash2 
+          (
+          )
+Initialize USB connection accessing to the flash2 (read-only mode). 
+ReturnsNothing. 
+          NIL usb.flash3 
+          (
+          )
+Initialize USB connection accessing to the flash3 (read-only mode). 
+ReturnsNothing. 
+          NIL usb.stop 
+          (
+          )
+Stop USB connection. 
+ReturnsNothing. 
+          BOOLEAN usb.isconnected 
+          (
+          )
+Checks if the connection was successful (in other words, checks if PC have access to the console storage). 
+Returnstrue if access; false otherwise. 
+          BOOLEAN usb.isactive 
+          (
+          )
+Checks if connection still active. This function only checks if there was an attempt to activate the USB connection, but not checks if PC have access (for example, if we call to usb.mstick() without connecting the USB wire this function will return true, but usb.isconnected() will return false). 
+Returnstrue If connection was already active; false otherwise. 

@@ -1,0 +1,120 @@
+OneLua Docs
+  $(document).ready(initResizable);
+  $(window).load(resizeHeight);
+  $(document).ready(function() { searchBox.OnSelectItem(0); });
+var searchBox = new SearchBox("searchBox", "search",false,'Search');
+      Main&#160;Page
+      Related&#160;Pages
+      Modules
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+$(document).ready(function(){initNavTree('group__http.html','');});
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+&#160;All&#160;Functions&#160;Modules&#160;Pages
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+Functions  
+http  
+Functions
+BOOLEAN&#160;http.getfile (STRING url, STRING path)
+&#160;Download the specified file.  More...
+&#160;
+NIL&#160;http.getfile (STRING url, STRING path, NUMBER over)
+&#160;Download the specified file (in thread mode).  More...
+&#160;
+BOOLEAN&#160;http.postfile (STRING url, STRING path, STRING data_out)
+&#160;Send data file indicated a Web address and then download the server response.  More...
+&#160;
+BOOLEAN&#160;http.postfile (STRING url, STRING path, STRING data_out, NUMBER data_len)
+&#160;Send data file indicated a Web address and then download the server response.  More...
+&#160;
+Detailed Description
+Functions related to Hypertext Transfer Protocol. All actions performed by these functions include an automatic integrated manager cookies. 
+Function Documentation
+          BOOLEAN http.getfile 
+          (
+          STRING&#160;
+          url, 
+          STRING&#160;
+          path&#160;
+          )
+Download the specified file. 
+Parameters
+    urlThe address of the file to download. 
+    pathThe path where the file is saved (you must include the file name). 
+Returnstrue if the file was downloaded successfully, false otherwise. 
+NoteThis function can use the onNetGetFile() callback, more info here . 
+          NIL http.getfile 
+          (
+          STRING&#160;
+          url, 
+          STRING&#160;
+          path, 
+          NUMBER&#160;
+          over&#160;
+          )
+Download the specified file (in thread mode). 
+Parameters
+    urlThe address of the file to download. 
+    pathThe path where the file is saved (you must include the file name). 
+    overThe numerical value: 1, to enter in thread mode. This is a list of all of the available constants and their values:
+__NET_THREAD_STATE
+Status of the download.
+0: No download or is starting.
+1: Download completed successfully.
+2: Download in progress.
+-1: Occurred an error in the download.
+__NET_THREAD_SIZE
+The number of bytes to receive the download.
+__NET_THREAD_WRITTEN
+The number of bytes written from the discharge.
+__NET_THREAD_VELOCITY
+The download speed Kb/s.
+NoteThis function does not stop the script, or affects the performance, runs independently, for greater use, refer to the examples Examples of use of OneLua. 
+ReturnsNothing. 
+          BOOLEAN http.postfile 
+          (
+          STRING&#160;
+          url, 
+          STRING&#160;
+          path, 
+          STRING&#160;
+          data_out&#160;
+          )
+Send data file indicated a Web address and then download the server response. 
+Parameters
+    urlThe Web address file receiver. 
+    pathThe path where the file is saved (you must include the file name). 
+    data_outThe information that will be sent to the Web server. 
+Returnstrue if the file was downloaded successfully, false otherwise. 
+NoteThis function can use the onNetGetFile() callback, more info here . 
+          BOOLEAN http.postfile 
+          (
+          STRING&#160;
+          url, 
+          STRING&#160;
+          path, 
+          STRING&#160;
+          data_out, 
+          NUMBER&#160;
+          data_len&#160;
+          )
+Send data file indicated a Web address and then download the server response. 
+Parameters
+    urlThe Web address file receiver. 
+    pathThe path where the file is saved (you must include the file name). 
+    data_outThe information that will be sent to the Web server. 
+    data_lenThe size of the information that will be sent to the Web server. 
+Returnstrue if the file was downloaded successfully, false otherwise. 
+NoteThis function can use the onNetGetFile() callback, more info here . 

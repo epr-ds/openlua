@@ -237,17 +237,22 @@ static int l_map_free(lua_State *L)
     return 0;
 }
 
+static const luaL_Reg map_funcs[] = {
+    { "new",     l_map_new },
+    { "blit",    l_map_blit },
+    { "sizex",   l_map_sizex },
+    { "sizey",   l_map_sizey },
+    { "cols",    l_map_cols },
+    { "rows",    l_map_rows },
+    { "set",     l_map_set },
+    { "get",     l_map_get },
+    { "free",    l_map_free },
+    { NULL,      NULL }
+};
+
 void maps_api_register(lua_State *L)
 {
     lua_newtable(L);
-    lua_pushcfunction(L, l_map_new);   lua_setfield(L, -2, "new");
-    lua_pushcfunction(L, l_map_blit);  lua_setfield(L, -2, "blit");
-    lua_pushcfunction(L, l_map_sizex); lua_setfield(L, -2, "sizex");
-    lua_pushcfunction(L, l_map_sizey); lua_setfield(L, -2, "sizey");
-    lua_pushcfunction(L, l_map_cols);  lua_setfield(L, -2, "cols");
-    lua_pushcfunction(L, l_map_rows);  lua_setfield(L, -2, "rows");
-    lua_pushcfunction(L, l_map_set);   lua_setfield(L, -2, "set");
-    lua_pushcfunction(L, l_map_get);   lua_setfield(L, -2, "get");
-    lua_pushcfunction(L, l_map_free);  lua_setfield(L, -2, "free");
+    ol_setfuncs(L, map_funcs);
     lua_setglobal(L, "map");
 }

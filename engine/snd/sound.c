@@ -19,11 +19,55 @@
 
 #include "engine/snd/sound.h"
 
+#if defined(__PSP__)
 #include <pspaudio.h>
+#else
+/* Host stubs for PSP audio APIs */
+typedef int SceAudioChannel;
+#define PSP_AUDIO_FORMAT_MONO        0
+#define PSP_AUDIO_VOLUME_MAX         128
+#define PSP_AUDIO_NEXT_CHANNEL       (-1)
+#define PSP_AUDIO_CHANNEL_MAX        8
+static inline int sceAudioChReserve(int c, int l, int f) { (void)c; (void)l; (void)f; return c; }
+static inline void sceAudioChRelease(int c)         { (void)c; }
+static inline int sceAudioOutput(int c, int v, void *p) { (void)c; (void)v; (void)p; return 0; }
+static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return -1; }
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "engine/core/olreg.h"
+#if !defined(__PSP__)
+#include <errno.h>
+#endif
+
+/* PSP audio uses reserved channels; on host builds we mock the channel API. */
+#ifndef PSP_AUDIO_CHANNEL_MAX
+#define PSP_AUDIO_CHANNEL_MAX 8
+#endif
+#ifndef PSP_AUDIO_FORMAT_MONO
+#define PSP_AUDIO_FORMAT_MONO 0
+#endif
+#ifndef PSP_AUDIO_VOLUME_MAX
+#define PSP_AUDIO_VOLUME_MAX 128
+#endif
+#ifndef sceAudioChReserve
+#define sceAudioChReserve(ch, len, fmt) ((ch) + 1)
+#endif
+#ifndef sceAudioChRelease
+#define sceAudioChRelease(ch) (0)
+#endif
+#ifndef sceAudioOutput
+#define sceAudioOutput(ch, vol, p) (0)
+#endif
+#ifndef sceAudioGetChannelRestLen
+#define sceAudioGetChannelRestLen(ch) (-1)
+#endif
+#ifndef PSP_AUDIO_NEXT_CHANNEL
+#define PSP_AUDIO_NEXT_CHANNEL (-1)
+#endif
 
 #define SND_MAX    8
 #define HW_RATE    22050
@@ -47,10 +91,16 @@ typedef struct {
 
 static OLS_Sound g_s[SND_MAX];
 
-/* ----------------------------------------------------------------- */
-/* helpers                                                            */
+/* ---- helpers -------------------------------------------------------------- */
 
-static int vol_hw(int pct)
+static int to_s(const char **out, lua_State *L, int idx)
+{
+    const char *s = luaL_checkstring(L, idx);
+    *out = s;
+    return 1;
+}
+
+static inline int vol_hw(int pct)
 {
     if (pct < 0) pct = 0;
     if (pct > 100) pct = 100;
@@ -440,16 +490,6 @@ void sound_pump(void)
     }
 }
 
-/* ----------------------------------------------------------------- */
-/* Lua bindings                                                       */
-
-static int to_s(const char **out, lua_State *L, int idx)
-{
-    const char *s = luaL_checkstring(L, idx);
-    *out = s;
-    return 1;
-}
-
 static int l_sound_load(lua_State *L)
 {
     const char *path;
@@ -555,19 +595,24 @@ static int l_sound_free(lua_State *L)
     return 0;
 }
 
+static const luaL_Reg sound_funcs[] = {
+    { "load",        l_sound_load },
+    { "play",        l_sound_play },
+    { "pause",       l_sound_pause },
+    { "stop",        l_sound_stop },
+    { "loop",        l_sound_loop },
+    { "looping",     l_sound_looping },
+    { "playing",     l_sound_playing },
+    { "endstream",   l_sound_endstream },
+    { "vol",         l_sound_vol },
+    { "rate",        l_sound_rate },
+    { "free",        l_sound_free },
+    { NULL, NULL }
+};
+
 void sound_api_register(lua_State *L)
 {
-    lua_createtable(L, 0, 12);
-    lua_pushcfunction(L, l_sound_load);      lua_setfield(L, -2, "load");
-    lua_pushcfunction(L, l_sound_play);      lua_setfield(L, -2, "play");
-    lua_pushcfunction(L, l_sound_pause);     lua_setfield(L, -2, "pause");
-    lua_pushcfunction(L, l_sound_stop);      lua_setfield(L, -2, "stop");
-    lua_pushcfunction(L, l_sound_loop);      lua_setfield(L, -2, "loop");
-    lua_pushcfunction(L, l_sound_looping);   lua_setfield(L, -2, "looping");
-    lua_pushcfunction(L, l_sound_playing);   lua_setfield(L, -2, "playing");
-    lua_pushcfunction(L, l_sound_endstream); lua_setfield(L, -2, "endstream");
-    lua_pushcfunction(L, l_sound_vol);       lua_setfield(L, -2, "vol");
-    lua_pushcfunction(L, l_sound_rate);      lua_setfield(L, -2, "rate");
-    lua_pushcfunction(L, l_sound_free);      lua_setfield(L, -2, "free");
+    lua_newtable(L);
+    ol_setfuncs(L, sound_funcs);
     lua_setglobal(L, "sound");
 }

@@ -1,11 +1,15 @@
-#include <pspgu.h>
-#include <math.h>
+/* OpenLua - 2D primitive drawing (lines, rects, circles) via PSP GE.
+ *
+ * All primitives use GU_DIRECT with flat shading for speed.
+ */
 
 #include "draw.h"
 #include "gfx.h"
 #include "../core/olreg.h"
 
 #include <lauxlib.h>
+#include <lualib.h>
+#include <math.h>
 
 typedef struct VertC {
     unsigned int color;
@@ -130,6 +134,12 @@ void ol_fill_circle(int x, int y, int radius, unsigned int color, int sections)
     draw_circle_impl(x, y, radius, color, sections, 1);
 }
 
+/* Forward declarations for luaL_Reg array */
+static int l_line(lua_State *L);
+static int l_rect(lua_State *L);
+static int l_fillrect(lua_State *L);
+static int l_circle(lua_State *L);
+
 static int l_line(lua_State *L)
 {
     ol_draw_line((int)luaL_checkinteger(L, 1), (int)luaL_checkinteger(L, 2),
@@ -163,18 +173,16 @@ static int l_circle(lua_State *L)
     return 0;
 }
 
-void draw_api_register(lua_State *L)
-{
-    lua_createtable(L, 0, 4);
+static const luaL_Reg draw_funcs[] = {
+    { "line",     l_line },
+    { "rect",     l_rect },
+    { "fillrect", l_fillrect },
+    { "circle",   l_circle },
+    { NULL, NULL }
+};
 
-    lua_pushcfunction(L, l_line);
-    lua_setfield(L, -2, "line");
-    lua_pushcfunction(L, l_rect);
-    lua_setfield(L, -2, "rect");
-    lua_pushcfunction(L, l_fillrect);
-    lua_setfield(L, -2, "fillrect");
-    lua_pushcfunction(L, l_circle);
-    lua_setfield(L, -2, "circle");
-
+void draw_api_register(lua_State *L) {
+    lua_newtable(L);
+    ol_setfuncs(L, draw_funcs);
     lua_setglobal(L, "draw");
 }

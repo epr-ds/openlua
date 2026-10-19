@@ -22,6 +22,7 @@
 #include "engine/fs/ini.h"
 #include "engine/sys/savedata.h"
 #include "engine/maps/maps.h"
+#include "engine/core/olreg.h"
 PSP_MODULE_INFO("OpenLua", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(20000);
@@ -104,18 +105,27 @@ static int l_screen_flip(lua_State *L)
     return 0;
 }
 
+static const luaL_Reg color_funcs[] = {
+    { "new", l_color_new },
+    { NULL,  NULL }
+};
+
+static const luaL_Reg screen_funcs[] = {
+    { "clear", l_screen_clear },
+    { "flip",  l_screen_flip },
+    { NULL,    NULL }
+};
+
 static void register_api(lua_State *L)
 {
-    lua_createtable(L, 0, 1);
-    lua_pushcfunction(L, l_color_new);
-    lua_setfield(L, -2, "new");
+    /* color.new */
+    lua_newtable(L);
+    ol_setfuncs(L, color_funcs);
     lua_setglobal(L, "color");
 
-    lua_createtable(L, 0, 2);
-    lua_pushcfunction(L, l_screen_clear);
-    lua_setfield(L, -2, "clear");
-    lua_pushcfunction(L, l_screen_flip);
-    lua_setfield(L, -2, "flip");
+    /* screen.clear / screen.flip */
+    lua_newtable(L);
+    ol_setfuncs(L, screen_funcs);
     lua_setglobal(L, "screen");
 
     image_api_register(L);

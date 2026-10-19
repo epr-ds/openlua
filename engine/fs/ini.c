@@ -281,10 +281,15 @@ static int l_write(lua_State *L)
     return 0;
 }
 
+static const luaL_Reg ini_funcs[] = {
+    { "read",  l_read },
+    { "write", l_write },
+    { NULL,    NULL }
+};
+
 void ini_api_register(lua_State *L)
 {
     lua_newtable(L);
-    lua_pushcfunction(L, l_read);  lua_setfield(L, -2, "read");
-    lua_pushcfunction(L, l_write); lua_setfield(L, -2, "write");
+    ol_setfuncs(L, ini_funcs);
     lua_setglobal(L, "ini");
 }

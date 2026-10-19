@@ -15,6 +15,8 @@
 
 #include "engine/font/font.h"
 #include "engine/gfx/gfx.h"
+#include "engine/core/olreg.h"
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -367,17 +369,30 @@ static int l_screen_textwidth(lua_State *L)
     return 1;
 }
 
+static const luaL_Reg font_funcs[] = {
+    { "new",          l_font_new },
+    { "nchars",       l_font_nchars },
+    { "cell",         l_font_cell },
+    { "draw",         l_font_draw },
+    { "print",        l_font_print },
+    { "textwidth",    l_font_textwidth },
+    { "free",         l_font_free },
+    { NULL,           NULL }
+};
+
+static const luaL_Reg screen_font_funcs[] = {
+    { "font",         l_screen_font },
+    { "setcolor",     l_screen_setcolor },
+    { "print",        l_screen_print },
+    { "textwidth",    l_screen_textwidth },
+    { NULL,           NULL }
+};
+
 void font_api_register(lua_State *L)
 {
     /* ---- font table ---- */
-    lua_createtable(L, 0, 7);
-    lua_pushcfunction(L, l_font_new);       lua_setfield(L, -2, "new");
-    lua_pushcfunction(L, l_font_nchars);    lua_setfield(L, -2, "nchars");
-    lua_pushcfunction(L, l_font_cell);      lua_setfield(L, -2, "cell");
-    lua_pushcfunction(L, l_font_draw);      lua_setfield(L, -2, "draw");
-    lua_pushcfunction(L, l_font_print);     lua_setfield(L, -2, "print");
-    lua_pushcfunction(L, l_font_textwidth); lua_setfield(L, -2, "textwidth");
-    lua_pushcfunction(L, l_font_free);      lua_setfield(L, -2, "free");
+    lua_newtable(L);
+    ol_setfuncs(L, font_funcs);
     lua_setglobal(L, "font");
 
     /* ---- hooks onto existing `screen` table ---- */
@@ -386,9 +401,6 @@ void font_api_register(lua_State *L)
         lua_pop(L, 1);
         return;                           /* screen table not created yet */
     }
-    lua_pushcfunction(L, l_screen_font);      lua_setfield(L, -2, "font");
-    lua_pushcfunction(L, l_screen_setcolor);  lua_setfield(L, -2, "setcolor");
-    lua_pushcfunction(L, l_screen_print);     lua_setfield(L, -2, "print");
-    lua_pushcfunction(L, l_screen_textwidth); lua_setfield(L, -2, "textwidth");
+    ol_setfuncs(L, screen_font_funcs);
     lua_pop(L, 1);
 }

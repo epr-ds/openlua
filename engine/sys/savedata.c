@@ -32,6 +32,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if !defined(__PSP__)
+#include <errno.h>
+#endif
 
 #define SAVE_BODY_MAX   256
 #define SAVE_TITLE_MAX  128
@@ -137,10 +140,7 @@ static int store_file(const char *path, const char *data, unsigned int len)
     return ok ? 0 : -1;
 }
 
-/* ---- OneLua API ---------------------------------------------------------- */
-
-/* ---- OneLua API ---------------------------------------------------------- */
-
+/* ---- OneLua API --------------------------------------------------------- */
 
 static int l_save(lua_State *L)
 {
@@ -236,12 +236,17 @@ static int l_delete(lua_State *L)
     return 1;
 }
 
+static const luaL_Reg data_funcs[] = {
+    { "save",   l_save },
+    { "load",   l_load },
+    { "delete", l_delete },
+    { NULL,     NULL }
+};
+
 void savedata_api_register(lua_State *L)
 {
     lua_newtable(L);
-    lua_pushcfunction(L, l_save);   lua_setfield(L, -2, "save");
-    lua_pushcfunction(L, l_load);   lua_setfield(L, -2, "load");
-    lua_pushcfunction(L, l_delete); lua_setfield(L, -2, "delete");
+    ol_setfuncs(L, data_funcs);
     lua_setglobal(L, "data");
     lua_getglobal(L, "data");        /* re-fetch the same table for the alias */
     lua_setglobal(L, "savedata");

@@ -1,6 +1,7 @@
 #include <pspctrl.h>
 
 #include "buttons.h"
+#include "engine/core/olreg.h"
 
 #include <lauxlib.h>
 
@@ -21,13 +22,15 @@ static void push_bit(lua_State *L, const char *name, unsigned int bit)
     lua_setglobal(L, name);
 }
 
+static const luaL_Reg buttons_funcs[] = {
+    { "read", l_read },
+    { NULL,   NULL }
+};
+
 void buttons_api_register(lua_State *L)
 {
-    lua_createtable(L, 0, 2);
-
-    lua_pushcfunction(L, l_read);
-    lua_setfield(L, -2, "read");
-
+    lua_newtable(L);
+    ol_setfuncs(L, buttons_funcs);
     lua_setglobal(L, "buttons");
 
     push_bit(L, "__SELECT",   PSP_CTRL_SELECT);

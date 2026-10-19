@@ -20,7 +20,7 @@ check(files.exists(ROOT .. "/a"), "mkdir -p parent")
 -- write a small file
 local f = io.open(ROOT .. "/a/hi.txt", "w"); f:write("hello world\n"); f:close()
 check(files.exists(ROOT .. "/a/hi.txt") == true, "exists(true) after write")
-check(files.size(ROOT .. "/a/hi.txt") == 13, "size == 13")
+check(files.size(ROOT .. "/a/hi.txt") == 12, "size == 12")
 check(files.ext(ROOT .. "/a/hi.txt") == "txt", "ext txt")
 check(files.nopath(ROOT .. "/a/hi.txt") == "hi.txt", "nopath -> hi.txt")
 check(files.nofile(ROOT .. "/a/hi.txt") == ROOT .. "/a", "nofile -> dir")
@@ -83,7 +83,8 @@ check(ini.read(inipath, "sec", "k1") == "ONE", "ini original section intact")
 -- content sanity: one [sec] header, k1 exactly once
 local h =  io.open(inipath, "r"); local body = h:read("*a"); h:close()
 check(select(2, body:gsub("[s][e][c]", "%0")) == 1, "ini single [sec] header")
-check(select(2, body:gmatch("[k]1[ ]*=")) == 1, "ini k1 appears once")
+local k1_ct = 0; for _ in body:gmatch("[k]1[ ]*=") do k1_ct = k1_ct + 1 end
+check(k1_ct == 1, "ini k1 appears once")
 
 --[[ ============ data (savedata) ============ ]]
 check(data.save("payload-42", "Game", "TESTGAME", "sub", "desc", 1) == true, "data.save autosave")

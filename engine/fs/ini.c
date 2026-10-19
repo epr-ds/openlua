@@ -1,10 +1,5 @@
 /* OpenLua - INI file module (OneLua-compatible).
  *
- *    ini.read(path, section, key, default)  -> value or default
- *    ini.read(path, key, default)           -> value or default (no section)
- *    ini.write(path, section, key, data)    -> nil
- *    ini.write(path, key, data)             -> nil (no section)
- *
  * Pure text logic over the portable FS core: unit-testable on the host.
  */
 
@@ -18,12 +13,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INI_MAX_LINE   512
-#define INI_MAX_FILE   (256 * 1024)   /* sanity cap                    */
+#define INI_MAX_LINE   512        /* max chars per line */
+#define INI_MAX_FILE   (256 * 1024)   /* read cap (sanity bound) */
+#define INI_MAX_LINES  4096       /* line count ceiling */
 #define NO_SECTION     ""
 
-/* ---- core -------------------------------------------------------------- */
-
+/* ------------------------------------------------------------------ */
+/* helpers                                                              */
 static char *trim(char *s)
 {
     while (*s && (*s == ' ' || *s == '\t' || *s == '\r' || *s == '\n'))
@@ -111,19 +107,6 @@ static int ini_find(const char *text, const char *section,
     }
     return -1;
 }
-
-#define INI_MAX_LINES 4096
-
-/*
- * Rewrite the file with key=data under [section] (replacing any existing
- * value).  Insert a missing key at the end of its section, or create the
- * section if absent.  Check strings are copied before mutation; the
- * original line is always written back verbatim.  A temp file + rename
- * keeps the original intact on failure.
- */
-#define INI_MAX_LINES 4096
-
-/* Classify one line.  Returns 0 data, 1 section header, 2 other. */
 static int ini_line_kind(char *line, char *name_or_key, char *value)
 {
     char *t = trim(line);
@@ -276,6 +259,7 @@ static int l_read(lua_State *L)
         lua_pushstring(L, def);
     return 1;
 }
+
 static int l_write(lua_State *L)
 {
     const char *path = luaL_checkstring(L, 1);

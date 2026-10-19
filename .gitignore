@@ -27,3 +27,6 @@ test_hello/script.lua
 engine/core/main.o
 EBOOT.PBP
 openlua.elf
+EBOOT.PBP
+openlua.elf
+**/*.o

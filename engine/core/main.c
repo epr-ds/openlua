@@ -16,6 +16,7 @@
 #include "engine/input/buttons.h"
 #include "engine/util/timers.h"
 
+#include "engine/font/font.h"
 PSP_MODULE_INFO("OpenLua", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(20000);
@@ -115,6 +116,7 @@ static void register_api(lua_State *L)
     draw_api_register(L);
     buttons_api_register(L);
     timers_api_register(L);
+    font_api_register(L);   /* font table + screen.print / screen.font hooks */
 }
 
 static void chdir_to_appdir(const char *argv0)

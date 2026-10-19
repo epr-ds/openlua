@@ -1,279 +1,394 @@
 /* OpenLua - bitmap font system implementation
  *
- * Glyph layout: each character = one cell (width x height) pixels in a
- * spritesheet image. Layout order = sequential from char 0x20 (space).
- * The grid is parsed at load time; individual glyphs are extracted at
- * draw time via GPU UV coordinate math. */
+ * Fonts are loaded from a PNG spritesheet: a grid of cells, each
+ * cellW x cellH pixels. Characters map sequentially starting from
+ * char 0x20 (space): glyph 0 = ' ', glyph 1 = '!', glyph 2 = '"', ...
+ *
+ * The full sheet is uploaded to VRAM as a single power-of-two texture
+ * (lazily, on first draw). Drawing uses pixel-unit UV coords so a
+ * glyph blit is simply: gfx_blit(sheet, x, y, col*cellW, row*cellH,
+ *                            cellW, cellH, ...).
+ *
+ * Pixel format matches image.c: stbi RGBA bytes read as uint32 LE,
+ * i.e. pixel value = (A<<24)|(B<<16)|(G<<8)|R.
+ */
 
 #include "engine/font/font.h"
+#include "engine/gfx/gfx.h"
 #include <string.h>
+#include <stdlib.h>
 
-/* stb_image implementation (from engine/core/stb_impl.o) */
+/* stb_image implementation lives in engine/core/stb_impl.o */
 #include "third_party/stb/stb_image.h"
 
-/* Forward declarations */
-static int  l_font_new(lua_State *L);
-static int  l_font_blt_obj(lua_State *L);
+#define FONT_MAX 8
 
-/* ================================================================
- * font_load — parse PNG spritesheet into grid metadata.
- * ---------------------------------------------------------------
- * Input: a PNG file with glyphs laid out in a grid of cellW × cellH.
- * Returns: OLF_Font struct ready for use (sheet uploaded lazily).
- * The full sheet becomes one GPU texture, uploaded on first glyph. */
+static struct {
+    int        used;
+    char       path[256];
+    int        cellW, cellH;
+    int        nChars;
+    OL_Surface *sheet;        /* VRAM texture (lazy upload) */
+} g_fonts[FONT_MAX];
 
-OLF_Font font_load(const char *path, int cellW, int cellH)
+static int             g_defaultFont = 0;             /* for screen.print */
+static unsigned int    g_defaultTint = 0xFFFFFFFFu;   /* ABGR, FFFFFF = none */
+
+/* =====================================================================
+ * Allocation
+ * ===================================================================*/
+
+int font_alloc(const char *path, int cellW, int cellH)
 {
-    OLF_Font f;
-    memset(&f, 0, sizeof(f));
-
-    /* Load PNG (RGBA pixels from stb_image). */
-    int w = 0, h = 0, comp = 0;
-    unsigned char *img = stbi_load(path, &w, &h, &comp, 4);
-    if (!img) return f;   /* fail: can't load font sheet */
-
-    f.cellW     = cellW;
-    f.cellH     = cellH;
-    f.sheetW    = w;          /* raw pixel width from PNG    */
-    f.sheetH    = h;          /* raw pixel height from PNG  */
-    f.texReady  = 0;         /* not yet uploaded to GPU     */
-
-    /* Grid math: how many cells fit across and down? */
-    int cols = (w + cellW - 1) / cellW;       /* ceil-div for width  */
-    int rows = h / cellH;                       /* must divide evenly   */
-    if (rows <= 0 || cols <= 0) {
-        stbi_image_free(img);
-        return f;
-    }
-
-    f.nCols     = cols;
-    f.nRows      = rows;
-    f.nChars    = cols * rows;                /* total glyph count   */
-
-    strncpy(f.texPath, path, sizeof(f.texPath) - 1);
-    f.texPath[sizeof(f.texPath) - 1] = '\0';
-
-    stbi_image_free(img);       /* we only need grid metadata now */
-    return f;
-}
-
-/* ================================================================
- * ensure_texture — lazy GPU texture upload.
- * ---------------------------------------------------------------
- * Called on first font_blt() call. Loads the PNG, converts RGBA →
- * ABGR (the PSP GE pixel format), and allocates a power-of-2 GPU
- * surface to hold the sheet. */
-
-static int ensure_texture(OLF_Font *f)
-{
-    if (!f || f->texReady || !f->sheetW || f->texReady) return 1;
-
-    /* Compute GPU-ready dimensions (power-of-two for GE). */
-    /* Pass raw dimensions; gfx_surface_new computes realW/realH internally. */
-    int realW = f->sheetW > 0 ? f->sheetW : 8;
-    int realH = f->sheetH > 0 ? f->sheetH : 8;
-
-    /* Create surface to hold the full font sheet. */
-    OL_Surface *sheet = gfx_surface_new(realW, realH);
-    if (!sheet)
-        return 0;   /* heap allocation failed */
-
-    /* Reload PNG (stb_image supports multiple opens — safe). */
-    int w = 0, h = 0, comp = 0;
-    unsigned char *rgba = stbi_load(f->texPath, &w, &h, &comp, 4);
-    if (!rgba) {
-        gfx_surface_free(sheet);
+    if (cellW <= 0 || cellH <= 0 || cellW > 256 || cellH > 256)
         return 0;
-    }
 
-    /* Convert RGBA → ABGR and place in the surface.
-     * Each pixel is packed: (A << 24) | (B << 16) | (G << 8) | R */
-    for (int y = 0; y < h; y++) {
-        const unsigned char *row_src = rgba + y * w * 4;  /* RGBA row */
-        for (int x = 0; x < w; x++) {
-            int dx = x;                           /* dest column   */
-            unsigned char r = row_src[x * 4 + 0];
-            unsigned char g = row_src[x * 4 + 1];
-            unsigned char b = row_src[x * 4 + 2];
-            unsigned char a = row_src[x * 4 + 3];
-            sheet->pixels[y * realW + dx] =
-                ((unsigned int)a << 24) |     /* Alpha   */
-                ((unsigned int)b << 16) |     /* Blue    */
-                ((unsigned int)g << 8)  |     /* Green   */
-                (unsigned int)r;              /* Red     */
+    int w = 0, h = 0, comp = 0;
+    unsigned char *probe = stbi_load(path, &w, &h, &comp, 4);
+    if (!probe)
+        return 0;
+    int nChars = (w / cellW) * (h / cellH);
+    stbi_image_free(probe);
+    if (nChars <= 0)
+        return 0;
+
+    for (int i = 0; i < FONT_MAX; i++) {
+        if (!g_fonts[i].used) {
+            g_fonts[i].used   = 1;
+            strncpy(g_fonts[i].path, path, sizeof(g_fonts[i].path) - 1);
+            g_fonts[i].path[sizeof(g_fonts[i].path) - 1] = '\0';
+            g_fonts[i].cellW  = cellW;
+            g_fonts[i].cellH  = cellH;
+            g_fonts[i].nChars = nChars;
+            g_fonts[i].sheet  = 0;
+            return i + 1;                    /* 1-based handle */
         }
     }
+    return 0;                               /* all slots full */
+}
 
-    /* Clear padding rows/cols to black. */
-    for (int y = h; y < realH; y++) {
-        memset(&sheet->pixels[y * realW], 0, (size_t)realW * sizeof(unsigned int));
+int font_nchars(int h)
+{
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used) return 0;
+    return g_fonts[h - 1].nChars;
+}
+
+int font_cellw(int h)
+{
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used) return 0;
+    return g_fonts[h - 1].cellW;
+}
+
+int font_cellh(int h)
+{
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used) return 0;
+    return g_fonts[h - 1].cellH;
+}
+
+void font_free(int h)
+{
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
+        return;
+    if (g_fonts[h - 1].sheet)
+        gfx_surface_free(g_fonts[h - 1].sheet);
+    g_fonts[h - 1].sheet = 0;
+    g_fonts[h - 1].used  = 0;
+    if (g_defaultFont == h)
+        g_defaultFont = 0;
+}
+
+/* =====================================================================
+ * Lazy VRAM upload: decode PNG -> power-of-two GPU surface.
+ * Identical pixel convention to image.c (RGBA bytes as uint32 LE).
+ * ===================================================================*/
+
+static int ensure_sheet(int h)
+{
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
+        return 0;
+
+    {
+        int i = h - 1;
+        if (g_fonts[i].sheet)
+            return 1;
+
+        int w = 0, hh = 0, comp = 0;
+        unsigned char *rgba = stbi_load(g_fonts[i].path, &w, &hh, &comp, 4);
+        if (!rgba)
+            return 0;
+
+        OL_Surface *s = gfx_surface_new(w, hh);
+        if (!s) {
+            stbi_image_free(rgba);
+            return 0;
+        }
+
+        for (int y = 0; y < hh; y++) {
+            const unsigned int *row = (const unsigned int *)(rgba + (size_t)y * w * 4);
+            for (int x = 0; x < w; x++)
+                s->pixels[y * s->realW + x] = row[x];
+        }
+        /* Zero the power-of-two padding strip outside the logical size. */
+        for (int i2 = w * hh; i2 < s->realW * s->realH; i2++)
+            s->pixels[i2] = 0;
+
+        g_fonts[i].sheet = s;
+        stbi_image_free(rgba);
     }
-
-    f->sheet      = sheet;
-    f->texReady   = 1;
-    f->sheetW     = w;      /* keep actual dimensions */
-    f->sheetH     = h;
-    f->flipX      = 0;
-    f->flipY      = 0;
-    f->angle      = 0.0f;
-    f->scaleX     = 1.0f;
-    f->scaleY     = 1.0f;
-    f->pivotX     = f->cellW / 2;
-    f->pivotY     = f->cellH / 2;
-    f->z          = 0;
-    f->tint       = 0xFFFFFFFFu;
-
-    stbi_image_free(rgba);
     return 1;
 }
 
-/* ================================================================
- * font_blt — GPU blit one glyph from the sheet at (dx, dy).
- * ---------------------------------------------------------------
- * Character code maps to grid cell: col = (ch - 32) % nCols,
- * row = (ch - 32) / nCols. Returns >0 on success, ==0 on error. */
+/* =====================================================================
+ * Drawing (goes directly into the GE scene list, like image.blit)
+ * ===================================================================*/
 
-int font_blt(OL_Surface *dst, int dx, int dy, char c, OLF_Font f)
+void font_draw_glyph(int h, int dx, int dy, char c, unsigned int tint)
 {
-    if (!dst || !f.nChars) return 0;
-    unsigned int ch = (unsigned int)(c - 32);   /* 0-index from space  */
-    if (ch >= (unsigned int)f.nChars) return 0;
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
+        return;
+    if ((unsigned int)(c - ' ') >= (unsigned int)g_fonts[h - 1].nChars)
+        return;
+    if (!ensure_sheet(h))
+        return;
 
-    /* Lazy-init GPU texture on first use. */
-    if (!ensure_texture(&f)) return 0;
+    int i     = h - 1;
+    int cellW = g_fonts[i].cellW;
+    int cellH = g_fonts[i].cellH;
 
-    /* Grid coordinates → pixel offset in sheet. */
-    int col = (int)(ch % f.nCols);
-    int row = (int)(ch / f.nCols);
-    int sx = col * f.cellW;   /* source X (within GPU texture) */
-    int sy = row * f.cellH;   /* source Y                        */
+    /* Grid math (same rule as image.c blitsprite/frame_rect): the
+     * column count comes from the sheet's hardware-aligned width. */
+    int sheetCols = g_fonts[i].sheet->w / cellW;
+    if (sheetCols < 1) sheetCols = 1;
+    int idx = (int)(unsigned char)(c - ' ');
+    int col = idx % sheetCols;
+    int row = idx / sheetCols;
 
-    /* Build per-glyph transform state by mapping OLF_Font → OL_Surface fields. */
-    OL_Surface glyph_src;
-    memset(&glyph_src, 0, sizeof(glyph_src));
-    if (f.texReady) {
-        glyph_src.pixels   = f.sheet->pixels;
-        glyph_src.realW    = f.sheet->realW;
-        glyph_src.realH    = f.sheet->realH;
-    }
-    glyph_src.flipX       = f.flipX;
-    glyph_src.flipY       = f.flipY;
-    glyph_src.angle        = f.angle;
-    glyph_src.scaleX       = f.scaleX;
-    glyph_src.scaleY       = f.scaleY;
-    glyph_src.pivotX       = f.pivotX;
-    glyph_src.pivotY       = f.pivotY;
-    glyph_src.z            = f.z;
-    glyph_src.tint         = f.tint;
-
-    gfx_blit(    /* blit from sheet to dst at (dx,dy)  */
-        &glyph_src,           /* source surface (sheet)          */
-        dx, dy,               /* dest coordinates                  */
-        sx, sy,               /* source rect (cell offset)         */
-        f.cellW, f.cellH,     /* cell dimensions                   */
-        255,                  /* alpha: opaque                     */
-        f.flipX, f.flipY,    /* flip flags (UV coordinate swap)   */
-        0.0f,                 /* no rotation                       */
-        1.0f, 1.0f,          /* identity scale                      */
-        f.z,                  /* depth order                         */
-        f.tint                /* ABGR color modulation               */
-    );
-    return 1;
+    gfx_blit(g_fonts[i].sheet,
+             dx, dy,                     /* dest position on screen       */
+             col * cellW, row * cellH,   /* source rect (glyph cell)      */
+             cellW, cellH,               /* source size                   */
+             255,                        /* alpha                         */
+             0, 0,                       /* no UV flips for text          */
+             0.0f,                       /* no rotation                   */
+             1.0f, 1.0f,                 /* no scaling                    */
+             0,                          /* no z-ordering                 */
+             tint);                      /* ABGR tint or 0xFFFFFFFF       */
 }
 
-/* ================================================================
- * font_print — render string on surface starting at (x0, y0).
- * ---------------------------------------------------------------
- * Advances cursor right by cellW per glyph; resets X to x0 on '\n'
- * and advances Y by cellH. Tabs expand to 4 cells. */
-
-void font_print(OL_Surface *dst, int x0, int y0, const char *text, OLF_Font f)
+int font_draw_text(int h, int x0, int y0, const char *text, unsigned int tint)
 {
-    if (!dst || !f.nChars) return;
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used || !text)
+        return x0;
 
-    /* Ensure texture is ready before drawing. */
-    if (!ensure_texture(&f)) return;
+    int cellW = g_fonts[h - 1].cellW;
+    int cellH = g_fonts[h - 1].cellH;
+    int x = x0, y = y0;
 
-    int x = x0, y = y0;      /* cursor starts at (x0, y0)  */
     for (size_t i = 0; text[i]; i++) {
         unsigned char ch = (unsigned char)text[i];
-
-        if ((int)ch >= 32 && ((int)ch - 32) < (int)f.nChars) {
-            /* Printable character: draw glyph and advance cursor */
-            font_blt(dst, x, y, (char)ch, f);
-            x += f.cellW;      /* move right one cell width  */
-
+        if (ch >= 32 && (unsigned int)(ch - 32) < (unsigned int)g_fonts[h - 1].nChars) {
+            font_draw_glyph(h, x, y, (char)ch, tint);
+            x += cellW;
         } else if (ch == '\n') {
-            y += f.cellH;      /* newline: drop down one row */
-            x = x0;            /*   ...reset to left margin  */
-
+            y += cellH;
+            x = x0;
         } else if (ch == '\t') {
-            x += f.cellW * 4;  /* tab → indent 4 cells      */
+            x += cellW * 4;
         }
-        /* Unprintable/invalid chars silently skipped. */
     }
+    return x;
 }
 
-/* ================================================================
- * Lua bindings for the font module
- * ---------------------------------------------------------------
- * Usage from Lua:
- *   font = require("engine/font")       -- or globally set to 'font'
- *   fnt  = font.load("font.png", 8, 16)
- *   image.blit_font(surf, x, y, 65, fnt)   -- draw 'A' at (x,y)
- */
+int font_textwidth(const char *text, int h)
+{
+    if (!text || h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
+        return 0;
+    int w = 0;
+    for (size_t i = 0; text[i]; i++) {
+        unsigned char ch = (unsigned char)text[i];
+        if (ch == '\n' || ch == '\t')
+            continue;
+        if (ch < 32 || (unsigned int)(ch - 32) >= (unsigned int)g_fonts[h - 1].nChars)
+            continue;
+        w += g_fonts[h - 1].cellW;
+    }
+    return w;
+}
+
+/* ---- default font / tint (screen.font semantics) ---- */
+
+void font_set_default(int h) { g_defaultFont = h; }
+int  font_default(void)      { return g_defaultFont; }
+void font_set_tint(unsigned int abgr) { g_defaultTint = abgr; }
+unsigned int font_tint(void)          { return g_defaultTint; }
+
+/* =====================================================================
+ * Lua bindings
+ *
+ * Font API (global table `font`):
+ *   font.new(path, cellW, cellH)        -> handle (int) or nil
+ *   font.nchars(h)                      -> number of glyphs
+ *   font.cellw(h) / font.cellh(h)       -> glyph pixel size
+ *   font.draw(h, x, y, code, [tint])    -> draw single glyph
+ *   font.print(h, x, y, text [, tint])  -> draw string
+ *   font.textwidth(h or text, ...)      -> width in px
+ *   font.free(h)                        -> release handle
+ *
+ * Screen hooks (added to global `screen` table):
+ *   screen.font([h])                    -> set/get default font
+ *   screen.setcolor([ABGR])             -> set/get text tint
+ *   screen.print(x, y, text [, h, [tint]])
+ *   screen.textwidth(text [, h])        -> measure string
+ * ===================================================================*/
 
 static int l_font_new(lua_State *L)
 {
     const char *path = luaL_checkstring(L, 1);
-    int cellW  = (int)luaL_checkinteger(L, 2);
-    int cellH  = (int)luaL_checkinteger(L, 3);
-
-    OLF_Font f = font_load(path, cellW, cellH);
-    if (!f.nChars) {
+    int cw = (int)luaL_checkinteger(L, 2);
+    int ch = (int)luaL_checkinteger(L, 3);
+    int h  = font_alloc(path, cw, ch);
+    if (h <= 0) {
         lua_pushnil(L);
-        return 1;
+    } else {
+        lua_pushinteger(L, h);
     }
-
-    /* Wrap in Lua userdata with metatable for per-font .blt() method. */
-    OLF_Font **p = (OLF_Font **)lua_newuserdata(L, sizeof(OLF_Font *));
-    *p = malloc(sizeof(OLF_Font));
-    memcpy(*p, &f, sizeof(OLF_Font));
-
-    /* Metatable with 'blt' method for font:blt(dst, x, y, code) */
-    lua_createtable(L, 0, 1);
-    lua_pushcfunction(L, l_font_blt_obj);
-    lua_setfield(L, -2, "blt");     /* __index.blt — per-instance method */
-    lua_setmetatable(L, -2);
-
     return 1;
 }
 
-static int l_font_blt_obj(lua_State *L)
+static int l_font_nchars(lua_State *L)
 {
-    OLF_Font **fn = (OLF_Font **)lua_touserdata(L, 1);
-    int dx   = (int)luaL_checkinteger(L, 2);
-    int dy   = (int)luaL_checkinteger(L, 3);
-    char c   = (char)luaL_checkinteger(L, 4);
+    lua_pushinteger(L, font_nchars((int)luaL_checkinteger(L, 1)));
+    return 1;
+}
 
-    if (lua_gettop(L) < 5)
-        return luaL_error(L, "font:blt(dst, x, y, code): dst is required");
+static int l_font_cell(lua_State *L)
+{
+    int h = (int)luaL_checkinteger(L, 1);
+    lua_pushinteger(L, font_cellw(h));
+    lua_pushinteger(L, font_cellh(h));
+    return 2;
+}
 
-    OL_Surface *dst = (OL_Surface *)lua_touserdata(L, 5);
-    int ret = font_blt(dst, dx, dy, c, (*fn)? **fn : (OLF_Font){0});
-    lua_pushinteger(L, ret);   /* >0 = success, ==0 = error */
+static int l_font_draw(lua_State *L)
+{
+    int h  = (int)luaL_checkinteger(L, 1);
+    int x  = (int)luaL_checkinteger(L, 2);
+    int y  = (int)luaL_checkinteger(L, 3);
+    int c  = (int)luaL_checkinteger(L, 4);
+    unsigned int tint = (lua_gettop(L) >= 5)
+                         ? (unsigned int)luaL_checkinteger(L, 5)
+                         : 0xFFFFFFFFu;
+    font_draw_glyph(h, x, y, (char)c, tint);
+    return 0;
+}
+
+static int l_font_print(lua_State *L)
+{
+    int h    = (int)luaL_checkinteger(L, 1);
+    int x    = (int)luaL_checkinteger(L, 2);
+    int y    = (int)luaL_checkinteger(L, 3);
+    const char *text = luaL_checkstring(L, 4);
+    unsigned int tint = (lua_gettop(L) >= 5)
+                         ? (unsigned int)luaL_checkinteger(L, 5)
+                         : 0xFFFFFFFFu;
+    int endX = font_draw_text(h, x, y, text, tint);
+    lua_pushinteger(L, endX);            /* final cursor X (OneLua print returns pos) */
+    return 1;
+}
+
+static int l_font_textwidth(lua_State *L)
+{
+    /* one-arg form: font.textwidth(h, text)  /  two-arg: text, h */
+    const char *a;
+    int h;
+    if (lua_isnumber(L, 1)) { h = (int)luaL_checkinteger(L, 1); a = luaL_checkstring(L, 2); }
+    else                     { a = luaL_checkstring(L, 1);       h = (int)luaL_checkinteger(L, 2); }
+    lua_pushinteger(L, font_textwidth(a, h));
+    return 1;
+}
+
+static int l_font_free(lua_State *L)
+{
+    font_free((int)luaL_checkinteger(L, 1));
+    return 0;
+}
+
+/* ---- screen table hooks ---- */
+
+static int l_screen_font(lua_State *L)
+{
+    if (lua_isnoneornil(L, 1)) {
+        lua_pushinteger(L, g_defaultFont);
+        return 1;                        /* getter */
+    }
+    int h = (int)luaL_checkinteger(L, 1);
+    font_set_default(h);
+    return 0;
+}
+
+static int l_screen_setcolor(lua_State *L)
+{
+    if (lua_isnoneornil(L, 1)) {
+        lua_pushinteger(L, (lua_Integer)g_defaultTint);
+        return 1;
+    }
+    font_set_tint((unsigned int)luaL_checkinteger(L, 1));
+    return 0;
+}
+
+static int l_screen_print(lua_State *L)
+{
+    int x    = (int)luaL_checkinteger(L, 1);
+    int y    = (int)luaL_checkinteger(L, 2);
+    const char *text = luaL_checkstring(L, 3);
+
+    int h = g_defaultFont;
+    if (lua_isnumber(L, 4))
+        h = (int)luaL_checkinteger(L, 4);
+    if (h <= 0)
+        return luaL_error(L, "screen.print: no font set (call screen.font(h) or pass a font handle)");
+
+    unsigned int tint = g_defaultTint;
+    if (lua_isnumber(L, 5))
+        tint = (unsigned int)luaL_checkinteger(L, 5);
+
+    int endX = font_draw_text(h, x, y, text, tint);
+    lua_pushinteger(L, endX);
+    return 1;
+}
+
+static int l_screen_textwidth(lua_State *L)
+{
+    const char *text = luaL_checkstring(L, 1);
+    int h = g_defaultFont;
+    if (lua_isnumber(L, 2))
+        h = (int)luaL_checkinteger(L, 2);
+    lua_pushinteger(L, font_textwidth(text, h));
     return 1;
 }
 
 void font_api_register(lua_State *L)
 {
-    /* Create a font module table with font.load() function. */
-    lua_createtable(L, 0, 2);              /* pre-allocate for 2 fields  */
-    lua_pushcfunction(L, l_font_new);       /* font.new = ...             */
-    lua_setfield(L, -2, "new");
+    /* ---- font table ---- */
+    lua_createtable(L, 0, 7);
+    lua_pushcfunction(L, l_font_new);       lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, l_font_nchars);    lua_setfield(L, -2, "nchars");
+    lua_pushcfunction(L, l_font_cell);      lua_setfield(L, -2, "cell");
+    lua_pushcfunction(L, l_font_draw);      lua_setfield(L, -2, "draw");
+    lua_pushcfunction(L, l_font_print);     lua_setfield(L, -2, "print");
+    lua_pushcfunction(L, l_font_textwidth); lua_setfield(L, -2, "textwidth");
+    lua_pushcfunction(L, l_font_free);      lua_setfield(L, -2, "free");
+    lua_setglobal(L, "font");
 
-    lua_pushcfunction(L, l_font_blt_obj);   /* font.blt = ... (for testing)*/
-    lua_setfield(L, -2, "blt");
-
-    lua_setglobal(L, "font");                /* global 'font' module       */
+    /* ---- hooks onto existing `screen` table ---- */
+    lua_getglobal(L, "screen");
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 1);
+        return;                           /* screen table not created yet */
+    }
+    lua_pushcfunction(L, l_screen_font);      lua_setfield(L, -2, "font");
+    lua_pushcfunction(L, l_screen_setcolor);  lua_setfield(L, -2, "setcolor");
+    lua_pushcfunction(L, l_screen_print);     lua_setfield(L, -2, "print");
+    lua_pushcfunction(L, l_screen_textwidth); lua_setfield(L, -2, "textwidth");
+    lua_pop(L, 1);
 }

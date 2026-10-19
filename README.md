@@ -50,7 +50,7 @@ In PPSSPP:
 | `draw` | `draw.line()`, `rect()`, `fillrect()`, `gradrect()` | ✅ Phase 1 |
 | `buttons` | `buttons.read()`, `waitforkey()`, `interval()` | ✅ Phase 1 |
 | `timers` | `timer.new()`, `start()`, `stop()`, `time()` | ✅ Phase 1 |
-| `font` (sfont) | `font.load(path, cellW, cellH)`, `blit_font()` | 🟡 Phase 2 | 
+| `font` (sfont) | `font.new(path, cellW, cellH)`, `screen.font(f)`, `screen.print(x, y, text)` | ✅ Phase 2 |
 | `screen.print()` | Built-in with SFont support | 🟡 Phase 2 |
 | `sound`       | `sound.load()`, `play()`, `loop()`, `vol()` | ⏳ Phase 3 |
 | `files`       | `files.copy()`, `extract()` | ⏳ Phase 4 |
@@ -60,42 +60,39 @@ In PPSSPP:
 
 ```lua
 -- Color helper
-local color = require("lib").color
-local red = color.new(255, 0, 0, 255)
+local red = color.new(255, 0, 0, 255)   -- returns ABGR integer
 
 -- Screen
-screen.clear(color.rgb(0, 0, 0))    -- clear background
+screen.clear(color.new(0x10, 0x12, 0x18))
 screen.flip()                        -- present frame
 
 -- Image
-local img = image.load("sprite.png")  -- PNG → surface
+local img = image.load("sprite.png")  -- PNG -> surface
 image.blit(img, 100, 80)             -- draw at x/y
 image.fliph(img, true)               -- force-flip horizontally (toggle if omitted)
-image.fipv(img, false)               -- force-flip vertically
 
 -- Draw primitives
-draw.line(10, 20, 30, 40, color.rgb(255, 255, 255))
-draw.rect(50, 60, 128, 64, color.rgb(255, 0, 0))
-draw.fillrect(50, 60, 128, 64, col
+draw.line(10, 20, 30, 40, color.new(255, 255, 255))
+draw.rect(50, 60, 128, 64, color.new(255, 0, 0))
+draw.fillrect(50, 60, 128, 64, color.new(0, 0, 255))
 
--- Font (SFont)
-local font = font.load("font.png", 8, 16)    -- cellW=8, ceilH=16 pixels
-image.font_blt(x, y, code, font)              -- draw one glyph
-screen.print(50, 400, "Hello PSP!", font)     -- draw full text
+-- Font (SFont): PNG sprite-sheet, cellW x cellH pixels per glyph,
+-- glyphs in ASCII order starting at space (0x20).
+local f = font.new("font.png", 8, 16)      -- font handle
+screen.font(f)                              -- set default font
+screen.print(30, 30, "Hello PSP!")          -- draw text (default font)
+screen.print(30, 60, "Tinted", f, color.new(255, 30, 30))
+local w = screen.textwidth("Hello PSP!")    -- width in px
 
 -- Input
-local buttons = require("buttons")
-buttons.interval(10)   -- poll every 10ms instead of every frame
-while true do
-   local state = buttons.read()
-   -- ... your game logic
-end
+local pressed = buttons.read()      -- bitmask of held buttons
 
 -- Timers
-local t = timer.new()       -- create new timer object
-t:start()                   -- start counting
-local elapsed = t:time()    -- return milliseconds since start
-t:stop()                    -- stop, returns ms when stopped
+local t = timers.new()
+t = timers.new(1000)                -- optional initial ms
+local started = timers.start(t)
+local elapsed = timers.time(t)      -- elapsed ms
+timers.stop(t)
 ```
 
 ### Transform Pipeline (Phase 1)

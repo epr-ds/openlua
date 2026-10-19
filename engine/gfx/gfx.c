@@ -121,7 +121,7 @@ void *gfx_list(void)
 
 OL_Surface *gfx_surface_new(int w, int h)
 {
-    if (w <= 0 || h <= 0 || w > 512 || h > 512)
+    if (w <= 0 || h <= 0 || w > 1024 || h > 1024)
         return NULL;
     OL_Surface *s = (OL_Surface *)calloc(1, sizeof(OL_Surface));
     if (!s)

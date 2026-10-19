@@ -102,7 +102,7 @@ static int l_new(lua_State *L)
 static void frame_rect(OL_Surface *s, int frame, int *sx, int *sy, int *sw, int *sh)
 {
     if (s->frameW > 0 && s->frameH > 0) {
-        int cols = s->realW / s->frameW;
+        int cols = s->w / s->frameW;
         if (cols < 1)
             cols = 1;
         *sx = (frame % cols) * s->frameW;

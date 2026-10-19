@@ -52,7 +52,7 @@ In PPSSPP:
 | `timers` | `timer.new()`, `start()`, `stop()`, `time()` | ✅ Phase 1 |
 | `font` (sfont) | `font.new(path, cellW, cellH)`, `screen.font(f)`, `screen.print(x, y, text)` | ✅ Phase 2 |
 | `screen.print()` | Built-in with SFont support | 🟡 Phase 2 |
-| `sound`       | `sound.load()`, `play()`, `loop()`, `vol()` | ⏳ Phase 3 |
+| `sound` (native WAV/VMA) | `sound.load()`, `play()`, `loop()`, `pause()`, `stop()`, `vol()`, `playing()` | ✅ Phase 2 |
 | `files`       | `files.copy()`, `extract()` | ⏳ Phase 4 |
 | HTTP / WiFi   | `wlan.*`, `http.get()` | ⏳ Milestone 5+ |
 

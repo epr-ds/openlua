@@ -24,3 +24,6 @@ test_hello/script.lua
 
 # Logs
 *.log
+engine/core/main.o
+EBOOT.PBP
+openlua.elf

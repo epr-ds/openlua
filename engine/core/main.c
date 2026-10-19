@@ -11,6 +11,7 @@
 #include <lualib.h>
 
 #include "engine/gfx/gfx.h"
+#include "engine/snd/sound.h"
 #include "engine/img/image.h"
 #include "engine/gfx/draw.h"
 #include "engine/input/buttons.h"
@@ -92,6 +93,7 @@ static int l_screen_clear(lua_State *L)
 static int l_screen_flip(lua_State *L)
 {
     static int frames = 0;
+    sound_pump();          /* feed audio once per frame (OneLua-style: pumped in flip) */
     gfx_flip_scene();
     if (++frames % 120 == 1)
         debug_note("screen.flip ~120 frames");
@@ -117,6 +119,7 @@ static void register_api(lua_State *L)
     buttons_api_register(L);
     timers_api_register(L);
     font_api_register(L);   /* font table + screen.print / screen.font hooks */
+    sound_api_register(L);  /* sound table (load/play/loop/vol/...)          */
 }
 
 static void chdir_to_appdir(const char *argv0)

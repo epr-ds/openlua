@@ -44,6 +44,7 @@ OBJS = engine/core/main.o \
 	engine/input/buttons.o \
 	engine/util/timers.o \
 	engine/font/font.o \
+	engine/snd/sound.o \
 	$(LUAOBJS)
 
 INCDIR = . $(LUADIR) $(STBDIR)
@@ -52,7 +53,7 @@ CFLAGS = -O2 -G0 -Wall
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -L.
 
-LIBS = -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspgu -lpspsdk -lc -lpspuser
+LIBS = -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspgu -lpspsdk -lc -lpspuser -lpspaudio
 
 EXTRA_TARGETS = EBOOT.PBP
 

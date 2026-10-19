@@ -22,6 +22,11 @@ static OL_Surface *to_surface(lua_State *L, int idx)
     return *p;
 }
 
+OL_Surface *image_as_surface(lua_State *L, int idx)
+{
+    return to_surface(L, idx);
+}
+
 static void push_surface(lua_State *L, OL_Surface *s)
 {
     OL_Surface **p = (OL_Surface **)lua_newuserdata(L, sizeof(OL_Surface *));

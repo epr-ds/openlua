@@ -45,6 +45,11 @@ OBJS = engine/core/main.o \
 	engine/util/timers.o \
 	engine/font/font.o \
 	engine/snd/sound.o \
+	engine/fs/olfs.o \
+	engine/fs/files.o \
+	engine/fs/ini.o \
+	engine/sys/savedata.o \
+	engine/maps/maps.o \
 	$(LUAOBJS)
 
 INCDIR = . $(LUADIR) $(STBDIR)

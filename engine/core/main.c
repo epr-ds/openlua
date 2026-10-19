@@ -18,6 +18,10 @@
 #include "engine/util/timers.h"
 
 #include "engine/font/font.h"
+#include "engine/fs/files.h"
+#include "engine/fs/ini.h"
+#include "engine/sys/savedata.h"
+#include "engine/maps/maps.h"
 PSP_MODULE_INFO("OpenLua", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(20000);
@@ -120,6 +124,12 @@ static void register_api(lua_State *L)
     timers_api_register(L);
     font_api_register(L);   /* font table + screen.print / screen.font hooks */
     sound_api_register(L);  /* sound table (load/play/loop/vol/...)          */
+
+    /* Phase 3: OS-level modules */
+    files_api_register(L);    /* files.*    (exists/copy/move/list/...)      */
+    ini_api_register(L);      /* ini.*      (read/write)                     */
+    savedata_api_register(L); /* data.* + savedata.* (save/load/delete)      */
+    maps_api_register(L);     /* map.*      (new/blit/sizex/sizey/set)       */
 }
 
 static void chdir_to_appdir(const char *argv0)

@@ -63,7 +63,7 @@ Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
 `maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed`, then
 `RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for timers,
 `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for JSON,
-`RESULT: 49 passed, 0 failed` for savedata, and `RESULT: 13 passed, 0 failed`
+`RESULT: 64 passed, 0 failed` for savedata, and `RESULT: 13 passed, 0 failed`
 for sound. Build output is kept in
 `out/build.log`; the script prints it only when a build fails.
 
@@ -78,7 +78,7 @@ is tracked.
 
 The script builds all host targets with `-Wall -Wextra -Werror` and runs the C
 tests (`test_olfs.c`, `test_transform.c`, `test_maps.c`, `test_sound.c`) plus the
-Lua suites for files/INI/savedata/timers/sound in `out/`. Compiler output is
+Lua suites for files/INI/JSON/savedata/timers/sound in `out/`. Compiler output is
 captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
@@ -93,6 +93,7 @@ engine/
   input/  buttons.c/h
   util/   timers.c/h
   fs/     olfs.c/h (platform VFS), files.c/h, ini.c/h
+  data/   json.c/h
   sys/    savedata.c/h
   maps/   maps.c/h
 third_party/
@@ -137,12 +138,16 @@ toolchain link order and module imports (#6, #7).
 | Context | Paths |
 |---|---|
 | PSP app directory | `app0:/`, current directory after `chdir_to_appdir` |
-| Memory Stick | `ms0:/` |
-| PSP Go internal storage | internal volume / M2 (see #31) |
+| Memory Stick / M2 | `ms0:/` |
+| PSP Go internal storage | `ef0:/` |
 | Host tests | `./`, `out/` |
 
-`chdir_to_appdir` uses `argv[0]`, so launching through a different directory
-can change relative asset paths. Keep assets relative to the app directory.
+`chdir_to_appdir` uses `argv[0]` and falls back to `app0:/` when the launch
+path is unavailable, so relative `script.lua`/asset paths work from Memory
+Stick and PSP Go internal storage. `files.*` accepts either volume explicitly.
+Savedata creates `PSP/SAVEDATA` on the first writable root (`ms0:` then
+`ef0:`), keeps an existing game on its current volume, and searches both
+volumes for loads and deletes.
 
 ## Coding conventions
 
@@ -165,11 +170,17 @@ can change relative asset paths. Keep assets relative to the app directory.
 | Garbled scaled sprite | Wrong stride or non-power-of-two upload (#20) |
 | Save not found on PSP | Save root probe did not create the directory (#24) |
 
-## PSP Go notes
+## PSP model compatibility
 
-PSP Go support is tracked in #31. Until it lands, treat `ms0:` as the only
-guaranteed storage root and test both internal storage and M2 when making
-storage changes.
+| Model | Application storage | Save/file roots | Status |
+|---|---|---|---|
+| PSP-1000 / 2000 / 3000 | `ms0:` | `ms0:` | Code path and host tests; device verification pending |
+| PSP Go N1000 | `ef0:` internal or `ms0:` M2 | `ef0:` internal + `ms0:` M2 | Code path and host tests; device/PPSSPP verification pending (#31) |
+| Host tests | `./` | `./` + `data/` | Covered by the host suite |
+
+The build targets the 6.00+ PSPSDK API (`_PSP_FW_VERSION=600`) and is intended
+for current custom firmware. Verify boot, controller, display and audio on
+real hardware before release.
 
 ## Continuous integration
 

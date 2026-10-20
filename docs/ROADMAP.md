@@ -13,7 +13,7 @@ This document explains the phases and maps the remaining work to issues.
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
 | **S6: Testing + Polish** | Boot/verify, renderer, tests, docs | **Current focus** |
-| **3.5: Data + Platform** | JSON module, PSP Go support | JSON host-tested (#30); PSP Go planned (#31) |
+| **3.5: Data + Platform** | JSON module, PSP Go support | JSON host-tested (#30); PSP Go paths implemented, verification pending (#31) |
 
 “Implemented” means the API exists and basic smoke testing passes. It does not
 mean every edge case is correct; the linked issues are the source of truth.
@@ -34,7 +34,7 @@ correctly, host tests cover the milestone regressions, and CI is green.
 
 | Issue | Work | Notes |
 |---|---|---|
-| #31 | PSP Go compatibility | Internal storage, M2, boot and savedata paths |
+| #31 | PSP Go compatibility | Internal storage/M2 paths implemented; device/PPSSPP verification pending |
 
 ## Backlog by theme
 
@@ -52,7 +52,7 @@ correctly, host tests cover the milestone regressions, and CI is green.
 - #6, #7 PSP/PPSSPP boot verification
 - #8 Docker build speed
 - #29 repository hygiene
-- #31 PSP Go support
+- #31 PSP Go verification
 
 ### Not started
 - `wlan` / HTTP / IRC / adhoc (S5)

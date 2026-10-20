@@ -17,7 +17,7 @@ modules on top of the hardware:
 - GE sprite renderer: PNG loading, frames, flips, scale, rotation, tint.
 - SFont bitmap text with `screen.print`.
 - Native WAV/VMA audio, pumped from `screen.flip()`.
-- Portable storage: files, INI, save slots and tilemaps.
+- Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
 - Builds with PSPSDK in Docker; storage modules are host-testable.
 
 ## Quick start
@@ -36,7 +36,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 255 C checks + 242 Lua assertions
+bash test/host/run.sh              # 255 C checks + 257 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -82,7 +82,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | JSON | Implemented; host-tested ([#30]) |
 | Tilemaps | Implemented; host-tested ([#26]) |
 | Renderer correctness | Fixed in code; device verification [#19], [#20] |
-| PSP Go | Planned ([#31]) |
+| PSP Go | Storage/boot paths implemented; device verification [#31] |
 | PMF/MP4 video | Planned ([#5]) |
 | WiFi/HTTP | Not started |
 

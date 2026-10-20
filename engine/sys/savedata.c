@@ -18,8 +18,10 @@
  *    <root>/PSP/SAVEDATA/<GAMEID>/AUTOSAVE      mode-1 payload
  *    <root>/PSP/SAVEDATA/<GAMEID>/SLOT1..SLOT5  mode-0 payloads
  *
- * root is the first writable of: ms0:, flash0:, <cwd> (host/dev fallback).
- * The VSH save dialog (pspsavdat / pspUtility) is a follow-up (board #20);
+ * saves go to the first writable root: ms0: (M2) then ef0: (PSP Go
+ * internal storage) on PSP, or the current directory on the host.  Loads and
+ * deletes search every root so cards/internal storage can be mixed.
+ * The VSH save dialog (pspsavdat / pspUtility) is a follow-up;
  * the payload format is plain text so a later dialog backend can reuse it.
  */
 
@@ -39,9 +41,9 @@
 #define SAVE_DES_MAX    1024
 #define SLOTS           5
 
-// Root directories to probe for save data on PSP (ms0:, flash0:) or host (.).
+// Root directories to probe for save data on PSP (M2, PSP Go internal) or host.
 #if defined(__PSP__)
-static const char *ROOTS[] = { "ms0:", "flash0:", NULL };
+static const char *ROOTS[] = { "ms0:", "ef0:", NULL };
 #else
 static const char *ROOTS[] = { ".", "data", NULL };
 #endif
@@ -61,7 +63,7 @@ static const char *save_root(void)
         char dirp[220];
         snprintf(dirp, sizeof(dirp), "%sPSP/SAVEDATA", ROOTS[i]);
         if (olfs_mkdir_p(dirp) != 0)
-            continue;              /* read-only root (e.g. flash0:)  */
+            continue;              /* missing or read-only root      */
         char test[256];
         snprintf(test, sizeof(test), "%s/.olprobe", dirp);
         FILE *f = fopen(test, "a+");
@@ -101,17 +103,31 @@ static int valid_gameid(const char *gameid)
     return 1;
 }
 
-static int game_dir(const char *gameid, char *out, unsigned int cap)
+static void root_game_dir(const char *root, const char *gameid,
+                          char *out, unsigned int cap)
 {
-    const char *root = save_root();
-    if (!root) return -1;
-    /* Check if root already ends with a separator like ms0: or flash0: */
+    /* Root may be "ms0:" / "ef0:" (device) or "." / "data" (host). */
     size_t rlen = strlen(root);
     if (rlen > 0 && root[rlen-1] != '/' && root[rlen-1] != ':') {
         snprintf(out, cap, "%.31s/PSP/SAVEDATA/%.13s", root, gameid);
     } else {
         snprintf(out, cap, "%.31sPSP/SAVEDATA/%.13s", root, gameid);
     }
+}
+
+static int save_game_dir(const char *gameid, char *out, unsigned int cap)
+{
+    /* Keep an existing save on the volume where it already lives (an M2 card
+       may be inserted after saves were created on PSP Go internal storage). */
+    for (int r = 0; ROOTS[r]; r++) {
+        root_game_dir(ROOTS[r], gameid, out, cap);
+        if (olfs_exists(out))
+            return 0;
+    }
+
+    const char *root = save_root();
+    if (!root) return -1;
+    root_game_dir(root, gameid, out, cap);
     return 0;
 }
 
@@ -156,8 +172,16 @@ static int l_save(lua_State *L)
     body[n] = 0;
 
     char dir[300];
-    if (game_dir(gameid, dir, sizeof(dir)) != 0) { lua_pushboolean(L, 0); return 1; }
-    if (olfs_mkdir_p(dir) != 0) { lua_pushboolean(L, 0); return 1; }
+    if (save_game_dir(gameid, dir, sizeof(dir)) != 0) {
+        lua_pushboolean(L, 0); return 1;
+    }
+    if (olfs_mkdir_p(dir) != 0) {
+        cached_valid = 0;                /* volume may have been removed */
+        if (save_game_dir(gameid, dir, sizeof(dir)) != 0 ||
+            olfs_mkdir_p(dir) != 0) {
+            lua_pushboolean(L, 0); return 1;
+        }
+    }
 
     char meta[2048];
     int  mlen = snprintf(meta, sizeof(meta),
@@ -196,28 +220,36 @@ static int l_load(lua_State *L)
     if (!valid_gameid(gameid)) { lua_pushnil(L); return 1; }
 
     char dir[300];
-    if (game_dir(gameid, dir, sizeof(dir)) != 0) { lua_pushnil(L); return 1; }
-
     char body[SAVE_BODY_MAX + 1];
-    char slot[400];
+    char path[400];
 
     if (mode == 1) {
-        snprintf(slot, sizeof(slot), "%s/AUTOSAVE", dir);
-        if (load_file(slot, body, sizeof(body)) == 0)
-        { lua_pushstring(L, body); return 1; }
+        for (int r = 0; ROOTS[r]; r++) {
+            root_game_dir(ROOTS[r], gameid, dir, sizeof(dir));
+            snprintf(path, sizeof(path), "%s/AUTOSAVE", dir);
+            if (load_file(path, body, sizeof(body)) == 0)
+            { lua_pushstring(L, body); return 1; }
+        }
         lua_pushnil(L);
         return 1;
     }
 
-    /* dialog mode: highest-numbered populated slot, then autosave */
+    /* dialog mode: highest-numbered populated slot across every root, then
+       autosave. */
     for (int i = SLOTS; i >= 1; i--) {
-        snprintf(slot, sizeof(slot), "%s/SLOT%d", dir, i);
-        if (load_file(slot, body, sizeof(body)) == 0)
+        for (int r = 0; ROOTS[r]; r++) {
+            root_game_dir(ROOTS[r], gameid, dir, sizeof(dir));
+            snprintf(path, sizeof(path), "%s/SLOT%d", dir, i);
+            if (load_file(path, body, sizeof(body)) == 0)
+            { lua_pushstring(L, body); return 1; }
+        }
+    }
+    for (int r = 0; ROOTS[r]; r++) {
+        root_game_dir(ROOTS[r], gameid, dir, sizeof(dir));
+        snprintf(path, sizeof(path), "%s/AUTOSAVE", dir);
+        if (load_file(path, body, sizeof(body)) == 0)
         { lua_pushstring(L, body); return 1; }
     }
-    snprintf(slot, sizeof(slot), "%s/AUTOSAVE", dir);
-    if (load_file(slot, body, sizeof(body)) == 0)
-    { lua_pushstring(L, body); return 1; }
     lua_pushnil(L);
     return 1;
 }
@@ -226,10 +258,15 @@ static int l_delete(lua_State *L)
 {
     const char *gameid = luaL_checkstring(L, 1);
     if (!valid_gameid(gameid)) { lua_pushboolean(L, 0); return 1; }
+
+    int deleted = 0;
     char dir[300];
-    int gd_rc = game_dir(gameid, dir, sizeof(dir));
-    if (gd_rc != 0) { lua_pushboolean(L, 0); return 1; }
-    lua_pushboolean(L, olfs_delete(dir) == 0 ? 1 : 0);
+    for (int r = 0; ROOTS[r]; r++) {
+        root_game_dir(ROOTS[r], gameid, dir, sizeof(dir));
+        if (olfs_exists(dir) && olfs_delete(dir) == 0)
+            deleted = 1;
+    }
+    lua_pushboolean(L, deleted ? 1 : 0);
     return 1;
 }
 

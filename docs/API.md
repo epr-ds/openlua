@@ -223,9 +223,13 @@ data.delete(gameid)
 - `gameid` is 1..13 characters from `A-Z`, `a-z`, `0-9`, `-` and `_`;
   path separators and traversal sequences are rejected.
 - `savedata` is an alias for `data`.
+- On PSP, new saves go to the first writable root, `ms0:` (M2) then `ef0:`
+  (PSP Go internal storage). An existing game stays on its current volume.
+  Loads search both volumes and pick the highest-numbered slot; deletes remove
+  the game directory from both.
 
 The PSP VSH save dialog is not implemented; files are plain text under
-`PSP/SAVEDATA/<GAMEID>/`.
+`<root>PSP/SAVEDATA/<GAMEID>/`.
 
 ## json
 

@@ -65,7 +65,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "${OBJS[@]}" \
     -lm -o "$BUILD/host_test"
 
-rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork "$BUILD"/jsonwork
+rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork "$BUILD"/jsonwork "$BUILD"/data
 cd "$BUILD"
 ./host_test "$ROOT/test/host/test_phase3.lua"
 ./host_test "$ROOT/test/host/test_timers.lua"

@@ -69,5 +69,58 @@ check(data.delete(GAME) == true, "game directory deleted")
 check(data.load(GAME, 0) == nil, "load after delete is nil")
 check(not files.exists(DIR), "game directory removed")
 
+-- Multi-root lookup: the host's second root stands in for PSP Go internal
+-- storage / M2. Loads and deletes must search every root.
+local GAME2 = "ROOTTEST"
+local DIR2 = "data/PSP/SAVEDATA/" .. GAME2
+data.delete(GAME2)
+files.delete(DIR2)
+files.mkdir(DIR2)
+
+local function write_slot(name, body)
+    local f = assert(io.open(DIR2 .. "/" .. name, "wb"))
+    f:write(body)
+    f:close()
+end
+
+write_slot("AUTOSAVE", "second-root-auto")
+check(data.load(GAME2, 1) == "second-root-auto",
+      "autosave found in second root")
+check(data.load(GAME2, 0) == "second-root-auto",
+      "dialog load falls back to second-root autosave")
+
+write_slot("SLOT2", "second-root-two")
+write_slot("SLOT4", "second-root-four")
+check(data.load(GAME2, 0) == "second-root-four",
+      "highest slot found across roots")
+
+check(data.save("second-root-auto", "T", GAME2, "", "", 1) == true,
+      "save stays on existing second root")
+check(files.exists(DIR2 .. "/AUTOSAVE"), "second-root autosave updated")
+check(not files.exists("PSP/SAVEDATA/" .. GAME2),
+      "existing save not split into primary root")
+check(data.save("second-root-one", "T", GAME2, "", "", 0) == true,
+      "slot save stays on existing second root")
+check(files.exists(DIR2 .. "/SLOT1"), "second-root slot created")
+check(data.load(GAME2, 0) == "second-root-four",
+      "higher slot in second root wins")
+
+local GAME3 = "NEWROOT"
+data.delete(GAME3)
+check(data.save("primary", "T", GAME3, "", "", 1) == true,
+      "new game uses first writable root")
+check(files.exists("PSP/SAVEDATA/" .. GAME3 .. "/AUTOSAVE"),
+      "new game created in primary root")
+check(data.delete(GAME3) == true, "new-game save deleted")
+
+files.mkdir("PSP/SAVEDATA/" .. GAME2)
+local primary = assert(io.open("PSP/SAVEDATA/" .. GAME2 .. "/AUTOSAVE", "wb"))
+primary:write("primary-copy")
+primary:close()
+check(data.delete(GAME2) == true, "delete removes both roots")
+check(not files.exists("PSP/SAVEDATA/" .. GAME2),
+      "primary-root save deleted")
+check(not files.exists(DIR2), "second-root save deleted")
+
 print(string.format("\nRESULT: %d passed, %d failed", ok, fails))
 if fails > 0 then os.exit(1) end

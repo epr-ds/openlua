@@ -4,7 +4,6 @@
 #include <pspgu.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -20,6 +19,7 @@
 #include "engine/font/font.h"
 #include "engine/fs/files.h"
 #include "engine/fs/ini.h"
+#include "engine/fs/olfs.h"
 #include "engine/data/json.h"
 #include "engine/sys/savedata.h"
 #include "engine/maps/maps.h"
@@ -147,24 +147,30 @@ static void register_api(lua_State *L)
 static void chdir_to_appdir(const char *argv0)
 {
     debug_note("boot: enter chdir_to_appdir");
-    if (!argv0) {
-        debug_note("boot: no argv0");
-        return;
-    }
-    debug_note(argv0);
-    const char *slash = strrchr(argv0, '/');
-    if (!slash || slash == argv0)
-        return;
-    size_t len = (size_t)(slash - argv0);
+    debug_note(argv0 ? argv0 : "(no argv0)");
+
     char dir[512];
-    if (len >= sizeof(dir))
-        return;
-    memcpy(dir, argv0, len);
-    dir[len] = '\0';
-    if (chdir(dir) != 0)
-        debug_note("boot: chdir failed");
+    const char *slash = argv0 ? strrchr(argv0, '/') : NULL;
+    if (slash) {
+        size_t len = (size_t)(slash - argv0);
+        if (slash == argv0)
+            len = 1;                 /* argv0 was an absolute root path */
+        if (len > 0 && len < sizeof(dir)) {
+            memcpy(dir, argv0, len);
+            dir[len] = '\0';
+            if (olfs_chdir(dir) == 0) {
+                debug_note("boot: cwd set from argv0");
+                return;
+            }
+            debug_note("boot: argv0 chdir failed");
+        }
+    }
+
+    /* app0: is valid for both Memory Stick and PSP Go internal storage. */
+    if (olfs_chdir("app0:/") == 0)
+        debug_note("boot: cwd fallback app0");
     else
-        debug_note("boot: cwd set");
+        debug_note("boot: app0 chdir failed");
 }
 
 static const char *find_script(int argc, char *argv[])

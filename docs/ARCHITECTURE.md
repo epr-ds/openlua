@@ -29,7 +29,8 @@ engine/core/main.c ── register_api() ─────────────
 `engine/core/main.c:203`
 
 1. Register the PSP exit callback.
-2. `chdir` to the directory containing the executable (`argv[0]`).
+2. `chdir` to the directory containing the executable (`argv[0]`), falling
+   back to `app0:/`.
 3. Initialise the GE (`gfx_init`).
 4. Create the Lua state and open the standard libraries.
 5. Register engine modules (`register_api`).
@@ -116,7 +117,8 @@ logic and are host-testable:
 | `maps.c` | `map.*` | in-memory tile grid over a tileset |
 
 On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
-`ms0:` and `flash0:`.
+M2 (`ms0:`) and PSP Go internal storage (`ef0:`), creates `PSP/SAVEDATA` when
+needed, and searches both roots for loads and deletes.
 
 ## Memory and limits
 

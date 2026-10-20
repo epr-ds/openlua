@@ -12,12 +12,15 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Host coverage for map geometry, savedata slot/layout validation and traversal
   rejection, plus a GitHub Actions workflow that runs the host suite and builds
   an `EBOOT.PBP` artifact (#28).
-- PSP Go compatibility plan (#31).
 - Architecture, API, roadmap, development and contributing documentation.
 - `LICENSE` (MIT).
 - Runnable demos under `demos/` with shared assets under `assets/`.
 
 ### Changed
+- PSP Go storage support: savedata probes M2 (`ms0:`) and internal storage
+  (`ef0:`), keeps existing saves on their volume, and loads/deletes across
+  both. Boot falls back to `app0:/` when the `argv[0]` directory cannot be
+  entered (#31).
 - Docker builds now use a local builder image with `ccache`, run `make` with
   the host CPU count by default, and keep generated files owned by the
   invoking user. The compiler cache lives in git-ignored

@@ -131,7 +131,7 @@ static int l_blit(lua_State *L)
     frame_rect(s, 0, &sx, &sy, &sw, &sh);
     int alpha = 255;
 
-    if (lua_gettop(L) >= 8) {
+    if (lua_gettop(L) >= 7) {
         sx = (int)luaL_checkinteger(L, 4);
         sy = (int)luaL_checkinteger(L, 5);
         sw = (int)luaL_checkinteger(L, 6);
@@ -271,10 +271,9 @@ static int l_pivot(lua_State *L)
     if (lua_gettop(L) >= 3) {
         s->pivotX = (int)luaL_checkinteger(L, 2);
         s->pivotY = (int)luaL_checkinteger(L, 3);
+        s->pivotSet = 1;
     } else {
-        /* default = center of frame */
-        s->pivotX = s->w / 2;
-        s->pivotY = s->h / 2;
+        s->pivotSet = 0;
     }
     return 0;
 }

@@ -39,6 +39,7 @@ OBJS = engine/core/main.o \
 	engine/core/olreg.o \
 	engine/core/stb_impl.o \
 	engine/gfx/gfx.o \
+	engine/gfx/transform.o \
 	engine/gfx/draw.o \
 	engine/img/image.o \
 	engine/input/buttons.o \
@@ -58,8 +59,7 @@ CFLAGS = -O2 -G0 -Wall
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -L.
 
-# SDK libs must be first to avoid stub ordering issues with psp-fixup-imports
-LIBS = -lc -lpspuser -lpspaudio -lpspnet -lpspnet_apctl -lpspdebug -lpspdisplay -lpspge -lpspgu -lpspctrl -lpspsdk
+LIBS = -lpspgu -lpspaudio
 
 EXTRA_TARGETS = EBOOT.PBP
 

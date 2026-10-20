@@ -22,6 +22,7 @@ typedef struct OL_Surface {
     float angle;        /* rotation in degrees (centered on pivot) */
     float scaleX, scaleY;
     int pivotX, pivotY;       /* origin/anchor point for transform (0,0 = top-left of frame) */
+    int pivotSet;           /* nonzero once image.pivot() has been called */
     int z;                  /* depth order 0..271 (PSP screen coords: y-down) */
     int centerOffX;
     int centerOffY;

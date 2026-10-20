@@ -66,26 +66,24 @@ as a field. Handles are 1-based integers into fixed-size global arrays
   pitch. Textures are uploaded straight from this buffer.
 - `gfx_init` allocates three 512x272x4 buffers from VRAM (`0x04000000`) and
   configures the GE for 2D sprites.
-- `gfx_blit` is the per-sprite entry point:
-  - optional CPU nearest-neighbour scale + tint pass;
-  - UV flipping via texture-coordinate endpoints;
-  - pivot-centred rotation with a triangle fan;
-  - direct `GU_SPRITES` path when there is no rotation.
+- `gfx_blit` is the per-sprite entry point. `transform.c` computes the four
+  destination vertices and UVs; `gfx_blit` uploads the surface and draws a
+  textured `GU_TRIANGLE_FAN` with nearest sampling. Scale, rotation, flips,
+  pivot and tint are all applied to that single quad.
 - `draw.c` submits primitives with `GU_DIRECT` and flat shading.
 - `screen.flip()` calls `sound_pump()` and then `gfx_flip_scene()`.
 
-### Current lifecycle
+### Frame lifecycle
 
 Each blit starts, finishes and syncs its own GE display list. `gfx_flip_scene`
-then clears the current draw buffer and swaps. This is deliberately documented
-as the current implementation, not the target design: clearing after drawing
-means the presented buffer can be blank. Frame lifecycle and transform issues
-are tracked in **#19** and **#20**; the fix is to clear colour+depth at the
-start of a frame, batch draws, and swap once.
+swaps buffers, waits for vblank, then clears colour and depth on the new draw
+buffer. Clearing after the swap means the next frame starts from a clean
+buffer instead of erasing the frame that is about to be presented. Batching all
+draws into one list is still a possible optimisation.
 
-Textures written by the CPU are made visible to the GE with `FlushCache(2)`.
-The current code flushes very frequently; targeted
-`sceKernelDcacheWritebackRange` is the intended optimisation.
+Textures written by the CPU are made visible to the GE with
+`sceKernelDcacheWritebackAll()`. The current code flushes very frequently;
+targeted `sceKernelDcacheWritebackRange` is the intended optimisation.
 
 ## Audio pipeline
 
@@ -131,8 +129,8 @@ On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
 
 The PSP headers keep most graphics/input code out of host builds. The Phase-3
 storage layer, `engine/core/olreg.c`, and the Lua sources do compile on the
-host. `test/host/run.sh` builds a small Lua host binary and runs
-`test/host/test_phase3.lua`.
+host. `test/host/run.sh` builds and runs the pure transform tests, then a small Lua
+host binary and `test/host/test_phase3.lua`.
 
 Expanding this coverage and adding CI is tracked in **#28**.
 

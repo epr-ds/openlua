@@ -58,7 +58,7 @@ There are currently no `img:method()` methods (#27).
 | Function | Description |
 |---|---|
 | `image.blit(img, x, y [, alpha])` | Draw the whole surface (or first frame). |
-| `image.blit(img, x, y, sx, sy, w, h, alpha)` | Draw a source rectangle. The alpha argument is currently mandatory here; a 7-argument call falls back to a full-surface blit (#27). |
+| `image.blit(img, x, y, sx, sy, w, h [, alpha])` | Draw a source rectangle. |
 | `image.blitsprite(img, x, y, frame [, alpha])` | Draw one frame of a loaded sheet. |
 | `image.clear(img, color)` | Fill a surface with a colour. |
 | `image.pixel(img, x, y)` | Read a pixel (ABGR). |
@@ -69,8 +69,8 @@ left-to-right, top-to-bottom order.
 
 ### Transform state
 
-Transforms are stored on the surface and apply to later blits. Reset them
-between sprites.
+Transforms are stored on the surface and apply to later blits. Scale, rotation,
+flip, pivot and tint compose in one quad. Reset them between sprites.
 
 | Function | Description |
 |---|---|
@@ -79,9 +79,9 @@ between sprites.
 | `image.rotate(img, degrees)` | Rotation in degrees. |
 | `image.scale(img [, uniform])` | Set uniform scale. |
 | `image.scale(img, sx, sy)` | Set per-axis scale. |
-| `image.pivot(img [, x, y])` | Set rotation pivot; omit coordinates for the surface centre. |
+| `image.pivot(img [, x, y])` | Set rotation pivot; omit coordinates to reset to the current frame centre. |
 | `image.zindex(img [, z])` | Set/get the depth value passed to the GE. |
-| `image.tint(img [, abgr])` | Set/get colour modulation. `0xFFFFFFFF` means no tint. |
+| `image.tint(img [, abgr])` | Set/get colour modulation. `0xFFFFFFFF` means no tint; the tint alpha multiplies the blit alpha. |
 | `image.center(img [, ox, oy])` | Set draw offset; with no coordinates, offset by negative half the surface size. |
 | `image.reset(img)` | Reset flips, angle and centre offset. It does **not** reset scale, tint, pivot or z-index. |
 
@@ -90,8 +90,8 @@ between sprites.
 `image.getw(img)`, `image.geth(img)`, `image.getrealw(img)`,
 `image.getrealh(img)` return the logical or power-of-two padded dimensions.
 
-> Scale, rotation and flip composition is currently incorrect in some
-> combinations; see #19 and #20.
+> Scale, rotation and flip composition is covered by `test/host/test_transform.c`;
+> device verification is tracked in #19 and #20.
 
 ## draw
 
@@ -251,6 +251,6 @@ divide the tileset. The tileset image must stay alive while the map is used
 | Image methods | Module-call only, no `img:method()` | #27 |
 | Flip names | `fliph`/`flipv` (docs elsewhere say `flipx`/`flipy`) | #27 |
 | Timers | Negative elapsed time; initial ms ignored | #21 |
-| Transforms | Scale/rotation/flip combinations can render incorrectly | #19, #20 |
+| Transforms | Fixed in code; pending PSP/PPSSPP device verification | #19, #20 |
 | Sound channels | Explicit channel is not reserved | #25 |
 | Map lifetime | Tileset is borrowed, not anchored | #26 |

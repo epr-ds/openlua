@@ -41,7 +41,7 @@ file itself.
 - `image` values are userdata with only a `__gc` metamethod. Use module-call
   form (`image.getw(img)`), not `img:getw()`; see issue #27.
 - Transforms are per-surface state. Reset flips/angle/scale/tint between draws.
-- Frame lifecycle, scaled blits and transform composition are being fixed in
-  #19 and #20. Visual output may be incorrect until those land.
+- Frame lifecycle, scaled blits and transform composition were reworked in
+  #19/#20; visual confirmation on PSP/PPSSPP is still pending.
 - `screen.print` requires a font; load one with `font.new` and select it with
   `screen.font`.

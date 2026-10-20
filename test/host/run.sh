@@ -7,6 +7,12 @@ mkdir -p "$BUILD"
 
 LUASRC="$ROOT/third_party/lua/src"
 
+gcc -O2 -I"$ROOT" \
+    "$ROOT/engine/gfx/transform.c" \
+    "$ROOT/test/host/test_transform.c" \
+    -lm -o "$BUILD/transform_test"
+"$BUILD/transform_test"
+
 CORE="lapi lcode ldebug ldo ldump lfunc lgc llex lmem lobject
       lopcodes loslib lparser lstate lstring ltable ltm lvm lzio
       lauxlib lbaselib ldblib liolib lmathlib lstrlib ltablib

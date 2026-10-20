@@ -35,7 +35,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # expect: 46 passed, 0 failed
+bash test/host/run.sh              # transform checks + 46 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -79,7 +79,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Timers | Implemented; elapsed-time fix [#21] |
 | Files / INI / Savedata | Implemented; hardening [#22]–[#24] |
 | Tilemaps | Implemented; lifetime fix [#26] |
-| Renderer correctness | Fixes tracked in [#19], [#20] |
+| Renderer correctness | Fixed in code; device verification [#19], [#20] |
 | JSON | Planned ([#30]) |
 | PSP Go | Planned ([#31]) |
 | PMF/MP4 video | Planned ([#5]) |
@@ -145,7 +145,7 @@ host tests and debugging.
 | OneLua module | OpenLua | Notes |
 |---|---|---|
 | `screen` | `clear`, `flip`, `print`, `font`, `setcolor`, `textwidth` | Implemented |
-| `image` | `load`, `new`, `blit`, `blitsprite`, `fliph`, `flipv`, transforms | Implemented; fixes [#19]/[#20]/[#27] |
+| `image` | `load`, `new`, `blit`, `blitsprite`, `fliph`, `flipv`, transforms | Implemented; [#19]/[#20] fixed in code, [#27] partial |
 | `draw` | `line`, `rect`, `fillrect`, `circle` | `gradrect` pending |
 | `buttons` | `read` + button constants | `waitforkey`/`interval` pending |
 | `timers` | `timers.new()` + methods | Fix [#21] |

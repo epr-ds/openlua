@@ -31,8 +31,7 @@ while true do
     image.fliph(img, 1)
     image.blitsprite(img, 200, 8, 3)
 
-    -- Bottom: explicit source rectangles. The alpha argument is required in
-    -- this form until #27 is fixed, even when it is fully opaque.
+    -- Bottom: explicit source rectangles.
     image.reset(img)
     image.blit(img, 8, 80, 0, 0, 64, 64, 255)
     image.blit(img, 80, 80, 64, 0, 64, 64, 255)

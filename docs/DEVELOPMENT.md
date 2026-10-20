@@ -42,7 +42,8 @@ Only the storage layer is PSP-free today:
 bash test/host/run.sh
 ```
 
-Expected: `RESULT: 46 passed, 0 failed`.
+Expected: `transform: 144 checks, 0 failed` followed by
+`RESULT: 46 passed, 0 failed`.
 
 Repository hygiene check:
 

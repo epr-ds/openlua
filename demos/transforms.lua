@@ -1,8 +1,7 @@
 -- Sprite transform demo: rotation, scale and tint.
 --
 -- Transforms are per-surface state, so reset what you change between draws.
--- Known renderer bugs are tracked in #19 and #20; this demo uses only the
--- public API and is expected to improve as those are fixed.
+-- Exercises rotation, scaling and tint through the public API.
 --
 -- Asset: assets/test_sheet.png (4 frames of 64x64).
 

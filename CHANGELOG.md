@@ -19,6 +19,13 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Project board populated with fields, views and audit-derived backlog.
 
 ### Fixed
+- Renderer now draws one transformed quad per sprite, with correct source
+  stride, pivot, scale, flip, tint, per-blit alpha and no temporary-buffer leak
+  (#19, #20).
+- Frame clear now happens after the buffer swap, so the presented frame is no
+  longer cleared (#19).
+- `image.blit` accepts a source rectangle without an explicit alpha argument.
+- PSP link order no longer triggers `psp-fixup-imports` stub warnings (#6).
 - Documentation no longer claims unimplemented APIs are complete.
 
 ## 2026-10-19

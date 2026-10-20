@@ -7,7 +7,7 @@ This document explains the phases and maps the remaining work to issues.
 
 | Phase | Scope | State |
 |---|---|---|
-| **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; renderer bugs #19, #20 |
+| **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed, verification pending |
 | **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; sound bug #25, API polish #27 |
 | **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps done (#4, #26); PMF pending (#5) |
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #22–#24 |
@@ -22,8 +22,8 @@ mean every edge case is correct; the linked issues are the source of truth.
 
 | Issue | Work | Area |
 |---|---|---|
-| #19 | GE pipeline state corruption / frame lifecycle | GFX |
-| #20 | Scaled, tinted and rotated blit correctness + leak | GFX |
+| #19 | Frame lifecycle fix; verify on device | GFX |
+| #20 | Transform/blit fix; verify on device | GFX |
 | #6 | PPSSPP black-screen / silent halt | Core |
 | #7 | Verify EBOOT in native PPSSPP | Core |
 | #28 | Expand host tests and add CI | Tooling |

@@ -2,7 +2,7 @@
  *
  * OneLua-compatible sound module built on the native PSP audio path:
  *
- *   local s = sound.load("beep.wav")      -- load 16-bit PCM (WAV / VMA)
+ *   local s = sound.load("assets/beep.wav") -- load 16-bit PCM (WAV / VMA)
  *   sound.play(s)                          -- play (auto channel)
  *   sound.play(s, 2)                       -- play on channel group 2
  *   sound.loop(s)                          -- toggle loop, returns state

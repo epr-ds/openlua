@@ -1,192 +1,177 @@
 # OpenLua — PSP Lua Engine
 
-**A clean-room, OneLua-API-compatible Lua interpreter engine for the PlayStation Portable (PSP), built with PSPSDK & Lua 5.1.**
+A clean-room, OneLua-API-compatible Lua 5.1 engine for the PlayStation
+Portable, built with PSPSDK.
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build](https://github.com/epr-ds/openlua/actions/workflows/build.yml/badge.svg)](https://github.com/epr-ds/openlua/actions)
-[![Project Board](https://img.shields.io/badge/Project-Board-orange)](https://github.com/users/epr-ds/projects/4)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Project board](https://img.shields.io/badge/project-board-orange)](https://github.com/users/epr-ds/projects/4)
+[![Lua 5.1](https://img.shields.io/badge/Lua-5.1-2c2d72)](third_party/lua)
 
 ## Overview
 
-OpenLua is a clean-room implementation of a OneLua-compatible engine for PSP homebrew development. It provides:
+OpenLua runs a single `script.lua` on the PSP and exposes game-oriented Lua
+modules on top of the hardware:
 
-- **Fully compatible Lua 5.1** interpreter (clean-room rewrite, no OneLua source used)
-- **OneLua-style modules**: `screen`, `image`, `draw`, `font`, `buttons`, `timers`, plus PAudio/Sound, file ops, WiFi/HTTP stubs
-- **Sprite-based rendering** via PSP GE graphics pipeline: image loading (PNG → ABGR), blitting, flip, scale, rotation
-- **SFont font rendering**: load PNG tilemaps for bitmap characters, draw text on screen
-- **Build via Docker/PSPSDK**: one-command build, works on ARM64 Linux or native x86_64
+- Lua 5.1 interpreter (vendored, unmodified).
+- GE sprite renderer: PNG loading, frames, flips, scale, rotation, tint.
+- SFont bitmap text with `screen.print`.
+- Native WAV/VMA audio, pumped from `screen.flip()`.
+- Portable storage: files, INI, save slots and tilemaps.
+- Builds with PSPSDK in Docker; storage modules are host-testable.
 
-## Quick Start
-
-### Build
+## Quick start
 
 ```bash
-# One docker call (or two if preferred):
+git clone https://github.com/epr-ds/openlua.git
+cd openlua
 bash docker/build.sh
-
-# Or separate steps:
-bash docker/build.sh clean      # first step only
-bash docker/build.sh            # second step only
 ```
 
-Output: `EBOOT.PBP` (ready for `PSP/GAME/OpenLua/`)
+Output: `EBOOT.PBP`. Copy it, `script.lua` and any assets into
+`PSP/GAME/OpenLua/`, then launch from the XMB or PPSSPP.
 
-### Install & Run
+In PPSSPP, disable software rendering and enable fast memory if needed.
 
-1. Copy the contents of this repo into `PSP/GAME/OpenLua/`:
-2. Place your `script.lua` in the same dir
-3. Launch from PSP memory stick or PPSSPP emulator  
+Host tests (no PSP toolchain required):
 
-In PPSSPP:
-- Disable "software rendering" ✔️ 
-- Enable "fast memory (unstable)" ✔️
-
-## OneLua API Compatibility |
-
-| OneLua Module | OpenLua Equivalent | Status |
-|---------------|-------------------|--------|
-| `screen` | `screen.clear(color)`, `screen.flip()` | ✅ Phase 1 |
-| `image` | `image.load()`, `image.blit()`, `image.fliph()/flipv()` | ✅ Phase 1 | 
-| `draw` | `draw.line()`, `rect()`, `fillrect()`, `gradrect()` | ✅ Phase 1 |
-| `buttons` | `buttons.read()`, `waitforkey()`, `interval()` | ✅ Phase 1 |
-| `timers` | `timer.new()`, `start()`, `stop()`, `time()` | ✅ Phase 1 |
-| `font` (sfont) | `font.new(path, cellW, cellH)`, `screen.font(f)`, `screen.print(x, y, text)` | ✅ Phase 2 |
-| `screen.print()` | Built-in with SFont support | 🟡 Phase 2 |
-| `sound` (native WAV/VMA) | `sound.load()`, `play()`, `loop()`, `pause()`, `stop()`, `vol()`, `playing()` | ✅ Phase 2 |
-| `files`       | `files.copy()`, `extract()` | ⏳ Phase 4 |
-| HTTP / WiFi   | `wlan.*`, `http.get()` | ⏳ Milestone 5+ |
-
-### Lua API Surface (Current)
-
-```lua
--- Color helper
-local red = color.new(255, 0, 0, 255)   -- returns ABGR integer
-
--- Screen
-screen.clear(color.new(0x10, 0x12, 0x18))
-screen.flip()                        -- present frame
-
--- Image
-local img = image.load("sprite.png")  -- PNG -> surface
-image.blit(img, 100, 80)             -- draw at x/y
-image.fliph(img, true)               -- force-flip horizontally (toggle if omitted)
-
--- Draw primitives
-draw.line(10, 20, 30, 40, color.new(255, 255, 255))
-draw.rect(50, 60, 128, 64, color.new(255, 0, 0))
-draw.fillrect(50, 60, 128, 64, color.new(0, 0, 255))
-
--- Font (SFont): PNG sprite-sheet, cellW x cellH pixels per glyph,
--- glyphs in ASCII order starting at space (0x20).
-local f = font.new("font.png", 8, 16)      -- font handle
-screen.font(f)                              -- set default font
-screen.print(30, 30, "Hello PSP!")          -- draw text (default font)
-screen.print(30, 60, "Tinted", f, color.new(255, 30, 30))
-local w = screen.textwidth("Hello PSP!")    -- width in px
-
--- Input
-local pressed = buttons.read()      -- bitmask of held buttons
-
--- Timers
-local t = timers.new()
-t = timers.new(1000)                -- optional initial ms
-local started = timers.start(t)
-local elapsed = timers.time(t)      -- elapsed ms
-timers.stop(t)
+```bash
+bash test/host/run.sh              # expect: 46 passed, 0 failed
+bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
-### Transform Pipeline (Phase 1)
-
-OpenLua supports **draw-time per-blit transforms**:
-- `scale` — zoom before upload (nearest neighbor, for scale-down or upscale)
-- `pivotX, pivotY` — center of rotation (default: w/2, h/)
-- `angle` — rotation angle in degrees (counter-clockwise)
-- `flipX`, `flipY` — boolean state; optional arg sets explicitly
-- `zindex` — depth order per-blit (higher z = drawn later, on top)
-- `tint` — ABGR color modulation (0xFFFFFFFF = no tint)
-
-Example: layered transforms with rotation + scale + flip:
+## Example
 
 ```lua
-local img = image.load("sheet.png")
-for i = 1, 360, 90 do
-    image.flipx(img, i % 180 == 90)   -- flip every other frame 
-    screen.print(100, 100, "Testing!", font)
+local red = color.new(255, 0, 0)
+local img = image.load("assets/test_sheet.png", 64, 64)
+local f   = font.new("assets/font.png", 8, 16)
+
+screen.font(f)
+
+while true do
+    screen.clear(color.new(16, 24, 48))
+
+    image.reset(img)
+    image.blitsprite(img, 60, 80, 0)
+
+    image.fliph(img, true)
+    image.blitsprite(img, 140, 80, 1)
+    image.fliph(img, false)
+
+    draw.fillrect(20, 20, 120, 4, red)
+    screen.print(20, 40, "Hello PSP")
+    screen.flip()
 end
 ```
 
-## Project Structure / Engine Modules
+Use the module-call form for images: `image.getw(img)`, not `img:getw()`.
+See [docs/API.md](docs/API.md) for every function and its current caveats.
 
-| Module | Location | Description |
-|--------|-----------|
-| `core` | `engine/core/main.c` | Entry point, lua init |
-| `gfx` | `engine/gfx/` | GE pipeline + surface struct (OL_Surface) |
-| `draw` | `engine/gfx/draw.c` | Primitives: line, rect, fillrect, gradrect |
-| `img` | `engine/img/image.c` | image load/flifp/blit via STB_image |
-| `font` | `engine/font/` | SFont tilemap loader + blitter |
-| `input` | `engine/input/buttons.c` | PSP controller input polling |
-| `util` | `engine/util/timers.c` | Elapsed-millisecond timer |
+## Status
 
-```
-openlua/
-├── EBOOT.PBP        — built output (place in PSP/GAME/OpenLua/)
-├── Makefile         — PSPSDK build rules
-├── README.md        
-├── docs/
-│   └── onelua-reference/          — OneLua module docs (for API compat)
-├── engine/                — one file per module
-│   ├── core/
-│   │   ├── main.c         — Entry point, Lua init
-│   │   ├── olreg.h       — Header only  
-│   │   └── main.o
-│   ├── gfx/              — GFX pipeline header  
-│   │   ├── draw.c       — graphics primitives (draw.line, rect, etc.)
-│   │   ├── draw.h     
-│   │   ├── gfx.c           — GE buffer setup + surface struct
-│   │   └── gfx.h       
-├── third_party/           — No-code dependencies: Lua 5.1.5 + stb_image/write  
-│   ├── lua/src/
-│   └── stb/
-
-```
-
-## Build Environment
-
-| Component | Detail |
+| Area | State |
 |---|---|
-| `docker/p` | PSPSDK build environment (`pspdev/pspdk:latest`) |
-| `bash docker/build.sh [clean]` | Build script (two-step recommended for Docker context) |
-| Toolchain | psp-gcc, psp-ld, psp-strip, psp-fixup-imports |
+| Lua host, `color`, `screen`, `draw` | Implemented |
+| Images and sprite frames | Implemented |
+| SFont / `screen.print` | Implemented |
+| Sound (WAV/VMA) | Implemented; channel fix [#25] |
+| Buttons | Implemented (`waitforkey` pending) |
+| Timers | Implemented; elapsed-time fix [#21] |
+| Files / INI / Savedata | Implemented; hardening [#22]–[#24] |
+| Tilemaps | Implemented; lifetime fix [#26] |
+| Renderer correctness | Fixes tracked in [#19], [#20] |
+| JSON | Planned ([#30]) |
+| PSP Go | Planned ([#31]) |
+| PMF/MP4 video | Planned ([#5]) |
+| WiFi/HTTP | Not started |
 
-## OneLua-Compatible Design Decisions
+The [project board](https://github.com/users/epr-ds/projects/4) is the source
+of truth for remaining work.
 
-OpenLua follows the OneLua module naming and method signature conventions as a **compatibility target**, not as a strict dependency. Key design decisions:
+## Project layout
 
-- **Color** is always an integer `0xAARRGGBB` (ABGR) — matches OneLua's single-color value approach
-- **Screens** is one global table (`screen.clear()`, `screen.flip()`)
-- **Images** are opaque handles returned by `image.load()`, drawn via `image.blit()`
-- **Fonts** use sprite-sheet tilemaps: load one PNG, extract glyphs by frame index
-- **Buttons** returns a bitmask (like OneLua's `buttons.read()`)
-- Timers return elapsed milliseconds; no "pause/resume" state in early versions
+```text
+engine/
+  core/   boot, Lua registration, stb implementation
+  gfx/    GE surfaces, blits, draw primitives
+  img/    image loader and Lua bindings
+  font/   SFont loader and renderer
+  snd/    WAV/VMA decoder and PSP audio
+  input/  controller polling
+  util/   timers
+  fs/     portable VFS, files, INI
+  sys/    save slots
+  maps/   tilemap renderer
+third_party/
+  lua/    Lua 5.1.5
+  stb/    stb_image, stb_image_write
+assets/   shared demo/test assets
+demos/    runnable Lua demos
+docs/     architecture, API, roadmap, development guide
+test/     host and on-device tests
+tools/    asset generators and local PPSSPP
+docker/   PSPSDK build script
+```
 
-## Development Phases
+## Documentation
 
-See the [GitHub project board](https://github.com/users/epr-ds/projects/4) for issue tracking.
+| Document | Purpose |
+|---|---|
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Build, test, debug, add a module |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Boot flow and internals |
+| [docs/API.md](docs/API.md) | Complete Lua API reference |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Phases, issues and priorities |
+| [demos/README.md](demos/README.md) | Runnable examples |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Workflow and definition of done |
+| [CHANGELOG.md](CHANGELOG.md) | Recent changes |
+| [docs/onelua-reference](docs/onelua-reference) | OneLua compatibility reference |
 
-| Phase | Milestone | Status |
-|-------|-----------|--------|
-| Phase 1: Core Engine + Sprite Renderer | #1 (closed) | ✅ Complete |
-| Phase 2: Font + Sound APIs | **#6** (open) | 🟢 In Progress | 
-| Phase 3: Maps/Ini/Savedata | #3 | ⏳ Planned |
-| Phase 4: PMF/MP4 Decoder | #4 | ⏳ Planned |
-| Bug Fixes & Polish | #5 | 👁️ Ongoing |
+## Build
 
-## Contributing
+```bash
+bash docker/build.sh
 
-- Issues welcome via [GitHub Issues](https://github.com/epr-ds/openlua/issues)
-- For OneLua-compatible modules, see `docs/modules.md` for API surface reference
-- Build environment requires Docker (x86_64) or native PSPSDK toolchain (`psp-`, `pspsdk`)
+# Clean rebuild — run the two steps separately
+bash docker/build.sh clean
+bash docker/build.sh
+```
+
+Requirements: Docker and the `pspdev/pspdev:latest` image. See
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for a local toolchain build,
+host tests and debugging.
+
+## OneLua compatibility
+
+| OneLua module | OpenLua | Notes |
+|---|---|---|
+| `screen` | `clear`, `flip`, `print`, `font`, `setcolor`, `textwidth` | Implemented |
+| `image` | `load`, `new`, `blit`, `blitsprite`, `fliph`, `flipv`, transforms | Implemented; fixes [#19]/[#20]/[#27] |
+| `draw` | `line`, `rect`, `fillrect`, `circle` | `gradrect` pending |
+| `buttons` | `read` + button constants | `waitforkey`/`interval` pending |
+| `timers` | `timers.new()` + methods | Fix [#21] |
+| `font` / `sfont` | `font.new`, `print`, `textwidth` | SFont PNG sheets |
+| `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; fix [#25] |
+| `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
+| `ini` | `read`, `write` | Fix [#23] |
+| `savedata` | `data.save/load/delete` | Plain-text slots |
+| `maps` | `map.new/blit/set/get` | Fix [#26] |
+| `json` | — | Planned ([#30]) |
+| `http` / `wlan` | — | Not started |
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details. OpenLua is clean-room code; no OneLua source was used or modified.
+MIT — see [LICENSE](LICENSE). OpenLua is clean-room code; no OneLua source was
+used or modified.
+
+[#5]: https://github.com/epr-ds/openlua/issues/5
+[#19]: https://github.com/epr-ds/openlua/issues/19
+[#20]: https://github.com/epr-ds/openlua/issues/20
+[#21]: https://github.com/epr-ds/openlua/issues/21
+[#22]: https://github.com/epr-ds/openlua/issues/22
+[#23]: https://github.com/epr-ds/openlua/issues/23
+[#24]: https://github.com/epr-ds/openlua/issues/24
+[#25]: https://github.com/epr-ds/openlua/issues/25
+[#26]: https://github.com/epr-ds/openlua/issues/26
+[#27]: https://github.com/epr-ds/openlua/issues/27
+[#30]: https://github.com/epr-ds/openlua/issues/30
+[#31]: https://github.com/epr-ds/openlua/issues/31

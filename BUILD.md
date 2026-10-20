@@ -1,45 +1,60 @@
-# OpenLua - Build Instructions
+# Build Instructions
+
+The full development guide is [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+This page is the short version.
 
 ## Prerequisites
+
 - Docker
-- pspdev toolchain (via Docker image)
+- The `pspdev/pspdev:latest` image (pulled automatically by the script)
+
+Local PSPSDK builds are also supported: install `pspdev`, then run `make`
+with `psp-config` on `PATH`.
 
 ## Build
-```bash
-# Single build
-bash docker/build.sh
 
-# Clean rebuild
-bash docker/build.sh clean   # then separately:
+```bash
 bash docker/build.sh
 ```
-> Note: do NOT run `bash docker/build.sh clean all` together — `-j2` runs them in parallel and causes link errors.
+
+Clean rebuild — run the two commands separately:
+
+```bash
+bash docker/build.sh clean
+bash docker/build.sh
+```
+
+Do not combine `clean` and the build in one invocation; the PSPSDK makefile can
+run them in parallel and the link may race.
 
 ## Output
-- `EBOOT.PBP` — PSP game executable (deploy to `PSP/GAME/OpenLua/`)
+
+- `EBOOT.PBP` — deploy to `PSP/GAME/OpenLua/`
 - `openlua.elf` — intermediate ELF
 
-## Directory Structure
-```
-engine/
-  core/      main.c, olreg.c/h, stb_impl.c
-  gfx/       gfx.h/c (surface+GU), draw.h/c (primitives)
-  img/       image.h/c (Lua image module + stb loading)
-  input/     buttons.h/c
-  util/      timers.h/c
-third_party/
-  lua/src    Lua 5.1.5 sources
-  stb        stb_image.h, stb_image_write.h
+## Host tests
+
+```bash
+bash test/host/run.sh
 ```
 
-## Module API (Current)
-- **color.new(r,g,b[,a])** → integer ABGR
-- **screen.clear(color)** / **screen.flip()**
-- **image.load(path[,w,h][,mask])** — PNG/JPEG/BMP/GIF + transparency mask
-- **image.blit(img,x,y)** and **image.blit(img,x,y,sx,sy,w,h,alpha)**
-- **image.blitsprite(img,x,y,frame[,alpha])**
-- **image.fliph/flipv** — draw-time UV flip (not pixel copy!)
-- **image.center/rotate/reset/copy/clear/pixel/...**
-- **draw.line/rect/fillrect/circle**
-- **buttons.read() → mask, lx, ly**
-- **timers.new() → t; t:start(), :stoptime(), :time(), :reset()**
+Expected result: `46 passed, 0 failed`.
+
+## Layout
+
+| Directory | Contents |
+|---|---|
+| `engine/` | Engine modules (one directory per area) |
+| `third_party/lua` | Lua 5.1.5 |
+| `third_party/stb` | stb_image / stb_image_write |
+| `assets/` | Demo and test assets |
+| `demos/` | Runnable Lua scripts |
+| `docs/` | Architecture, API, roadmap, development guide |
+| `test/` | Host and on-device tests |
+| `tools/` | Asset generators and local PPSSPP |
+
+## Adding source files
+
+Add the new object to `OBJS` in `Makefile`, then register its Lua API from
+`engine/core/main.c`. Keep PSP-specific includes behind `#if defined(__PSP__)`
+when the code should build on the host.

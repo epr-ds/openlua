@@ -5,7 +5,7 @@ Glyphs map ASCII 0x20 (space) .. 0x7F, left to right, one row each.
 Each cell is 8x16; the 5x7 glyph is placed at (x=1, y=2) inside the cell.
 White pixels on transparent background, RGBA 8-bit.
 """
-import struct, zlib
+import os, struct, zlib
 
 CELL_W, CELL_H = 8, 16
 FIRST, LAST = 32, 126
@@ -99,6 +99,7 @@ def _chunk(tag, data):
     return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
 
 def make(path):
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     img = bytearray(W * H * 4)        # transparent
     for i in range(LAST - FIRST + 1):
         code = FIRST + i
@@ -116,4 +117,4 @@ def make(path):
     print(f"{path}: {W}x{H} px, {len(out)} bytes, glyphs 0x20..0x7E, cell {CELL_W}x{CELL_H}")
 
 if __name__ == "__main__":
-    make("font.png")
+    make("assets/font.png")

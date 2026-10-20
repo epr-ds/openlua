@@ -1,0 +1,41 @@
+# Changelog
+
+All notable changes to OpenLua are recorded here. The project is pre-1.0 and
+APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
+
+## Unreleased
+
+### Added
+- JSON module planned (#30).
+- PSP Go compatibility plan (#31).
+- Architecture, API, roadmap, development and contributing documentation.
+- `LICENSE` (MIT).
+- Runnable demos under `demos/` with shared assets under `assets/`.
+
+### Changed
+- Documentation split into a navigable `docs/` set; stale design notes moved
+  to `docs/archive/`.
+- Demo and asset paths consolidated; generators now default to `assets/`.
+- Project board populated with fields, views and audit-derived backlog.
+
+### Fixed
+- Documentation no longer claims unimplemented APIs are complete.
+
+## 2026-10-19
+
+### Added
+- Phase 3 modules: `files`, `ini`, `data`/`savedata`, `map`.
+- Host test harness for the portable storage layer (46 assertions).
+- Native WAV/VMA sound module with per-flip audio pumping.
+- SFont rendering and `screen.print` / `screen.textwidth`.
+- Sprite transforms: flip, scale, tint, pivot rotation, z-index.
+- Project board at <https://github.com/users/epr-ds/projects/4>.
+
+### Changed
+- Standardised Lua binding registration and cross-platform headers.
+- Build library order adjusted for `psp-fixup-imports`.
+
+## Earlier
+
+- Phase 1: Lua host, GE pipeline, image loading, draw primitives, buttons,
+  timers, and the first PSP EBOOT.

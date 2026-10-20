@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Generate a test tone for the OpenLua sound demo.
 
-Usage:  python3 tools/gen_tone.py [path]   (default: beep.wav)
+Usage:  python3 tools/gen_tone.py [path]   (default: assets/beep.wav)
 Writes a 2 s, 440 Hz sine, 44100 Hz, 16-bit mono WAV at ~60% amplitude.
 On the PSP it is resampled to 22050 Hz on load.
 """
-import struct, math, sys
+import os, struct, math, sys
 
 def write_wav(path: str, samples, rate: int) -> None:
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     data = b"".join(struct.pack("<h", max(-32768, min(32767, s))) for s in samples)
     header = b"RIFF" + struct.pack("<I", 36 + len(data)) + b"WAVE"
     header += b"fmt " + struct.pack("<IHHIIHH", 16, 1, 1, rate, rate * 2, 2, 16)
@@ -16,7 +17,7 @@ def write_wav(path: str, samples, rate: int) -> None:
         f.write(header + data)
 
 def main() -> None:
-    path = sys.argv[1] if len(sys.argv) > 1 else "beep.wav"
+    path = sys.argv[1] if len(sys.argv) > 1 else "assets/beep.wav"
     rate = 44100
     n = rate * 2
     amp = int(2**15 * 0.6)

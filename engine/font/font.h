@@ -5,7 +5,7 @@
  *
  * Fonts are handled by numeric (1-based) font handles, OneLua-style:
  *
- *   local f = font.new("font.png", 8, 16)   -- handle
+ *   local f = font.new("assets/font.png", 8, 16)   -- handle
  *   screen.print(10, 20, "Hello PSP", f)    -- draw text with that font
  *   screen.print(10, 40, "default font")    -- uses screen.font(f) default
  *   font.textwidth(f, "Hello")              -- measure string width

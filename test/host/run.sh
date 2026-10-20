@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build + run the Phase-3 host tests (POSIX backend via olfs, vendored Lua 5.1).
+# Build + run the host tests (POSIX backend via olfs, vendored Lua 5.1).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD="$ROOT/out"
@@ -7,14 +7,24 @@ mkdir -p "$BUILD"
 
 LUASRC="$ROOT/third_party/lua/src"
 HOST_CFLAGS=(-O2 -Wall -Wextra -Werror)
+LOG="$BUILD/build.log"
+: > "$LOG"
 
-gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
+run() {
+    if ! "$@" >>"$LOG" 2>&1; then
+        echo "build failed; compiler log follows:" >&2
+        cat "$LOG" >&2
+        exit 1
+    fi
+}
+
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     "$ROOT/engine/fs/olfs.c" \
     "$ROOT/test/host/test_olfs.c" \
     -o "$BUILD/olfs_test"
 "$BUILD/olfs_test"
 
-gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     "$ROOT/engine/gfx/transform.c" \
     "$ROOT/test/host/test_transform.c" \
     -lm -o "$BUILD/transform_test"
@@ -27,18 +37,23 @@ CORE="lapi lcode ldebug ldo ldump lfunc lgc llex lmem lobject
 
 OBJS=()
 for f in $CORE; do
-    gcc -O2 -I"$LUASRC" -c "$LUASRC/$f.c" -o "$BUILD/$f.o"
+    run gcc -O2 -I"$LUASRC" -c "$LUASRC/$f.c" -o "$BUILD/$f.o"
     OBJS+=("$BUILD/$f.o")
 done
 
-gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
+    "$ROOT/test/host/test_maps.c" "$ROOT/engine/core/olreg.c" \
+    "${OBJS[@]}" -lm -o "$BUILD/maps_test"
+"$BUILD/maps_test"
+
+run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/test_sound.c" \
     "$ROOT/engine/snd/sound.c" "$ROOT/engine/core/olreg.c" \
     "${OBJS[@]}" \
     -lm -o "$BUILD/sound_test"
 "$BUILD/sound_test"
 
-gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
+run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/host_main.c" \
     "$ROOT/engine/core/olreg.c" "$ROOT/engine/fs/olfs.c" \
     "$ROOT/engine/fs/files.c" \
@@ -49,8 +64,10 @@ gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "${OBJS[@]}" \
     -lm -o "$BUILD/host_test"
 
-rm -rf "$BUILD"/t3work "$BUILD"/PSP; cd "$BUILD"
+rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork
+cd "$BUILD"
 ./host_test "$ROOT/test/host/test_phase3.lua"
 ./host_test "$ROOT/test/host/test_timers.lua"
 ./host_test "$ROOT/test/host/test_ini.lua"
+./host_test "$ROOT/test/host/test_savedata.lua"
 ./host_test "$ROOT/test/host/test_sound.lua"

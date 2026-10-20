@@ -107,6 +107,20 @@ static const char *save_root(void)
     return NULL;
 }
 
+static int valid_gameid(const char *gameid)
+{
+    size_t len = strlen(gameid);
+    if (len == 0 || len > 13)
+        return 0;
+    for (size_t i = 0; i < len; i++) {
+        unsigned char c = (unsigned char)gameid[i];
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+              (c >= '0' && c <= '9') || c == '-' || c == '_'))
+            return 0;
+    }
+    return 1;
+}
+
 static int game_dir(const char *gameid, char *out, unsigned int cap)
 {
     const char *root = save_root();
@@ -151,7 +165,7 @@ static int l_save(lua_State *L)
     const char *desc   = luaL_optstring(L, 5, "");
     int mode           = (int)luaL_optinteger(L, 6, 0);
 
-    if (strlen(gameid) > 13 || strlen(title) > SAVE_TITLE_MAX ||
+    if (!valid_gameid(gameid) || strlen(title) > SAVE_TITLE_MAX ||
         strlen(desc) > SAVE_DES_MAX)
     { lua_pushboolean(L, 0); return 1; }
 
@@ -199,6 +213,8 @@ static int l_load(lua_State *L)
     const char *gameid = luaL_checkstring(L, 1);
     int mode           = (int)luaL_optinteger(L, 2, 0);
 
+    if (!valid_gameid(gameid)) { lua_pushnil(L); return 1; }
+
     char dir[300];
     if (game_dir(gameid, dir, sizeof(dir)) != 0) { lua_pushnil(L); return 1; }
 
@@ -229,6 +245,7 @@ static int l_load(lua_State *L)
 static int l_delete(lua_State *L)
 {
     const char *gameid = luaL_checkstring(L, 1);
+    if (!valid_gameid(gameid)) { lua_pushboolean(L, 0); return 1; }
     char dir[300];
     int gd_rc = game_dir(gameid, dir, sizeof(dir));
     if (gd_rc != 0) { lua_pushboolean(L, 0); return 1; }

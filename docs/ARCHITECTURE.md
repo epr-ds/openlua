@@ -127,12 +127,12 @@ On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
 
 ## Host testing
 
-The PSP headers keep most graphics/input code out of host builds. The Phase-3
-storage layer, timers, transform math, `engine/core/olreg.c`, and the Lua sources
-compile on the host. `test/host/run.sh` runs the OLFS path/cwd tests and transform
-tests, then a small Lua host binary with `test_phase3.lua` and `test_timers.lua`.
-
-Expanding this coverage and adding CI is tracked in **#28**.
+The PSP headers keep most graphics/input code out of host builds. The storage
+layer, timers, transform math, map geometry, sound parsing/channel bookkeeping,
+`engine/core/olreg.c`, and the Lua sources compile and run on the host.
+`test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry, sound, and
+Lua-level files/INI/savedata/timers/sound tests. `.github/workflows/build.yml`
+runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
 ## Module map
 

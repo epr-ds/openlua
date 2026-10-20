@@ -3,6 +3,7 @@
 A clean-room, OneLua-API-compatible Lua 5.1 engine for the PlayStation
 Portable, built with PSPSDK.
 
+[![Build](https://github.com/epr-ds/openlua/actions/workflows/build.yml/badge.svg)](https://github.com/epr-ds/openlua/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Project board](https://img.shields.io/badge/project-board-orange)](https://github.com/users/epr-ds/projects/4)
 [![Lua 5.1](https://img.shields.io/badge/Lua-5.1-2c2d72)](third_party/lua)
@@ -35,7 +36,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # C checks + 104 Lua assertions
+bash test/host/run.sh              # 245 C checks + 151 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 

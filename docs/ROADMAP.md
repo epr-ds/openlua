@@ -26,11 +26,10 @@ mean every edge case is correct; the linked issues are the source of truth.
 | #20 | Transform/blit fix; verify on device | GFX |
 | #6 | PPSSPP black-screen / silent halt | Core |
 | #7 | Verify EBOOT in native PPSSPP | Core |
-| #28 | Expand host tests and add CI | Tooling |
 | #29 | Remove tracked binaries, add LICENSE, refresh docs/demos | Tooling |
 
 Definition of done for S6: `EBOOT.PBP` boots reliably, the smoke demo renders
-correctly, host tests cover the storage, timer and sound fixes, and CI is green.
+correctly, host tests cover the milestone regressions, and CI is green.
 
 ## Next — Phase 3.5: Data + Platform
 
@@ -57,7 +56,6 @@ correctly, host tests cover the storage, timer and sound fixes, and CI is green.
 ### Platform and tooling
 - #6, #7 PSP/PPSSPP boot verification
 - #8 Docker build speed
-- #28 tests + CI
 - #29 repository hygiene
 - #31 PSP Go support
 

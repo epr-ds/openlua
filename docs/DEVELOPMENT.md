@@ -43,9 +43,11 @@ bash test/host/run.sh
 ```
 
 Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
-`sound: 48 checks, 0 failed`, then `RESULT: 46 passed, 0 failed`,
-`RESULT: 21 passed, 0 failed` for timers, `RESULT: 24 passed, 0 failed` for INI,
-and `RESULT: 13 passed, 0 failed` for sound.
+`maps: 16 checks, 0 failed`, `sound: 48 checks, 0 failed`, then
+`RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for timers,
+`RESULT: 24 passed, 0 failed` for INI, `RESULT: 47 passed, 0 failed` for
+savedata, and `RESULT: 13 passed, 0 failed` for sound. Build output is kept in
+`out/build.log`; the script prints it only when a build fails.
 
 Repository hygiene check:
 
@@ -158,8 +160,8 @@ storage changes.
 
 ## Continuous integration
 
-There is no CI workflow yet (#28). The intended jobs are:
+`.github/workflows/build.yml` runs on every push and pull request:
 
-1. host `test/host/run.sh`;
+1. host `test/host/run.sh` plus the repository hygiene check;
 2. PSPSDK Docker build producing `EBOOT.PBP`;
-3. artifact upload.
+3. `EBOOT.PBP` artifact upload.

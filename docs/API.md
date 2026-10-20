@@ -217,6 +217,8 @@ data.delete(gameid)
 - `mode = 0` — slot dialog semantics (`SLOT1..SLOT5`), first free slot on save.
 - `mode = 1` — autosave slot (`AUTOSAVE`).
 - Payload is capped at 256 bytes.
+- `gameid` is 1..13 characters from `A-Z`, `a-z`, `0-9`, `-` and `_`;
+  path separators and traversal sequences are rejected.
 - `savedata` is an alias for `data`.
 
 The PSP VSH save dialog is not implemented; files are plain text under

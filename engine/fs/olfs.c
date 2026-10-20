@@ -176,8 +176,9 @@ int olfs_list(const char *dir, OLEntry *out, int n, int *outn, int *trunc)
         if (!strcmp(d.d_name, ".") || !strcmp(d.d_name, ".."))
             continue;
         memset(&out[i], 0, sizeof(out[i]));
-        snprintf(out[i].name, sizeof(out[i].name), "%s", d.d_name);
-        snprintf(out[i].path, sizeof(out[i].path), "%s/%s", dir, d.d_name);
+        strncpy(out[i].name, d.d_name, sizeof(out[i].name) - 1);
+        out[i].name[sizeof(out[i].name) - 1] = '\0';
+        snprintf(out[i].path, sizeof(out[i].path), "%s/%s", dir, out[i].name);
         out[i].is_dir     = FIO_S_ISDIR(d.d_stat.st_attr);
         out[i].size       = out[i].is_dir ? 0 : (long)d.d_stat.st_size;
         out[i].attr       = d.d_stat.st_attr;

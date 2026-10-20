@@ -51,7 +51,7 @@ static const char *ROOTS[] = { ".", "data", NULL };
 /*
  * Create parent directories (mkdir -a equivalent).  Returns 0 on success.
  */
-static int mkdir_p(const char *path, unsigned len)
+static __attribute__((unused)) int mkdir_p(const char *path, unsigned len)
 {
     if (len == 0) return 0;
     /* Find last / to get parent */

@@ -58,7 +58,8 @@ CFLAGS = -O2 -G0 -Wall
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -L.
 
-LIBS = -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpspgu -lpspsdk -lc -lpspuser -lpspaudio
+# SDK libs must be first to avoid stub ordering issues with psp-fixup-imports
+LIBS = -lc -lpspuser -lpspaudio -lpspnet -lpspnet_apctl -lpspdebug -lpspdisplay -lpspge -lpspgu -lpspctrl -lpspsdk
 
 EXTRA_TARGETS = EBOOT.PBP
 

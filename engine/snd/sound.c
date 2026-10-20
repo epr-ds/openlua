@@ -57,7 +57,7 @@ static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return -1; }
 #define sceAudioChReserve(ch, len, fmt) ((ch) + 1)
 #endif
 #ifndef sceAudioChRelease
-#define sceAudioChRelease(ch) (0)
+#define sceAudioChRelease(ch) ((void)(ch))
 #endif
 #ifndef sceAudioOutput
 #define sceAudioOutput(ch, vol, p) (0)

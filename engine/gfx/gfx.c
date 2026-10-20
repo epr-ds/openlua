@@ -26,9 +26,10 @@ static unsigned int clear_color = 0xFF000000;
 
 static void *vram_alloc(int size)
 {
-    static int head = 0;
+    /* Use long to ensure proper pointer arithmetic on all architectures */
+    static long head = 0;
     void *p = (void *)(0x04000000 + head);
-    head += size & ~15; /* align */
+    head += (size + 15) & ~15; /* align to 16 bytes */
     return p;
 }
 
@@ -188,13 +189,15 @@ void gfx_surface_fill(OL_Surface *s, unsigned int color)
     int n = s->realW * s->realH;
     for (int i = 0; i < n; i++)
         s->pixels[i] = color;
-    gfx_cache_note();
+    FlushCache(2);
 }
 
 unsigned int gfx_surface_pixel_get(OL_Surface *s, int x, int y)
 {
     if (x < 0 || y < 0 || x >= s->w || y >= s->h)
         return 0;
+    /* Flush L2 before read — GE DMA reads uncached memory only */
+    FlushCache(2);
     return s->pixels[y * s->realW + x];
 }
 
@@ -203,7 +206,7 @@ void gfx_surface_pixel_set(OL_Surface *s, int x, int y, unsigned int c)
     if (x < 0 || y < 0 || x >= s->w || y >= s->h)
         return;
     s->pixels[y * s->realW + x] = c;
-    gfx_cache_note();
+    FlushCache(2);
 }
 
 void gfx_surface_hflip(OL_Surface *s)
@@ -216,7 +219,7 @@ void gfx_surface_hflip(OL_Surface *s)
             *a = *b; *b = t;
         }
     }
-    gfx_cache_note();
+    FlushCache(2);
 }
 
 void gfx_surface_vflip(OL_Surface *s)
@@ -230,12 +233,12 @@ void gfx_surface_vflip(OL_Surface *s)
             b[x] = t;
         }
     }
-    gfx_cache_note();
+    FlushCache(2);
 }
 
 void gfx_cache_note(void)
 {
-    sceKernelDcacheWritebackAll();
+    FlushCache(2);
 }
 
 /*=========================================================================
@@ -341,9 +344,20 @@ void gfx_blit(OL_Surface *s, int x, int y,
             &s->pixels[sy * s->realW + sx], w, &dw, &dh,
             scaleX, scaleY, h, tint);
         if (!buf) { flush_gu(); return; }
+
+        /* L2 cache flush: GPU via DMA reads from uncached memory.
+         * nearest_scale writes to heap-allocated buffer which is in the cached region.
+         * Without FlushCache(2), the GPU sees stale/corrupted pixel data,
+         * and rapid flipX/flipY blit cycles corrupt GE state. */
+        FlushCache(2);
+
         texW = next_pow2(dw);
         texH = next_pow2(dh);
         texData = buf;
+    } else {
+        /* No scale pass — source is raw surface pixels from the CPU side.
+         * Must flush L2 cache so GE DMA sees latest flipX/flipY pixel data. */
+        FlushCache(2);
     }
 
     sceGuTexImage(0, texW, texH, texW, texData);

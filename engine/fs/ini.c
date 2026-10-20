@@ -165,7 +165,8 @@ static int ini_set_value(const char *path, const char *section,
     for (int i = 0; i < nlines; i++) {
         char name_buf[128];
         char work[INI_MAX_LINE];
-        snprintf(work, sizeof(work), "%s", lines[i]);
+        strncpy(work, lines[i], sizeof(work) - 1);
+        work[sizeof(work) - 1] = '\0';
         int kind = ini_line_kind(work, name_buf, NULL);
         if (kind == 1) {
             if (sec_start >= 0)

@@ -36,7 +36,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 255 C checks + 153 Lua assertions
+bash test/host/run.sh              # 255 C checks + 242 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -79,9 +79,9 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
 | Files / INI / Savedata | Implemented; hardening [#24] |
+| JSON | Implemented; host-tested ([#30]) |
 | Tilemaps | Implemented; host-tested ([#26]) |
 | Renderer correctness | Fixed in code; device verification [#19], [#20] |
-| JSON | Planned ([#30]) |
 | PSP Go | Planned ([#31]) |
 | PMF/MP4 video | Planned ([#5]) |
 | WiFi/HTTP | Not started |
@@ -101,6 +101,7 @@ engine/
   input/  controller polling
   util/   timers
   fs/     portable VFS, files, INI
+  data/   JSON parser/serializer
   sys/    save slots
   maps/   tilemap renderer
 third_party/
@@ -156,7 +157,7 @@ host tests and debugging.
 | `ini` | `read`, `write` | Implemented; host-tested |
 | `savedata` | `data.save/load/delete` | Plain-text slots |
 | `maps` | `map.new/blit/set/get` | Host-tested ([#26]) |
-| `json` | — | Planned ([#30]) |
+| `json` | `decode`, `encode`, `load`, `save` | Implemented; host-tested ([#30]) |
 | `http` / `wlan` | — | Not started |
 
 ## License

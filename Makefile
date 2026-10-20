@@ -49,6 +49,7 @@ OBJS = engine/core/main.o \
 	engine/fs/olfs.o \
 	engine/fs/files.o \
 	engine/fs/ini.o \
+	engine/data/json.o \
 	engine/sys/savedata.o \
 	engine/maps/maps.o \
 	$(LUAOBJS)

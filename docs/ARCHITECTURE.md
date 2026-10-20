@@ -17,6 +17,7 @@ engine/core/main.c ── register_api() ─────────────
     ├── input/   sceCtrl polling                     (buttons)      │
     ├── util/    gettimeofday timers                 (timers)       │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
+    ├── data/    JSON parser/serializer              (json)         │
     ├── sys/     save slots                          (data)         │
     └── maps/    tile grid renderer                  (map)          │
                                                                    │
@@ -111,6 +112,7 @@ logic and are host-testable:
 | `files.c` | `files.*` | any mounted path |
 | `ini.c` | `ini.read/write` | text INI, section-aware |
 | `savedata.c` | `data.save/load/delete` | `ROOT/PSP/SAVEDATA/<GAMEID>/` |
+| `json.c` | `json.decode/encode/load/save` | bounded files + atomic writes |
 | `maps.c` | `map.*` | in-memory tile grid over a tileset |
 
 On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
@@ -146,6 +148,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers | `timers.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
+| `engine/data` | JSON parser/serializer | `json.*` |
 | `engine/sys` | save slots | `data.*` / `savedata.*` |
 | `engine/maps` | tilemaps | `map.*` |
 | `third_party` | Lua 5.1.5, stb_image/stb_image_write | — |

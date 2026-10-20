@@ -6,10 +6,12 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- JSON module with `decode`, `encode`, `load` and `save`: bounded file reads,
+  atomic writes, strict malformed-input errors, escape/unicode handling and
+  host coverage (#30).
 - Host coverage for map geometry, savedata slot/layout validation and traversal
   rejection, plus a GitHub Actions workflow that runs the host suite and builds
   an `EBOOT.PBP` artifact (#28).
-- JSON module planned (#30).
 - PSP Go compatibility plan (#31).
 - Architecture, API, roadmap, development and contributing documentation.
 - `LICENSE` (MIT).

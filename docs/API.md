@@ -227,6 +227,33 @@ data.delete(gameid)
 The PSP VSH save dialog is not implemented; files are plain text under
 `PSP/SAVEDATA/<GAMEID>/`.
 
+## json
+
+```lua
+local value = json.decode(text)
+local text  = json.encode(value)
+local value = json.load(path)
+json.save(path, value)
+```
+
+- Objects decode to string-keyed tables; arrays decode to sequence tables
+  (`1..n`). `null` decodes to `nil`, so a null object member is absent from
+  the resulting table. Duplicate object keys use the last value.
+- Decoding supports strings, numbers, booleans, `null`, nested objects/arrays,
+  all JSON escapes including `\uXXXX`, and surrogate pairs. Raw UTF-8 bytes
+  pass through unchanged.
+- Encoding writes whole numbers without a decimal point and other numbers with
+  enough precision for a round trip. Empty tables encode as `{}`. Sparse
+  arrays, mixed array/object keys, non-string object keys, NaN and infinity
+  raise an error.
+- Malformed JSON, trailing data, excessive nesting and unsupported Lua values
+  raise a `json.*` error rather than crashing.
+- `json.load` reads at most 256 KB and raises if the file is missing,
+  unreadable or malformed. `json.save` writes through a temp file and atomic
+  move (with a backup fallback), returns `true` on success, and raises on
+  failure. Parent directories must already exist.
+- Object key order is not preserved.
+
 ## map
 
 ```lua
@@ -250,7 +277,6 @@ required (#26).
 
 | Module | Status |
 |---|---|
-| `json` | Planned (#30) |
 | `pmf` / MP4 playback | Planned (#5) |
 | `wlan` / `http` | Not implemented |
 

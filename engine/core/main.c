@@ -20,6 +20,7 @@
 #include "engine/font/font.h"
 #include "engine/fs/files.h"
 #include "engine/fs/ini.h"
+#include "engine/data/json.h"
 #include "engine/sys/savedata.h"
 #include "engine/maps/maps.h"
 #include "engine/core/olreg.h"
@@ -138,6 +139,7 @@ static void register_api(lua_State *L)
     /* Phase 3: OS-level modules */
     files_api_register(L);    /* files.*    (exists/copy/move/list/...)      */
     ini_api_register(L);      /* ini.*      (read/write)                     */
+    json_api_register(L);     /* json.*     (decode/encode/load/save)        */
     savedata_api_register(L); /* data.* + savedata.* (save/load/delete)      */
     maps_api_register(L);     /* map.*      (new/blit/sizex/sizey/set)       */
 }

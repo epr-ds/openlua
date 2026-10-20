@@ -13,7 +13,7 @@ This document explains the phases and maps the remaining work to issues.
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
 | **S6: Testing + Polish** | Boot/verify, renderer, tests, docs | **Current focus** |
-| **3.5: Data + Platform** | JSON module, PSP Go support | Planned (#30, #31) |
+| **3.5: Data + Platform** | JSON module, PSP Go support | JSON host-tested (#30); PSP Go planned (#31) |
 
 “Implemented” means the API exists and basic smoke testing passes. It does not
 mean every edge case is correct; the linked issues are the source of truth.
@@ -26,16 +26,14 @@ mean every edge case is correct; the linked issues are the source of truth.
 | #20 | Transform/blit fix; verify on device | GFX |
 | #6 | PPSSPP black-screen / silent halt | Core |
 | #7 | Verify EBOOT in native PPSSPP | Core |
-| #29 | Remove tracked binaries, add LICENSE, refresh docs/demos | Tooling |
 
 Definition of done for S6: `EBOOT.PBP` boots reliably, the smoke demo renders
 correctly, host tests cover the milestone regressions, and CI is green.
 
-## Next — Phase 3.5: Data + Platform
+## Next — Phase 3.5: Platform
 
 | Issue | Work | Notes |
 |---|---|---|
-| #30 | JSON module | `json.decode/encode/load/save`, host-testable |
 | #31 | PSP Go compatibility | Internal storage, M2, boot and savedata paths |
 
 ## Backlog by theme
@@ -49,7 +47,6 @@ correctly, host tests cover the milestone regressions, and CI is green.
 
 ### Storage and data
 - #24 savedata root probing and game-id validation
-- #30 JSON module
 
 ### Platform and tooling
 - #6, #7 PSP/PPSSPP boot verification
@@ -80,7 +77,7 @@ labels. The board README lists the provisioned views (`Board by Status`,
 
 ## Milestones
 
-- **Phase 3.5: Data & Platform** — JSON, PSP Go
+- **Phase 3.5: Data & Platform** — PSP Go
 - **Phase 4: Codec (PMF/MP4/Audio) + Archive**
 - **Bug Fixes & Polish (Final)** — current S6 bugs
 - **Phase 5: Networking (+ WiFi/HTTP)**
@@ -90,5 +87,5 @@ labels. The board README lists the provisioned views (`Board by Status`,
 1. Boot/render blockers (#6, #19, #20).
 2. Safety and data-loss bugs (#22–#26).
 3. Device verification (#7).
-4. New capabilities (#30, #31, #5).
+4. New capabilities (#31, #5).
 5. Polish and documentation (#29, #8).

@@ -58,14 +58,10 @@ bash tools/check_repo_hygiene.sh
 This fails if `*.o`, `*.elf`, `*.pbp`, `EBOOT.PBP`, `PARAM.SFO` or an AppImage
 is tracked.
 
-The script compiles `engine/fs/olfs.c` with `-Wall -Wextra -Werror` and runs
-`test_olfs.c`, builds Lua 5.1 from `third_party/lua/src`, links
-`engine/core/olreg.c`, `engine/fs/*`, `engine/sys/savedata.c`, and
-`engine/util/timers.c`, then runs `test_phase3.lua`, `test_timers.lua`, and
-`test_ini.lua` in `out/`.
-
-Remaining coverage for maps, sound parsing and savedata traversal is tracked in
-#28.
+The script builds all host targets with `-Wall -Wextra -Werror` and runs the C
+tests (`test_olfs.c`, `test_transform.c`, `test_maps.c`, `test_sound.c`) plus the
+Lua suites for files/INI/savedata/timers/sound in `out/`. Compiler output is
+captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
 

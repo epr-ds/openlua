@@ -91,6 +91,6 @@ labels. The board README lists the provisioned views (`Board by Status`,
 
 1. Boot/render blockers (#6, #19, #20).
 2. Safety and data-loss bugs (#22–#26).
-3. Verification and CI (#7, #28).
+3. Device verification (#7).
 4. New capabilities (#30, #31, #5).
 5. Polish and documentation (#27, #29, #8).

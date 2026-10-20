@@ -32,10 +32,18 @@ for f in $CORE; do
 done
 
 gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
+    "$ROOT/test/host/test_sound.c" \
+    "$ROOT/engine/snd/sound.c" "$ROOT/engine/core/olreg.c" \
+    "${OBJS[@]}" \
+    -lm -o "$BUILD/sound_test"
+"$BUILD/sound_test"
+
+gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/host_main.c" \
     "$ROOT/engine/core/olreg.c" "$ROOT/engine/fs/olfs.c" \
     "$ROOT/engine/fs/files.c" \
     "$ROOT/engine/fs/ini.c" \
+    "$ROOT/engine/snd/sound.c" \
     "$ROOT/engine/sys/savedata.c" \
     "$ROOT/engine/util/timers.c" \
     "${OBJS[@]}" \
@@ -45,3 +53,4 @@ rm -rf "$BUILD"/t3work "$BUILD"/PSP; cd "$BUILD"
 ./host_test "$ROOT/test/host/test_phase3.lua"
 ./host_test "$ROOT/test/host/test_timers.lua"
 ./host_test "$ROOT/test/host/test_ini.lua"
+./host_test "$ROOT/test/host/test_sound.lua"

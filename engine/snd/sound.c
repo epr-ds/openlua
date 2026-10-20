@@ -28,15 +28,35 @@ typedef int SceAudioChannel;
 #define PSP_AUDIO_VOLUME_MAX         128
 #define PSP_AUDIO_NEXT_CHANNEL       (-1)
 #define PSP_AUDIO_CHANNEL_MAX        8
-static inline int sceAudioChReserve(int c, int l, int f) { (void)c; (void)l; (void)f; return c; }
-static inline void sceAudioChRelease(int c)         { (void)c; }
+static int host_ch_used[PSP_AUDIO_CHANNEL_MAX];
+static inline int sceAudioChReserve(int c, int l, int f)
+{
+    (void)l; (void)f;
+    if (c == PSP_AUDIO_NEXT_CHANNEL) {
+        for (c = 0; c < PSP_AUDIO_CHANNEL_MAX; c++)
+            if (!host_ch_used[c])
+                break;
+        if (c == PSP_AUDIO_CHANNEL_MAX)
+            return -1;
+    }
+    if (c < 0 || c >= PSP_AUDIO_CHANNEL_MAX || host_ch_used[c])
+        return -1;
+    host_ch_used[c] = 1;
+    return c;
+}
+static inline void sceAudioChRelease(int c)
+{
+    if (c >= 0 && c < PSP_AUDIO_CHANNEL_MAX)
+        host_ch_used[c] = 0;
+}
 static inline int sceAudioOutput(int c, int v, void *p) { (void)c; (void)v; (void)p; return 0; }
-static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return -1; }
+static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return 0; }
 #endif
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
 #include <stdio.h>
 #include "engine/core/olreg.h"
 #if !defined(__PSP__)
@@ -52,18 +72,6 @@ static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return -1; }
 #endif
 #ifndef PSP_AUDIO_VOLUME_MAX
 #define PSP_AUDIO_VOLUME_MAX 128
-#endif
-#ifndef sceAudioChReserve
-#define sceAudioChReserve(ch, len, fmt) ((ch) + 1)
-#endif
-#ifndef sceAudioChRelease
-#define sceAudioChRelease(ch) ((void)(ch))
-#endif
-#ifndef sceAudioOutput
-#define sceAudioOutput(ch, vol, p) (0)
-#endif
-#ifndef sceAudioGetChannelRestLen
-#define sceAudioGetChannelRestLen(ch) (-1)
 #endif
 #ifndef PSP_AUDIO_NEXT_CHANNEL
 #define PSP_AUDIO_NEXT_CHANNEL (-1)
@@ -149,7 +157,7 @@ static int wav_parse(const unsigned char *buf, unsigned int size, RawAudio *out)
     while (off + 8 <= size) {
         unsigned int clen = le32(buf + off + 4);
         unsigned int cpos = off + 8;
-        if (cpos + clen > size)
+        if (clen > size - cpos)
             return -1;
 
         if (!memcmp(buf + off, "fmt ", 4)) {            /* format chunk */
@@ -232,20 +240,25 @@ static int vma_parse(const unsigned char *buf, unsigned int size, RawAudio *out)
 /* ----------------------------------------------------------------- */
 /* resample src_rate -> HW_RATE (linear interpolation, mono)         */
 
-static int16_t *resample_m(const int16_t *src, int n, int src_rate)
+static int resample_m(const int16_t *src, int n, int src_rate,
+                      int16_t **out, int *out_len)
 {
+    *out = NULL;
+    *out_len = n;
+
     if (src_rate == HW_RATE)
-        return NULL;   /* caller keeps original */
+        return 1;                       /* caller keeps the original    */
+
+    long long nout_ll = (long long)n * HW_RATE / src_rate;
+    if (nout_ll <= 0 || nout_ll > INT_MAX)
+        return -1;
+    int nout = (int)nout_ll;
+
+    int16_t *pcm = (int16_t *)malloc(nout * sizeof(int16_t));
+    if (!pcm)
+        return -1;
 
     double ratio = (double)HW_RATE / (double)src_rate;
-    int nout = (int)(n * ratio);
-    if (nout <= 0)
-        return NULL;
-
-    int16_t *outp = (int16_t *)malloc(nout * sizeof(int16_t));
-    if (!outp)
-        return NULL;
-
     for (int i = 0; i < nout; i++) {
         double pos = i / ratio;
         int i0 = (int)pos;
@@ -253,10 +266,13 @@ static int16_t *resample_m(const int16_t *src, int n, int src_rate)
         if (i1 >= n) i1 = n - 1;
         double t = pos - i0;
         int a = src[i0];
-        int b = (i < n) ? src[i1] : a;
-        outp[i] = (int16_t)(a + (int)((b - a) * t + (t >= 0 ? 0.5 : -0.5)));
+        int b = src[i1];
+        pcm[i] = (int16_t)(a + (int)((b - a) * t + (t >= 0 ? 0.5 : -0.5)));
     }
-    return outp;
+
+    *out = pcm;
+    *out_len = nout;
+    return 0;
 }
 
 /* ----------------------------------------------------------------- */
@@ -284,16 +300,24 @@ int sound_alloc(const char *path)
     int ok = 0;
     if (wav_parse(buf, (unsigned int)fsize, &raw) == 0)
         ok = 1;
-    else if (memcmp(buf, "RIFF", 4) && vma_parse(buf, (unsigned int)fsize, &raw) == 0)
-        ok = 1;
+    else {
+        int riff = fsize >= 4 && memcmp(buf, "RIFF", 4) == 0;
+        if (!riff && vma_parse(buf, (unsigned int)fsize, &raw) == 0)
+            ok = 1;
+    }
     free(buf);
     if (!ok) { raw_free(&raw); return 0; }
 
-    /* resample to hardware rate; if already at rate keep buffer */
-    int16_t *res = resample_m(raw.pcm, raw.len, raw.rate);
-    int16_t *final = res ? res : raw.pcm;
-    int flen = res ? (int)(raw.len * (long)HW_RATE / raw.rate) : raw.len;
-    if (res) free(raw.pcm);
+    /* resample to hardware rate; a failure must not silently keep the source rate */
+    int16_t *res = NULL;
+    int flen = raw.len;
+    int rr = resample_m(raw.pcm, raw.len, raw.rate, &res, &flen);
+    if (rr < 0) { raw_free(&raw); return 0; }
+    int16_t *final = raw.pcm;
+    if (rr == 0) {
+        final = res;
+        free(raw.pcm);
+    }
     if (!final || flen <= 0) { free(final); return 0; }
 
     for (int i = 0; i < SND_MAX; i++) {
@@ -324,6 +348,13 @@ static OLS_Sound *get(int h)
     return &g_s[h - 1];
 }
 
+static void release_channel(OLS_Sound *s)
+{
+    if (s->channel >= 0)
+        sceAudioChRelease(s->channel);
+    s->channel = -1;
+}
+
 int sound_play(int h)
 {
     return sound_play_channel(h, -1);
@@ -333,13 +364,15 @@ int sound_play(int h)
 int sound_play_channel(int h, int ch)
 {
     OLS_Sound *s = get(h);
-    if (!s) return -1;
+    if (!s || ch < -1 || ch >= PSP_AUDIO_CHANNEL_MAX) return -1;
 
     if (ch >= 0 && s->channel != ch) {
-        if (s->channel >= 0)
-            sceAudioChRelease(s->channel);
+        int old_channel = s->channel;
         int rc = sceAudioChReserve(ch, CHUNK, PSP_AUDIO_FORMAT_MONO);
-        if (rc < 0) { s->channel = -1; return -1; }
+        if (rc < 0)
+            return -1;                 /* keep any existing reservation */
+        if (old_channel >= 0)
+            sceAudioChRelease(old_channel);
         s->channel = rc;
     } else if (ch < 0 && s->channel < 0) {
         int rc = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL,
@@ -377,6 +410,7 @@ int sound_stop(int h)
     s->pos      = 0;
     s->paused   = 0;
     s->finished = 1;
+    release_channel(s);
     return 0;
 }
 
@@ -430,8 +464,7 @@ void sound_free(int h)
 {
     OLS_Sound *s = get(h);
     if (!s) return;
-    if (s->channel >= 0)
-        sceAudioChRelease(s->channel);
+    release_channel(s);
     free(s->pcm);
     memset(s, 0, sizeof(*s));
 }
@@ -461,6 +494,7 @@ void sound_pump(void)
                 } else {
                     s->playing  = 0;
                     s->finished = 1;
+                    release_channel(s);
                     break;
                 }
             }
@@ -484,6 +518,7 @@ void sound_pump(void)
             if (!(s->loop) && s->pos >= s->len) {
                 s->playing  = 0;
                 s->finished = 1;
+                release_channel(s);
                 break;
             }
         }
@@ -506,17 +541,18 @@ static int l_sound_play(lua_State *L)
 {
     int h = (int)luaL_checkinteger(L, 1);
     /* channel arg optional: 0/auto, or 1..8 (mapped to PSP channel 0..7) */
-    int ch = (lua_isnumber(L, 2)) ? (int)luaL_checkinteger(L, 2) - 1 : -1;
-    OLS_Sound *s = get(h);
-    if (!s)
-        luaL_error(L, "sound.play: unknown handle %d", h);
-    if (ch >= 0 && ch < PSP_AUDIO_CHANNEL_MAX) {
-        if (s->channel < 0 || s->channel != ch) {
-            if (s->channel >= 0) sceAudioChRelease(s->channel);
-            s->channel = ch;
-        }
+    int ch = -1;
+    if (lua_isnumber(L, 2)) {
+        int arg = (int)luaL_checkinteger(L, 2);
+        if (arg < 0 || arg > PSP_AUDIO_CHANNEL_MAX)
+            luaL_error(L, "sound.play: channel must be 1..%d or 0 for auto",
+                       PSP_AUDIO_CHANNEL_MAX);
+        if (arg > 0)
+            ch = arg - 1;
     }
-    int r = sound_play(h);
+    if (!get(h))
+        luaL_error(L, "sound.play: unknown handle %d", h);
+    int r = sound_play_channel(h, ch);
     if (r < 0)
         luaL_error(L, "sound.play: failed (audio channel not available?)");
     return 0;

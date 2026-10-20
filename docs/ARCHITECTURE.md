@@ -93,12 +93,12 @@ targeted `sceKernelDcacheWritebackRange` is the intended optimisation.
    - WAV: PCM 16-bit, mono/stereo, any sample rate;
    - VMA/VOX: 4-byte sample count + 22050 Hz mono PCM.
 2. Stereo is downmixed; non-22050 rates are linearly resampled.
-3. `sound.play` reserves a hardware channel (`sceAudioChReserve`).
+3. `sound.play` reserves a hardware channel (`sceAudioChReserve`); explicit
+   channels 1..8 and automatic next-free allocation share the same path.
 4. `sound_pump` runs once per `screen.flip()`. When the channel buffer drains
    below one 1024-sample chunk, it submits the next chunk. This keeps audio
    paced by the hardware even if the frame loop slows down.
-
-Known issue: explicit channel selection bypasses reservation (#25).
+5. Channels are released on stop, free, or natural end of playback.
 
 ## Storage and data
 

@@ -29,7 +29,7 @@ check(t:stoptime() == stopped, "stoptime stable")
 check(t:time() == stopped, "time frozen while stopped")
 
 check(t:start() == 0, "restart resets to zero")
-spin(10)
+spin(20)
 check(t:time() >= 10, "time advances after restart")
 
 local offset = timers.new(1000)

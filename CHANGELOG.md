@@ -19,6 +19,13 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Project board populated with fields, views and audit-derived backlog.
 
 ### Fixed
+- Sound playback now reserves explicit channels through `sceAudioChReserve`,
+  releases them on stop/free/natural end, rejects invalid channel arguments,
+  rejects files shorter than the RIFF signature without over-reading, bounds
+  WAV chunk lengths, and surfaces resampling/allocation failure (#25).
+- Host builds now use their mocked audio-channel API instead of accidentally
+  overriding it with fallback macros; PSP builds call the real pspaudio
+  functions.
 - Renderer now draws one transformed quad per sprite, with correct source
   stride, pivot, scale, flip, tint, per-blit alpha and no temporary-buffer leak
   (#19, #20).

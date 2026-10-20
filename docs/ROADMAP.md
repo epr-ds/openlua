@@ -8,7 +8,7 @@ This document explains the phases and maps the remaining work to issues.
 | Phase | Scope | State |
 |---|---|---|
 | **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed, verification pending |
-| **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; sound bug #25, API polish #27 |
+| **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; host-tested (#25), API polish #27 |
 | **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps done (#4, #26); PMF pending (#5) |
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
@@ -30,7 +30,7 @@ mean every edge case is correct; the linked issues are the source of truth.
 | #29 | Remove tracked binaries, add LICENSE, refresh docs/demos | Tooling |
 
 Definition of done for S6: `EBOOT.PBP` boots reliably, the smoke demo renders
-correctly, host tests cover the storage and timer fixes, and CI is green.
+correctly, host tests cover the storage, timer and sound fixes, and CI is green.
 
 ## Next — Phase 3.5: Data + Platform
 
@@ -47,7 +47,6 @@ correctly, host tests cover the storage and timer fixes, and CI is green.
 - #27 image userdata methods + naming consistency
 
 ### Audio
-- #25 explicit channel reservation, short-file parsing
 - #5 PMF/MP4 decode and playback
 
 ### Storage and data

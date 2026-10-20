@@ -165,8 +165,9 @@ method form.
 | `sound.rate(handle)` | Output rate (always 22050). |
 | `sound.free(handle)` | Release the sound and its channel. |
 
-Audio is pumped by `screen.flip()`. Explicit channel reservation is currently
-buggy (#25).
+Audio is pumped by `screen.flip()`. Channels 1..8 are reserved explicitly and
+released by `sound.stop`, `sound.free`, or natural end of playback; omit the
+channel (or pass `0`) to reserve the next free channel.
 
 ## files
 
@@ -254,5 +255,4 @@ divide the tileset. The tileset image must stay alive while the map is used
 | Flip names | `fliph`/`flipv` (docs elsewhere say `flipx`/`flipy`) | #27 |
 | Timers | Negative elapsed time; initial ms ignored | #21 |
 | Transforms | Fixed in code; pending PSP/PPSSPP device verification | #19, #20 |
-| Sound channels | Explicit channel is not reserved | #25 |
 | Map lifetime | Tileset is borrowed, not anchored | #26 |

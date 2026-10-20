@@ -42,9 +42,10 @@ Host-testable pieces (VFS, timers, transform math, Lua modules):
 bash test/host/run.sh
 ```
 
-Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`, then
-`RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for timers, and
-`RESULT: 24 passed, 0 failed` for INI.
+Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
+`sound: 48 checks, 0 failed`, then `RESULT: 46 passed, 0 failed`,
+`RESULT: 21 passed, 0 failed` for timers, `RESULT: 24 passed, 0 failed` for INI,
+and `RESULT: 13 passed, 0 failed` for sound.
 
 Repository hygiene check:
 
@@ -148,7 +149,6 @@ can change relative asset paths. Keep assets relative to the app directory.
 | Garbled scaled sprite | Wrong stride or non-power-of-two upload (#20) |
 | `attempt to index ... (userdata)` | Image has no `__index`; use `image.foo(img)` (#27) |
 | Save not found on PSP | Save root probe did not create the directory (#24) |
-| Audio silent on a chosen channel | Channel was not reserved (#25) |
 
 ## PSP Go notes
 

@@ -95,7 +95,7 @@ check(data.load("TESTGAME", 0) == "slot-one", "data.load most-recent slot")
 check(data.load("TESTGAME", 1) == "payload-42", "autosave untouched by slot save")
 
 check(data.save("slot-two", "Game", "TESTGAME", "sub", "desc", 0) == true, "second slot save")
-check(data.load("TESTGAME", 0) == "slot-two", "newest slot wins")
+check(data.load("TESTGAME", 0) == "slot-two", "highest slot wins")
 
 check(data.save("cap-" .. string.rep("x", 300), "G", "TESTGAME", "s", "d", 1) == true, "256+ truncates")
 local capped = data.load("TESTGAME", 1)

@@ -30,7 +30,11 @@ check(files.exists(DIR .. "/SLOT1"), "SLOT1 created")
 check(data.save("slot-two", "Title", GAME, "", "", 0) == true,
       "second slot accepted")
 check(files.exists(DIR .. "/SLOT2"), "SLOT2 created")
-check(data.load(GAME, 0) == "slot-two", "newest slot loaded")
+check(data.load(GAME, 0) == "slot-two", "highest slot loaded")
+local slot1 = assert(io.open(DIR .. "/SLOT1", "wb"))
+slot1:write("rewritten-later")
+slot1:close()
+check(data.load(GAME, 0) == "slot-two", "highest slot wins over mtime")
 check(data.load(GAME, 1) == "payload", "autosave untouched")
 
 check(data.save(string.rep("x", 300), "T", GAME, "", "", 1) == true,
@@ -39,6 +43,8 @@ check(#data.load(GAME, 1) == 256, "payload capped at 256")
 
 check(data.save("x", string.rep("t", 129), GAME, "", "", 1) == false,
       "long title rejected")
+check(data.save("x", "T", GAME, string.rep("s", 129), "", 1) == false,
+      "long subtitle rejected")
 check(data.save("x", "T", GAME, "", string.rep("d", 1025), 1) == false,
       "long description rejected")
 

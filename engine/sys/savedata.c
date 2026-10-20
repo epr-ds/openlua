@@ -8,7 +8,7 @@
  *
  *    data.load(gameid, mode)
  *        mode 1 - autosave slot (AUTOSAVE)
- *        mode 0 - dialog load : most recently used slot, else AUTOSAVE
+ *        mode 0 - dialog load : highest-numbered populated slot, else AUTOSAVE
  *        -> payload string, or nil if no save exists
  *
  *    data.delete(gameid)   -> true on success
@@ -32,12 +32,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if !defined(__PSP__)
-#include <errno.h>
-#endif
 
 #define SAVE_BODY_MAX   256
 #define SAVE_TITLE_MAX  128
+#define SAVE_SUB_MAX    128
 #define SAVE_DES_MAX    1024
 #define SLOTS           5
 
@@ -47,28 +45,6 @@ static const char *ROOTS[] = { "ms0:", "flash0:", NULL };
 #else
 static const char *ROOTS[] = { ".", "data", NULL };
 #endif
-
-/*
- * Create parent directories (mkdir -a equivalent).  Returns 0 on success.
- */
-static __attribute__((unused)) int mkdir_p(const char *path, unsigned len)
-{
-    if (len == 0) return 0;
-    /* Find last / to get parent */
-    for (unsigned i = 1; i < len; i++) {
-        if (path[i] == '/' || path[i] == ':') {
-            char tmp[256];
-            unsigned clen = i;
-            memcpy(tmp, path, clen);
-            if (!olfs_exists(tmp)) {
-                if (mkdir_p(tmp, clen) < 0) return -1;
-            }
-            if (olfs_mkdir(tmp) != 0) return -1;
-        }
-    }
-    return 0;
-}
-
 
 /* ---- storage core ------------------------------------------------------ */
 
@@ -82,8 +58,12 @@ static const char *save_root(void)
     cached_valid = 0;
 #if defined(__PSP__)
     for (int i = 0; ROOTS[i]; i++) {
+        char dirp[220];
+        snprintf(dirp, sizeof(dirp), "%sPSP/SAVEDATA", ROOTS[i]);
+        if (olfs_mkdir_p(dirp) != 0)
+            continue;              /* read-only root (e.g. flash0:)  */
         char test[256];
-        snprintf(test, sizeof(test), "%sPSP/SAVEDATA/.olprobe", ROOTS[i]);
+        snprintf(test, sizeof(test), "%s/.olprobe", dirp);
         FILE *f = fopen(test, "a+");
         if (f) { fclose(f); olfs_delete(test);
             strncpy(cached_root, ROOTS[i], sizeof(cached_root)-1);
@@ -128,9 +108,9 @@ static int game_dir(const char *gameid, char *out, unsigned int cap)
     /* Check if root already ends with a separator like ms0: or flash0: */
     size_t rlen = strlen(root);
     if (rlen > 0 && root[rlen-1] != '/' && root[rlen-1] != ':') {
-        snprintf(out, cap, "%s/PSP/SAVEDATA/%s", root, gameid);
+        snprintf(out, cap, "%.31s/PSP/SAVEDATA/%.13s", root, gameid);
     } else {
-        snprintf(out, cap, "%sPSP/SAVEDATA/%s", root, gameid);
+        snprintf(out, cap, "%.31sPSP/SAVEDATA/%.13s", root, gameid);
     }
     return 0;
 }
@@ -166,7 +146,7 @@ static int l_save(lua_State *L)
     int mode           = (int)luaL_optinteger(L, 6, 0);
 
     if (!valid_gameid(gameid) || strlen(title) > SAVE_TITLE_MAX ||
-        strlen(desc) > SAVE_DES_MAX)
+        strlen(sub) > SAVE_SUB_MAX || strlen(desc) > SAVE_DES_MAX)
     { lua_pushboolean(L, 0); return 1; }
 
     char body[SAVE_BODY_MAX + 1];
@@ -229,7 +209,7 @@ static int l_load(lua_State *L)
         return 1;
     }
 
-    /* dialog mode: most recently used slot, scanning 5..1 then autosave */
+    /* dialog mode: highest-numbered populated slot, then autosave */
     for (int i = SLOTS; i >= 1; i--) {
         snprintf(slot, sizeof(slot), "%s/SLOT%d", dir, i);
         if (load_file(slot, body, sizeof(body)) == 0)

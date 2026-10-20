@@ -36,7 +36,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 245 C checks + 151 Lua assertions
+bash test/host/run.sh              # 245 C checks + 153 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 

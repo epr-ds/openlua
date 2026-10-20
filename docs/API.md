@@ -214,7 +214,8 @@ data.load(gameid, mode)
 data.delete(gameid)
 ```
 
-- `mode = 0` — slot dialog semantics (`SLOT1..SLOT5`), first free slot on save.
+- `mode = 0` — slot dialog semantics (`SLOT1..SLOT5`); save uses the first
+  free slot and load uses the highest-numbered populated slot, then autosave.
 - `mode = 1` — autosave slot (`AUTOSAVE`).
 - Payload is capped at 256 bytes.
 - `gameid` is 1..13 characters from `A-Z`, `a-z`, `0-9`, `-` and `_`;

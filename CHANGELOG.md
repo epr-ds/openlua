@@ -46,8 +46,9 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   updates the cached cwd, `mkdir_p` creates absolute chains and accepts existing
   directories, and directory listings reject names/paths that do not fit instead
   of truncating them (#22).
-- Savedata game IDs are limited to 13 safe characters and reject path
-  separators/traversal sequences (#24, #28).
+- Savedata now creates and probes `PSP/SAVEDATA` before writing, rejects unsafe
+  game IDs and overlong subtitles, documents the highest-numbered-slot load
+  semantics, and drops the unused local `mkdir_p` helper (#24, #28).
 - PSP link order no longer triggers `psp-fixup-imports` stub warnings (#6).
 - Documentation no longer claims unimplemented APIs are complete.
 

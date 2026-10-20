@@ -25,6 +25,9 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Frame clear now happens after the buffer swap, so the presented frame is no
   longer cleared (#19).
 - `image.blit` accepts a source rectangle without an explicit alpha argument.
+- Timer elapsed values are non-negative and monotonic, `stoptime()` is stable,
+  `timers.new(initial_ms)` and `reset(initial_ms)` apply their offset, and timer
+  methods are exposed through `__index` (#21).
 - PSP link order no longer triggers `psp-fixup-imports` stub warnings (#6).
 - Documentation no longer claims unimplemented APIs are complete.
 

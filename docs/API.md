@@ -136,17 +136,18 @@ Global constants: `__SELECT`, `__START`, `__UP`, `__DOWN`, `__LEFT`,
 ## timers
 
 ```lua
-local t = timers.new()      -- optional initial ms is currently ignored (#21)
+local t = timers.new(1000)  -- start with a 1-second offset
 t:start()
 local elapsed = t:time()    -- milliseconds
 local total   = t:stoptime()
-t:reset()
+t:reset(500)                -- restart at 500 ms
 ```
 
 Methods: `start`, `time`, `gettime`, `stoptime`, `reset`, `startreset`.
-There is no `timers.start(t)` function; use the method form.
-
-> Elapsed values are currently negative because of an operand-order bug (#21).
+`time`/`gettime` return elapsed milliseconds; `stoptime` freezes the value
+and returns the same result on repeated calls. `start` and `reset` restart the
+timer and return its new value. There is no `timers.start(t)` function; use the
+method form.
 
 ## sound
 

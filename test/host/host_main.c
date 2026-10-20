@@ -11,6 +11,7 @@
 #include "engine/fs/files.h"
 #include "engine/fs/ini.h"
 #include "engine/sys/savedata.h"
+#include "engine/util/timers.h"
 
 int main(int argc, char **argv)
 {
@@ -26,6 +27,7 @@ int main(int argc, char **argv)
     files_api_register(L);
     ini_api_register(L);
     savedata_api_register(L);
+    timers_api_register(L);
 
     if (luaL_dofile(L, argv[1]) != 0)
     {

@@ -42,8 +42,8 @@ Only the storage layer is PSP-free today:
 bash test/host/run.sh
 ```
 
-Expected: `transform: 144 checks, 0 failed` followed by
-`RESULT: 46 passed, 0 failed`.
+Expected: `transform: 144 checks, 0 failed`, then `RESULT: 46 passed, 0 failed`,
+then `RESULT: 21 passed, 0 failed` for the timer tests.
 
 Repository hygiene check:
 
@@ -55,11 +55,12 @@ This fails if `*.o`, `*.elf`, `*.pbp`, `EBOOT.PBP`, `PARAM.SFO` or an AppImage
 is tracked.
 
 The script builds Lua 5.1 from `third_party/lua/src`, links
-`engine/core/olreg.c`, `engine/fs/*`, and `engine/sys/savedata.c`, then runs
-`test/host/test_phase3.lua` in `out/`.
+`engine/core/olreg.c`, `engine/fs/*`, `engine/sys/savedata.c`, and
+`engine/util/timers.c`, then runs `test_phase3.lua` and `test_timers.lua` in
+`out/`.
 
-Adding coverage for timers, maps, sound parsing and transform math is tracked
-in #28.
+Remaining coverage for maps, sound parsing and savedata traversal is tracked in
+#28.
 
 ## Project layout
 
@@ -144,7 +145,6 @@ can change relative asset paths. Keep assets relative to the app directory.
 | Blank frame after `screen.flip()` | Frame clear/swap ordering (#19) |
 | Garbled scaled sprite | Wrong stride or non-power-of-two upload (#20) |
 | `attempt to index ... (userdata)` | Image has no `__index`; use `image.foo(img)` (#27) |
-| Negative timer value | Operand order in `timers.c` (#21) |
 | Save not found on PSP | Save root probe did not create the directory (#24) |
 | Audio silent on a chosen channel | Channel was not reserved (#25) |
 

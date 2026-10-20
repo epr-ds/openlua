@@ -35,7 +35,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # transform checks + 46 Lua assertions
+bash test/host/run.sh              # transform + 67 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -148,7 +148,7 @@ host tests and debugging.
 | `image` | `load`, `new`, `blit`, `blitsprite`, `fliph`, `flipv`, transforms | Implemented; [#19]/[#20] fixed in code, [#27] partial |
 | `draw` | `line`, `rect`, `fillrect`, `circle` | `gradrect` pending |
 | `buttons` | `read` + button constants | `waitforkey`/`interval` pending |
-| `timers` | `timers.new()` + methods | Fix [#21] |
+| `timers` | `timers.new([initial_ms])` + methods | Implemented; host-tested ([#21]) |
 | `font` / `sfont` | `font.new`, `print`, `textwidth` | SFont PNG sheets |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; fix [#25] |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |

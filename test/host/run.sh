@@ -30,8 +30,10 @@ gcc -O2 -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/fs/files.c" \
     "$ROOT/engine/fs/ini.c" \
     "$ROOT/engine/sys/savedata.c" \
+    "$ROOT/engine/util/timers.c" \
     "${OBJS[@]}" \
     -lm -o "$BUILD/host_test"
 
 rm -rf "$BUILD"/t3work "$BUILD"/PSP; cd "$BUILD"
-exec ./host_test "$ROOT/test/host/test_phase3.lua"
+./host_test "$ROOT/test/host/test_phase3.lua"
+./host_test "$ROOT/test/host/test_timers.lua"

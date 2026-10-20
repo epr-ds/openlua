@@ -36,14 +36,15 @@ make clean
 
 ## Host tests
 
-Only the storage layer is PSP-free today:
+Host-testable pieces (VFS, timers, transform math, Lua modules):
 
 ```bash
 bash test/host/run.sh
 ```
 
-Expected: `transform: 144 checks, 0 failed`, then `RESULT: 46 passed, 0 failed`,
-then `RESULT: 21 passed, 0 failed` for the timer tests.
+Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`, then
+`RESULT: 46 passed, 0 failed`, then `RESULT: 21 passed, 0 failed` for the timer
+tests.
 
 Repository hygiene check:
 
@@ -54,7 +55,8 @@ bash tools/check_repo_hygiene.sh
 This fails if `*.o`, `*.elf`, `*.pbp`, `EBOOT.PBP`, `PARAM.SFO` or an AppImage
 is tracked.
 
-The script builds Lua 5.1 from `third_party/lua/src`, links
+The script compiles `engine/fs/olfs.c` with `-Wall -Wextra -Werror` and runs
+`test_olfs.c`, builds Lua 5.1 from `third_party/lua/src`, links
 `engine/core/olreg.c`, `engine/fs/*`, `engine/sys/savedata.c`, and
 `engine/util/timers.c`, then runs `test_phase3.lua` and `test_timers.lua` in
 `out/`.

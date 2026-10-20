@@ -6,8 +6,15 @@ BUILD="$ROOT/out"
 mkdir -p "$BUILD"
 
 LUASRC="$ROOT/third_party/lua/src"
+HOST_CFLAGS=(-O2 -Wall -Wextra -Werror)
 
-gcc -O2 -I"$ROOT" \
+gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
+    "$ROOT/engine/fs/olfs.c" \
+    "$ROOT/test/host/test_olfs.c" \
+    -o "$BUILD/olfs_test"
+"$BUILD/olfs_test"
+
+gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     "$ROOT/engine/gfx/transform.c" \
     "$ROOT/test/host/test_transform.c" \
     -lm -o "$BUILD/transform_test"
@@ -24,7 +31,7 @@ for f in $CORE; do
     OBJS+=("$BUILD/$f.o")
 done
 
-gcc -O2 -I"$LUASRC" -I"$ROOT" \
+gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/host_main.c" \
     "$ROOT/engine/core/olreg.c" "$ROOT/engine/fs/olfs.c" \
     "$ROOT/engine/fs/files.c" \

@@ -35,7 +35,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # transform + 67 Lua assertions
+bash test/host/run.sh              # FS/path + transform + 67 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -77,7 +77,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Sound (WAV/VMA) | Implemented; channel fix [#25] |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
-| Files / INI / Savedata | Implemented; hardening [#22]–[#24] |
+| Files / INI / Savedata | Implemented; hardening [#23]–[#24] |
 | Tilemaps | Implemented; lifetime fix [#26] |
 | Renderer correctness | Fixed in code; device verification [#19], [#20] |
 | JSON | Planned ([#30]) |

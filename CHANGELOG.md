@@ -28,6 +28,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Timer elapsed values are non-negative and monotonic, `stoptime()` is stable,
   `timers.new(initial_ms)` and `reset(initial_ms)` apply their offset, and timer
   methods are exposed through `__index` (#21).
+- Portable FS cwd copies respect the destination cap, absolute PSP `chdir`
+  updates the cached cwd, `mkdir_p` creates absolute chains and accepts existing
+  directories, and directory listings reject names/paths that do not fit instead
+  of truncating them (#22).
 - PSP link order no longer triggers `psp-fixup-imports` stub warnings (#6).
 - Documentation no longer claims unimplemented APIs are complete.
 

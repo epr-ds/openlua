@@ -27,6 +27,25 @@
 #include <unistd.h>
 #endif
 
+static int fill_entry_path(OLEntry *e, const char *dir, const char *name)
+{
+    size_t dlen = strlen(dir);
+    size_t nlen = strlen(name);
+    int sep = dlen > 0 && dir[dlen - 1] != '/';
+
+    if (nlen >= sizeof(e->name))
+        return -1;
+    if (dlen + (size_t)sep + nlen + 1 > sizeof(e->path))
+        return -1;
+
+    memcpy(e->name, name, nlen + 1);
+    memcpy(e->path, dir, dlen);
+    if (sep)
+        e->path[dlen++] = '/';
+    memcpy(e->path + dlen, name, nlen + 1);
+    return 0;
+}
+
 /* =============================================================== PSP === */
 #if defined(__PSP__)
 
@@ -77,26 +96,35 @@ int olfs_mkdir_p(const char *path)
 {
     char buf[512];
     size_t len;
+    const char *colon;
 
     len = strlen(path);
     if (len == 0 || len >= sizeof(buf))
         return -1;
-    if (path[0] == '/')
-        return 0;                       /* absolute: nothing to create  */
-    if (memchr(path, ':', len)) {
-        if (strchr(strchr(path, ':') + 1, '/') == NULL)
-            return 0;                  /* "ms0:" alone                 */
-    }
+    if (path[0] == '/' && path[1] == 0)
+        return 0;
+    colon = strchr(path, ':');
+    if (colon && (colon[1] == 0 ||
+                  (colon[1] == '/' && colon[2] == 0)))
+        return 0;
 
     memcpy(buf, path, len + 1);
-    for (char *p = buf + 1; *p; p++) {
+    char *p = buf + 1;
+    if (colon) {
+        p = buf + (colon - path) + 1;
+        if (*p == '/')
+            p++;
+    }
+    for (; *p; p++) {
         if (*p == '/') {
             *p = 0;
             olfs_mkdir(buf);           /* best effort; parent first    */
             *p = '/';
         }
     }
-    return olfs_mkdir(buf);
+    if (olfs_mkdir(buf) == 0)
+        return 0;
+    return olfs_isdir(buf) ? 0 : -1;
 }
 
 static int olfs_rdelete(const char *path)
@@ -176,9 +204,10 @@ int olfs_list(const char *dir, OLEntry *out, int n, int *outn, int *trunc)
         if (!strcmp(d.d_name, ".") || !strcmp(d.d_name, ".."))
             continue;
         memset(&out[i], 0, sizeof(out[i]));
-        strncpy(out[i].name, d.d_name, sizeof(out[i].name) - 1);
-        out[i].name[sizeof(out[i].name) - 1] = '\0';
-        snprintf(out[i].path, sizeof(out[i].path), "%s/%s", dir, out[i].name);
+        if (fill_entry_path(&out[i], dir, d.d_name) != 0) {
+            if (trunc) *trunc = 1;
+            continue;
+        }
         out[i].is_dir     = FIO_S_ISDIR(d.d_stat.st_attr);
         out[i].size       = out[i].is_dir ? 0 : (long)d.d_stat.st_size;
         out[i].attr       = d.d_stat.st_attr;
@@ -197,17 +226,35 @@ static char s_cwd[256] = "app0:/";
 
 int olfs_cwd(char *buf, unsigned int cap)
 {
-    if (cap < strlen(s_cwd) + 1)
+    size_t len;
+
+    if (!buf || cap == 0)
         return -1;
-    memcpy(buf, s_cwd, sizeof(s_cwd));
+    len = strlen(s_cwd);
+    if (len + 1 > cap)
+        return -1;
+    memcpy(buf, s_cwd, len + 1);
     return 0;
 }
 
 int olfs_chdir(const char *path)
 {
     int r = sceIoChdir(path);
-    if (r == 0 && path[0] != '/')
-        snprintf(s_cwd, sizeof(s_cwd), "%s", path);
+    if (r == 0) {
+        if (path[0] == '/' || strchr(path, ':')) {
+            snprintf(s_cwd, sizeof(s_cwd), "%s", path);
+        } else {
+            size_t cur = strlen(s_cwd);
+            int sep = cur > 0 && s_cwd[cur - 1] != '/';
+            if (cur + (size_t)sep + strlen(path) >= sizeof(s_cwd)) {
+                s_cwd[0] = 0;
+            } else {
+                if (sep)
+                    s_cwd[cur++] = '/';
+                memcpy(s_cwd + cur, path, strlen(path) + 1);
+            }
+        }
+    }
     return r;
 }
 
@@ -269,7 +316,7 @@ int olfs_mkdir_p(const char *path)
     }
     rc = mkdir(buf, 0755);
     if (rc != 0 && errno == EEXIST)
-        return 0;             /* dir already exists — success */
+        return olfs_isdir(buf) ? 0 : -1;
     return rc == 0 ? 0 : -1;
 }
 
@@ -346,8 +393,10 @@ int olfs_list(const char *dir, OLEntry *out, int n, int *outn, int *trunc)
         if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, ".."))
             continue;
         memset(&out[i], 0, sizeof(out[i]));
-        snprintf(out[i].name, sizeof(out[i].name), "%s", e->d_name);
-        snprintf(out[i].path, sizeof(out[i].path), "%s/%s", dir, e->d_name);
+        if (fill_entry_path(&out[i], dir, e->d_name) != 0) {
+            if (trunc) *trunc = 1;
+            continue;
+        }
         struct stat st;
         if (stat(out[i].path, &st) == 0) {
             out[i].is_dir = S_ISDIR(st.st_mode);
@@ -361,7 +410,8 @@ int olfs_list(const char *dir, OLEntry *out, int n, int *outn, int *trunc)
             if (trunc) *trunc = 1;
 
     closedir(d);
-    qsort(out, (size_t)i, sizeof(OLEntry), cmp_entry);
+    if (i > 1)
+        qsort(out, (size_t)i, sizeof(OLEntry), cmp_entry);
     if (outn) *outn = i;
     return 0;
 }
@@ -370,6 +420,8 @@ static char s_cwd[512] = "";
 
 int olfs_cwd(char *buf, unsigned int cap)
 {
+    if (!buf || cap == 0)
+        return -1;
     if (!getcwd(s_cwd, sizeof(s_cwd)))
         return -1;
     if (cap < strlen(s_cwd) + 1)
@@ -384,7 +436,7 @@ int olfs_chdir(const char *path)
     if (r == 0) {
         char b[512];
         if (getcwd(b, sizeof(b)))
-            memcpy(s_cwd, b, sizeof(s_cwd));
+            memcpy(s_cwd, b, strlen(b) + 1);
     }
     return r;
 }

@@ -10,7 +10,7 @@ This document explains the phases and maps the remaining work to issues.
 | **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed, verification pending |
 | **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; sound bug #25, API polish #27 |
 | **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps done (#4, #26); PMF pending (#5) |
-| **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #22–#24 |
+| **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #23–#24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
 | **S6: Testing + Polish** | Boot/verify, renderer, tests, docs | **Current focus** |
 | **3.5: Data + Platform** | JSON module, PSP Go support | Planned (#30, #31) |
@@ -51,7 +51,6 @@ correctly, host tests cover the storage and timer fixes, and CI is green.
 - #5 PMF/MP4 decode and playback
 
 ### Storage and data
-- #22 portable FS hardening (`olfs_cwd`, listing)
 - #23 INI middle-section insertion
 - #24 savedata root probing and game-id validation
 - #26 map tileset lifetime and finalizer

@@ -128,9 +128,9 @@ On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
 ## Host testing
 
 The PSP headers keep most graphics/input code out of host builds. The Phase-3
-storage layer, `engine/core/olreg.c`, and the Lua sources do compile on the
-host. `test/host/run.sh` builds and runs the pure transform tests, then a small Lua
-host binary and `test/host/test_phase3.lua`.
+storage layer, timers, transform math, `engine/core/olreg.c`, and the Lua sources
+compile on the host. `test/host/run.sh` runs the OLFS path/cwd tests and transform
+tests, then a small Lua host binary with `test_phase3.lua` and `test_timers.lua`.
 
 Expanding this coverage and adding CI is tracked in **#28**.
 

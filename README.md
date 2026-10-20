@@ -138,9 +138,11 @@ bash docker/build.sh clean
 bash docker/build.sh
 ```
 
-Requirements: Docker and the `pspdev/pspdev:latest` image. See
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for a local toolchain build,
-host tests and debugging.
+Requirements: Docker and the `pspdev/pspdev:latest` image. The first run builds
+a local `openlua-pspdev:local` builder image with `ccache`; later builds reuse
+compiled objects from `docker/.cache/ccache` (git-ignored). Set `JOBS=8` to
+override the parallel job count. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+for a local toolchain build, host tests and debugging.
 
 ## OneLua compatibility
 

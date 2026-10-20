@@ -6,18 +6,35 @@
 - `gcc`, `make` and `bash` for the host tests.
 - Python 3 for asset generators.
 
-The container image used by the build script is `pspdev/pspdev:latest`.
+The build script uses `pspdev/pspdev:latest` through a local
+`openlua-pspdev:local` builder image that adds `ccache`.
 
 ## Build
 
 ```bash
-# Standard build (Docker)
+# Standard incremental build (Docker)
 bash docker/build.sh
 
 # Clean rebuild; run the two steps separately
 bash docker/build.sh clean
 bash docker/build.sh
 ```
+
+The first build creates the builder image and populates
+`docker/.cache/ccache`; subsequent builds, including clean rebuilds, reuse
+cached compiler output. The cache directory is git-ignored and can be deleted
+at any time with `rm -rf docker/.cache/ccache`.
+
+Environment overrides:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `JOBS` | detected CPU count | Parallel `make` jobs |
+| `PSPDEV_IMAGE` | `pspdev/pspdev:latest` | Base toolchain image |
+| `OPENLUA_BUILDER_IMAGE` | `openlua-pspdev:local` | Cached builder image tag |
+
+When not running as root, the container uses the current user ID so generated
+objects and `EBOOT.PBP` stay owned by you.
 
 Outputs:
 

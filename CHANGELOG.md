@@ -18,6 +18,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Runnable demos under `demos/` with shared assets under `assets/`.
 
 ### Changed
+- Docker builds now use a local builder image with `ccache`, run `make` with
+  the host CPU count by default, and keep generated files owned by the
+  invoking user. The compiler cache lives in git-ignored
+  `docker/.cache/ccache`; CI restores and saves the same cache (#8).
 - Documentation split into a navigable `docs/` set; stale design notes moved
   to `docs/archive/`.
 - Demo and asset paths consolidated; generators now default to `assets/`.

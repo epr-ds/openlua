@@ -6,6 +6,7 @@ EBOOT.PBP
 PARAM.SFO
 *.pbp
 openlua_strip.elf
+out/
 
 # IDE
 .vscode/
@@ -17,16 +18,21 @@ openlua_strip.elf
 # Docker cache
 docker/.cache/
 
-# Generated assets
+# Generated demo output
 demos/*/output.png
 demos/*/script.lua
 test_hello/script.lua
 
 # Logs
 *.log
-engine/core/main.o
-EBOOT.PBP
-openlua.elf
-EBOOT.PBP
-openlua.elf
-**/*.o
+openlua.log
+
+# Local emulator mounts
+flash0/
+ms0/
+
+# Tool binaries
+*.AppImage
+
+# OS files
+.DS_Store

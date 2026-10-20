@@ -40,18 +40,20 @@ screen.print(20, 20, "Hello PSP")
 
 ## image
 
-`image` values are surfaces. Use the module-call form: `image.getw(img)`.
-There are currently no `img:method()` methods (#27).
+`image` values are surfaces. Instance functions accept either the module-call
+form (`image.getw(img)`) or the method form (`img:getw()`). Both are equivalent;
+the module-call form is used in older examples.
 
 ### Loading and creating
 
 | Function | Description |
 |---|---|
-| `image.load(path [, frameW, frameH [, mask]])` | Decode PNG/JPEG/BMP/GIF. With `frameW`/`frameH` the sheet is split into a grid. With a 2nd argument only, that value is a transparency mask colour. Raises on failure. |
+| `image.load(path [, mask])` | Decode PNG/JPEG/BMP/GIF with an optional transparency mask colour. Raises on failure. |
+| `image.load(path, frameW, frameH [, mask])` | Decode and split the image into a `frameW` x `frameH` sprite grid, with an optional mask. Raises on failure. |
 | `image.loadv(path [, ...])` | Alias for `image.load`. |
 | `image.new(w, h [, color])` | Create a blank surface, optionally filled. |
 | `image.copy(img)` | Clone a surface. |
-| `image.save(img, path)` | Write a PNG. Return value is currently ignored. |
+| `image.save(img, path)` | Write a PNG; returns `true` or raises on failure. |
 
 ### Drawing
 
@@ -74,8 +76,8 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 
 | Function | Description |
 |---|---|
-| `image.fliph(img [, set])` | Set horizontal flip; omit `set` to toggle. |
-| `image.flipv(img [, set])` | Set vertical flip; omit `set` to toggle. |
+| `image.fliph(img [, set])` | Set horizontal flip; omit `set` to toggle. `flipx` is an alias. |
+| `image.flipv(img [, set])` | Set vertical flip; omit `set` to toggle. `flipy` is an alias. |
 | `image.rotate(img, degrees)` | Rotation in degrees. |
 | `image.scale(img [, uniform])` | Set uniform scale. |
 | `image.scale(img, sx, sy)` | Set per-axis scale. |
@@ -108,7 +110,7 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 
 | Function | Description |
 |---|---|
-| `font.new(path, cellW, cellH)` | Load an SFont PNG sheet. Returns a handle or nil. |
+| `font.new(path, cellW, cellH)` | Load an SFont PNG sheet. Returns a handle or nil. `font.load` is an alias. |
 | `font.nchars(handle)` | Number of glyphs in the sheet. |
 | `font.cell(handle)` | Returns `cellW, cellH`. |
 | `font.draw(handle, x, y, code [, tint])` | Draw one ASCII code. |
@@ -256,8 +258,4 @@ required (#26).
 
 | Area | Current behaviour | Tracking |
 |---|---|---|
-| Image methods | Module-call only, no `img:method()` | #27 |
-| Flip names | `fliph`/`flipv` (docs elsewhere say `flipx`/`flipy`) | #27 |
-| Timers | Negative elapsed time; initial ms ignored | #21 |
 | Transforms | Fixed in code; pending PSP/PPSSPP device verification | #19, #20 |
-| Map lifetime | Tileset is borrowed, not anchored | #26 |

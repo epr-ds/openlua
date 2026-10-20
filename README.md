@@ -65,7 +65,7 @@ while true do
 end
 ```
 
-Use the module-call form for images: `image.getw(img)`, not `img:getw()`.
+Image instance functions work in both forms: `image.getw(img)` and `img:getw()`.
 See [docs/API.md](docs/API.md) for every function and its current caveats.
 
 ## Status
@@ -146,11 +146,11 @@ host tests and debugging.
 | OneLua module | OpenLua | Notes |
 |---|---|---|
 | `screen` | `clear`, `flip`, `print`, `font`, `setcolor`, `textwidth` | Implemented |
-| `image` | `load`, `new`, `blit`, `blitsprite`, `fliph`, `flipv`, transforms | Implemented; [#19]/[#20] fixed in code, [#27] partial |
+| `image` | `load`, `new`, `blit`, `blitsprite`, `fliph`, `flipv`, transforms | Implemented; method + module-call forms; [#19]/[#20] device pending |
 | `draw` | `line`, `rect`, `fillrect`, `circle` | `gradrect` pending |
 | `buttons` | `read` + button constants | `waitforkey`/`interval` pending |
 | `timers` | `timers.new([initial_ms])` + methods | Implemented; host-tested ([#21]) |
-| `font` / `sfont` | `font.new`, `print`, `textwidth` | SFont PNG sheets |
+| `font` / `sfont` | `font.new`/`font.load`, `print`, `textwidth` | SFont PNG sheets |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |

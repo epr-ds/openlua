@@ -8,7 +8,7 @@ This document explains the phases and maps the remaining work to issues.
 | Phase | Scope | State |
 |---|---|---|
 | **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed, verification pending |
-| **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; host-tested (#25), API polish #27 |
+| **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; host-tested (#25) |
 | **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps host-tested (#4, #26); PMF pending (#5) |
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
@@ -43,7 +43,6 @@ correctly, host tests cover the milestone regressions, and CI is green.
 ### Renderer and assets
 - #19 frame clear/swap/depth ordering
 - #20 scaled/tinted/rotated blits and buffer lifetime
-- #27 image userdata methods + naming consistency
 
 ### Audio
 - #5 PMF/MP4 decode and playback
@@ -92,4 +91,4 @@ labels. The board README lists the provisioned views (`Board by Status`,
 2. Safety and data-loss bugs (#22–#26).
 3. Device verification (#7).
 4. New capabilities (#30, #31, #5).
-5. Polish and documentation (#27, #29, #8).
+5. Polish and documentation (#29, #8).

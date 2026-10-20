@@ -371,6 +371,7 @@ static int l_screen_textwidth(lua_State *L)
 
 static const luaL_Reg font_funcs[] = {
     { "new",          l_font_new },
+    { "load",         l_font_new },
     { "nchars",       l_font_nchars },
     { "cell",         l_font_cell },
     { "draw",         l_font_draw },

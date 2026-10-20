@@ -145,7 +145,6 @@ can change relative asset paths. Keep assets relative to the app directory.
 |---|---|
 | Blank frame after `screen.flip()` | Frame clear/swap ordering (#19) |
 | Garbled scaled sprite | Wrong stride or non-power-of-two upload (#20) |
-| `attempt to index ... (userdata)` | Image has no `__index`; use `image.foo(img)` (#27) |
 | Save not found on PSP | Save root probe did not create the directory (#24) |
 
 ## PSP Go notes

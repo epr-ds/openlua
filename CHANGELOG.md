@@ -52,6 +52,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Maps anchor their tileset through the Lua registry until `map.free`, validate
   every map cell before allocating, and no longer leak a partial map when a row
   is malformed; explicit `map.free` ownership is documented (#26).
+- Image userdata now expose instance methods through `__index`, so `img:getw()`
+  and other method calls work alongside `image.getw(img)`. Added `flipx`/`flipy`
+  aliases, a `font.load` alias, clearer `image.load` argument forms, and
+  `image.save` now reports write failures (#27).
 - PSP link order no longer triggers `psp-fixup-imports` stub warnings (#6).
 - Documentation no longer claims unimplemented APIs are complete.
 

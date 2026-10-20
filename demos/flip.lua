@@ -37,8 +37,8 @@ while true do
     image.blit(img, 80, 80, 64, 0, 64, 64, 255)
     image.blit(img, 152, 80, 128, 0, 64, 64, 255)
 
-    -- Whole sheet (module-call form; image userdata has no methods, see #27).
-    image.blit(img, 8, 160, 0, 0, image.getw(img), image.geth(img), 255)
+    -- Whole sheet using the method form; module-call form also works.
+    img:blit(8, 160, 0, 0, img:getw(), img:geth(), 255)
 
     screen.flip()
 end

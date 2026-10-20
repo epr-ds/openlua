@@ -332,9 +332,12 @@ static int l_save(lua_State *L)
         memcpy(flat + (size_t)y * s->w * 4,
                &s->pixels[y * s->realW], (size_t)s->w * 4);
     }
-    stbi_write_png(path, s->w, s->h, 4, flat, s->w * 4);
+    int ok = stbi_write_png(path, s->w, s->h, 4, flat, s->w * 4);
     free(flat);
-    return 0;
+    if (!ok)
+        return luaL_error(L, "image.save: cannot write '%s'", path);
+    lua_pushboolean(L, 1);
+    return 1;
 }
 
 static int gc_image(lua_State *L)
@@ -355,6 +358,33 @@ static const luaL_Reg image_funcs[] = {
     { "blitsprite",  l_blitsprite },
     { "fliph",       l_fliph },
     { "flipv",       l_flipv },
+    { "flipx",       l_fliph },
+    { "flipy",       l_flipv },
+    { "getw",        l_getw },
+    { "geth",        l_geth },
+    { "getrealw",    l_getrealw },
+    { "getrealh",    l_getrealh },
+    { "center",      l_center },
+    { "rotate",      l_rotate },
+    { "scale",       l_scale },
+    { "zindex",      l_zindex },
+    { "tint",        l_tint },
+    { "pivot",       l_pivot },
+    { "reset",       l_reset },
+    { "copy",        l_copy },
+    { "clear",       l_clear },
+    { "pixel",       l_pixel },
+    { "save",        l_save },
+    { NULL, NULL }
+};
+
+static const luaL_Reg image_methods[] = {
+    { "blit",        l_blit },
+    { "blitsprite",  l_blitsprite },
+    { "fliph",       l_fliph },
+    { "flipv",       l_flipv },
+    { "flipx",       l_fliph },
+    { "flipy",       l_flipv },
     { "getw",        l_getw },
     { "geth",        l_geth },
     { "getrealw",    l_getrealw },
@@ -382,6 +412,11 @@ void image_api_register(lua_State *L)
 {
     luaL_newmetatable(L, OL_IMAGE);
     ol_setfuncs(L, image_meta);
+    lua_newtable(L);
+    ol_setfuncs(L, image_methods);
+    lua_setfield(L, -2, "__index");
+    lua_pop(L, 1);
+
     lua_newtable(L);
     ol_setfuncs(L, image_funcs);
     lua_setglobal(L, "image");

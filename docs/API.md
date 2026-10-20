@@ -202,7 +202,8 @@ ini.write(path, section, key, value)
 ```
 
 Text INI with `[section]` headers and `key = value` lines. Writes are
-section-aware; the non-final-section bug is tracked in #23.
+section-aware, sectionless keys stay before the first header, and file updates
+use a temp file with an atomic move plus a backup fallback.
 
 ## data / savedata
 

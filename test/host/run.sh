@@ -44,3 +44,4 @@ gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
 rm -rf "$BUILD"/t3work "$BUILD"/PSP; cd "$BUILD"
 ./host_test "$ROOT/test/host/test_phase3.lua"
 ./host_test "$ROOT/test/host/test_timers.lua"
+./host_test "$ROOT/test/host/test_ini.lua"

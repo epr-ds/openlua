@@ -15,7 +15,6 @@
 
 #define INI_MAX_LINE   512        /* max chars per line */
 #define INI_MAX_FILE   (256 * 1024)   /* read cap (sanity bound) */
-#define INI_MAX_LINES  4096       /* line count ceiling */
 #define NO_SECTION     ""
 
 /* ------------------------------------------------------------------ */
@@ -62,17 +61,18 @@ static int ini_find(const char *text, const char *section,
                     const char *key, char *out, size_t out_len)
 {
     const char *cursor = text;
-    int in_section = 0;
+    int in_section = section[0] == 0;
 
     while (*cursor) {
         char line[INI_MAX_LINE];
         const char *nl = strchr(cursor, '\n');
-        size_t len = nl ? (size_t)(nl - cursor) : strlen(cursor);
+        size_t raw_len = nl ? (size_t)(nl - cursor) : strlen(cursor);
+        size_t len = raw_len;
         if (len >= sizeof(line))
             len = sizeof(line) - 1;
         memcpy(line, cursor, len);
         line[len] = 0;
-        cursor = nl ? nl + 1 : cursor + len;
+        cursor = nl ? nl + 1 : cursor + raw_len;
 
         char *t = trim(line);
         if (!*t || *t == ';' || *t == '#')
@@ -130,85 +130,162 @@ static int ini_line_kind(char *line, char *name_or_key, char *value)
     return 0;
 }
 
+typedef struct {
+    const char *ptr;
+    size_t len;
+} IniSpan;
+
+static int next_span(const char **cursor, IniSpan *line)
+{
+    const char *p = *cursor;
+    if (!*p)
+        return 0;
+    const char *nl = strchr(p, '\n');
+    line->ptr = p;
+    line->len = nl ? (size_t)(nl - p) : strlen(p);
+    *cursor = nl ? nl + 1 : p + line->len;
+    return 1;
+}
+
+static void span_work(const IniSpan *line, char *work, size_t cap)
+{
+    size_t len = line->len;
+    if (len >= cap)
+        len = cap - 1;
+    memcpy(work, line->ptr, len);
+    work[len] = 0;
+}
+
+static int replace_file(const char *tmp, const char *path)
+{
+    char backup[512];
+
+    if (olfs_move(tmp, path) == 0)
+        return 0;
+    if (!olfs_exists(path)) {
+        olfs_delete(tmp);
+        return -1;
+    }
+    if (strlen(path) + sizeof(".~olbak") > sizeof(backup)) {
+        olfs_delete(tmp);
+        return -1;
+    }
+    snprintf(backup, sizeof(backup), "%s.~olbak", path);
+    if (olfs_exists(backup))
+        olfs_delete(backup);
+    if (olfs_move(path, backup) != 0) {
+        olfs_delete(tmp);
+        return -1;
+    }
+    if (olfs_move(tmp, path) != 0) {
+        olfs_move(backup, path);       /* restore the original         */
+        olfs_delete(tmp);
+        return -1;
+    }
+    olfs_delete(backup);
+    return 0;
+}
+
 static int ini_set_value(const char *path, const char *section,
                          const char *key, const char *value)
 {
     char tmp[512];
+    const char *cursor;
+    IniSpan line;
+    int first_header = -1;
+    int sec_start = -1, sec_end = -1;
+    int replaced_at = -1, prefix_key = -1;
+    int nlines = 0;
+
+    if (strlen(path) + sizeof(".~oltmp") > sizeof(tmp))
+        return -1;
     snprintf(tmp, sizeof(tmp), "%s.~oltmp", path);
 
-    long size = 0;
-    char *text = read_inf(path, &size);     /* NULL is fine: new file   */
-    if (!text)
-        text = malloc(1), text[0] = 0;
-
-    /* 1. split into lines (kept verbatim) */
-    static char lines[INI_MAX_LINES][INI_MAX_LINE];
-    int nlines = 0;
-    {
-        const char *cursor = text;
-        while (*cursor && nlines < INI_MAX_LINES) {
-            const char *nl = strchr(cursor, '\n');
-            size_t len = nl ? (size_t)(nl - cursor) : strlen(cursor);
-            if (len >= INI_MAX_LINE) len = INI_MAX_LINE - 1;
-            memcpy(lines[nlines], cursor, len);
-            lines[nlines][len] = 0;
-            nlines++;
-            cursor = nl ? nl + 1 : cursor + len;
-        }
-        if (*cursor)                       /* file too long             */
-        { free(text); return -1; }
+    char *text = read_inf(path, NULL);
+    if (!text) {
+        if (olfs_exists(path))
+            return -1;                 /* unreadable or over the cap   */
+        text = malloc(1);
+        if (!text)
+            return -1;
+        text[0] = 0;
     }
 
-    /* 2. locate the section's range and an existing key inside it */
-    int sec_start = -1, sec_end = -1;
-    int replaced_at = -1;
-    for (int i = 0; i < nlines; i++) {
-        char name_buf[128];
+    /* Pass 1: find the requested section, an existing key and insertion point. */
+    cursor = text;
+    while (next_span(&cursor, &line)) {
         char work[INI_MAX_LINE];
-        strncpy(work, lines[i], sizeof(work) - 1);
-        work[sizeof(work) - 1] = '\0';
-        int kind = ini_line_kind(work, name_buf, NULL);
+        char name[128];
+
+        span_work(&line, work, sizeof(work));
+        int kind = ini_line_kind(work, name, NULL);
         if (kind == 1) {
-            if (sec_start >= 0)
-                sec_end = i;               /* previous section closed  */
-            if (strcmp(name_buf, section) == 0)
-                sec_start = i;
+            if (first_header < 0)
+                first_header = nlines;
+            if (sec_start >= 0 && sec_end < 0)
+                sec_end = nlines;
+            if (sec_start < 0 && strcmp(name, section) == 0)
+                sec_start = nlines;
+        } else if (kind == 0) {
+            if (sec_start >= 0) {
+                if ((sec_end < 0 || nlines < sec_end) &&
+                    replaced_at < 0 && strcmp(name, key) == 0)
+                    replaced_at = nlines;
+            } else if (section[0] == 0 && first_header < 0 &&
+                       prefix_key < 0 && strcmp(name, key) == 0) {
+                prefix_key = nlines;
+            }
         }
+        nlines++;
     }
     if (sec_start >= 0 && sec_end < 0)
         sec_end = nlines;
 
-    if (sec_start >= 0) {
-        for (int i = sec_start + 1; i < sec_end; i++) {
-            char work[INI_MAX_LINE];
-            snprintf(work, sizeof(work), "%s", lines[i]);
-            char kbuf[128];
-            if (ini_line_kind(work, kbuf, NULL) == 0 && strcmp(kbuf, key) == 0)
-            { replaced_at = i; break; }
-        }
+    if (section[0] == 0 && sec_start < 0 && replaced_at < 0)
+        replaced_at = prefix_key;
+
+    int append_header = section[0] != 0 && sec_start < 0;
+    int insert_at = -1;
+    if (replaced_at < 0) {
+        if (sec_start >= 0)
+            insert_at = sec_end;
+        else if (section[0] == 0)
+            insert_at = first_header >= 0 ? first_header : nlines;
+        else
+            insert_at = nlines;
     }
 
-    /* 3. emit the result */
+    /* Pass 2: stream the old text into the temp file, replacing/inserting. */
     FILE *w = fopen(tmp, "wb");
-    if (!w) { free(text); return -1; }
-
-    int inserted = 0;
-    for (int i = 0; i < nlines; i++) {
-        if (i == replaced_at) {
-            fprintf(w, "%s = %s\n", key, value);
-            inserted = 1;
-            continue;
-        }
-        /* insert a missing key at the end of its section */
-        if (sec_start >= 0 && i == sec_end) {
-            fprintf(w, "%s = %s\n", key, value);
-            inserted = 1;
-        }
-        fprintf(w, "%s\n", lines[i]);
+    if (!w) {
+        free(text);
+        return -1;
     }
 
-    if (!inserted) {
-        if (sec_start < 0) {
+    int written = 0;
+    cursor = text;
+    int line_no = 0;
+    while (next_span(&cursor, &line)) {
+        if (insert_at >= 0 && line_no == insert_at) {
+            if (append_header) {
+                if (nlines > 0)
+                    fputc('\n', w);
+                fprintf(w, "[%s]\n", section);
+            }
+            fprintf(w, "%s = %s\n", key, value);
+            written = 1;
+        }
+        if (line_no == replaced_at) {
+            fprintf(w, "%s = %s\n", key, value);
+            written = 1;
+        } else {
+            fwrite(line.ptr, 1, line.len, w);
+            fputc('\n', w);
+        }
+        line_no++;
+    }
+    if (!written) {
+        if (append_header) {
             if (nlines > 0)
                 fputc('\n', w);
             fprintf(w, "[%s]\n", section);
@@ -216,13 +293,15 @@ static int ini_set_value(const char *path, const char *section,
         fprintf(w, "%s = %s\n", key, value);
     }
 
+    int write_failed = ferror(w) != 0;
+    if (fclose(w) != 0)
+        write_failed = 1;
     free(text);
-    if (fclose(w) != 0) { olfs_delete(tmp); return -1; }
-
-    olfs_delete(path);
-    if (olfs_move(tmp, path) != 0)
+    if (write_failed) {
+        olfs_delete(tmp);
         return -1;
-    return 0;
+    }
+    return replace_file(tmp, path);
 }
 
 /* ---- Lua bindings ------------------------------------------------------ */

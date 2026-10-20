@@ -43,8 +43,8 @@ bash test/host/run.sh
 ```
 
 Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`, then
-`RESULT: 46 passed, 0 failed`, then `RESULT: 21 passed, 0 failed` for the timer
-tests.
+`RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for timers, and
+`RESULT: 24 passed, 0 failed` for INI.
 
 Repository hygiene check:
 
@@ -58,8 +58,8 @@ is tracked.
 The script compiles `engine/fs/olfs.c` with `-Wall -Wextra -Werror` and runs
 `test_olfs.c`, builds Lua 5.1 from `third_party/lua/src`, links
 `engine/core/olreg.c`, `engine/fs/*`, `engine/sys/savedata.c`, and
-`engine/util/timers.c`, then runs `test_phase3.lua` and `test_timers.lua` in
-`out/`.
+`engine/util/timers.c`, then runs `test_phase3.lua`, `test_timers.lua`, and
+`test_ini.lua` in `out/`.
 
 Remaining coverage for maps, sound parsing and savedata traversal is tracked in
 #28.

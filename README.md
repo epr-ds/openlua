@@ -35,7 +35,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # FS/path + transform + 67 Lua assertions
+bash test/host/run.sh              # FS/path + transform + 91 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -77,7 +77,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Sound (WAV/VMA) | Implemented; channel fix [#25] |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
-| Files / INI / Savedata | Implemented; hardening [#23]–[#24] |
+| Files / INI / Savedata | Implemented; hardening [#24] |
 | Tilemaps | Implemented; lifetime fix [#26] |
 | Renderer correctness | Fixed in code; device verification [#19], [#20] |
 | JSON | Planned ([#30]) |
@@ -152,7 +152,7 @@ host tests and debugging.
 | `font` / `sfont` | `font.new`, `print`, `textwidth` | SFont PNG sheets |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; fix [#25] |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
-| `ini` | `read`, `write` | Fix [#23] |
+| `ini` | `read`, `write` | Implemented; host-tested |
 | `savedata` | `data.save/load/delete` | Plain-text slots |
 | `maps` | `map.new/blit/set/get` | Fix [#26] |
 | `json` | — | Planned ([#30]) |

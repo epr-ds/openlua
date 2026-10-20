@@ -28,6 +28,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Timer elapsed values are non-negative and monotonic, `stoptime()` is stable,
   `timers.new(initial_ms)` and `reset(initial_ms)` apply their offset, and timer
   methods are exposed through `__index` (#21).
+- INI writes now insert middle/first/last section keys under the correct header,
+  keep sectionless keys before the first section, stream lines without the 2 MB
+  static buffer, and use a temp file plus backup when replacing the original
+  (#23).
 - Portable FS cwd copies respect the destination cap, absolute PSP `chdir`
   updates the cached cwd, `mkdir_p` creates absolute chains and accepts existing
   directories, and directory listings reject names/paths that do not fit instead

@@ -123,7 +123,7 @@ On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
 - Fonts: 8 slots, cells up to 256x256.
 - Sounds: 8 slots, 8 MB source file cap.
 - Maps: 8 slots, tileset must outlive the map (known lifetime issue, #26).
-- INI: 512-byte lines, 256 KB file cap, 4096 lines.
+- INI: 512-byte parse lines, 256 KB file cap.
 
 ## Host testing
 

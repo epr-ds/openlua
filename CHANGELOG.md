@@ -49,6 +49,9 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Savedata now creates and probes `PSP/SAVEDATA` before writing, rejects unsafe
   game IDs and overlong subtitles, documents the highest-numbered-slot load
   semantics, and drops the unused local `mkdir_p` helper (#24, #28).
+- Maps anchor their tileset through the Lua registry until `map.free`, validate
+  every map cell before allocating, and no longer leak a partial map when a row
+  is malformed; explicit `map.free` ownership is documented (#26).
 - PSP link order no longer triggers `psp-fixup-imports` stub warnings (#6).
 - Documentation no longer claims unimplemented APIs are complete.
 

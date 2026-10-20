@@ -9,7 +9,7 @@ This document explains the phases and maps the remaining work to issues.
 |---|---|---|
 | **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed, verification pending |
 | **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; host-tested (#25), API polish #27 |
-| **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps done (#4, #26); PMF pending (#5) |
+| **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps host-tested (#4, #26); PMF pending (#5) |
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
 | **S6: Testing + Polish** | Boot/verify, renderer, tests, docs | **Current focus** |
@@ -50,7 +50,6 @@ correctly, host tests cover the milestone regressions, and CI is green.
 
 ### Storage and data
 - #24 savedata root probing and game-id validation
-- #26 map tileset lifetime and finalizer
 - #30 JSON module
 
 ### Platform and tooling

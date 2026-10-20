@@ -43,7 +43,7 @@ bash test/host/run.sh
 ```
 
 Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
-`maps: 16 checks, 0 failed`, `sound: 48 checks, 0 failed`, then
+`maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed`, then
 `RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for timers,
 `RESULT: 24 passed, 0 failed` for INI, `RESULT: 49 passed, 0 failed` for
 savedata, and `RESULT: 13 passed, 0 failed` for sound. Build output is kept in

@@ -122,7 +122,7 @@ On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
 - Images are capped at 1024x1024 and padded to power-of-two dimensions.
 - Fonts: 8 slots, cells up to 256x256.
 - Sounds: 8 slots, 8 MB source file cap.
-- Maps: 8 slots, tileset must outlive the map (known lifetime issue, #26).
+- Maps: 8 slots, tileset anchored via the Lua registry until `map.free`.
 - INI: 512-byte parse lines, 256 KB file cap.
 
 ## Host testing

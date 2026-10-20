@@ -239,8 +239,10 @@ map.free(m)
 
 `mapData` is an array of rows; each row is an array of 1-based tile indices.
 Tile `0` is empty. Tile sizes must be 8, 16, 32, 64, 128, 256 or 512 and must
-divide the tileset. The tileset image must stay alive while the map is used
-(#26).
+divide the tileset. The tileset image is anchored by the map, so it is safe to
+drop the Lua reference after `map.new`; call `map.free` when done. Map handles
+are plain integers with no automatic finalizer, so explicit freeing is
+required (#26).
 
 ## Planned modules
 

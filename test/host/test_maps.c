@@ -15,11 +15,13 @@ static void check(int cond, const char *msg)
     }
 }
 
+static OL_Surface stub_sheet;
+
 OL_Surface *image_as_surface(lua_State *L, int idx)
 {
     (void)L;
     (void)idx;
-    return NULL;
+    return &stub_sheet;
 }
 
 void gfx_blit(OL_Surface *s, int x, int y, int sx, int sy, int sw, int sh,
@@ -77,6 +79,79 @@ int main(void)
     check(olmap_get(1) == &g_maps[0], "handle 1 resolves");
     check(olmap_get(0) == NULL, "handle 0 invalid");
     check(olmap_get(MAP_MAX + 1) == NULL, "handle above max invalid");
+    memset(&g_maps[0], 0, sizeof(g_maps[0]));  /* geometry slot was borrowed */
+
+    stub_sheet.w = 64;
+    stub_sheet.h = 64;
+    lua_State *L = luaL_newstate();
+    check(L != NULL, "Lua state created");
+    if (!L) {
+        printf("maps: %d checks, %d failed\n", checks, fails);
+        return fails ? 1 : 0;
+    }
+
+    lua_settop(L, 0);
+    lua_newtable(L);                    /* tileset placeholder          */
+    lua_newtable(L);                    /* mapData                      */
+    lua_newtable(L);                    /* row 1                        */
+    lua_pushinteger(L, 1); lua_rawseti(L, -2, 1);
+    lua_pushinteger(L, 2); lua_rawseti(L, -2, 2);
+    lua_rawseti(L, -2, 1);              /* mapData[1] = row 1           */
+    lua_pushinteger(L, 16);
+    lua_pushinteger(L, 16);
+    check(l_map_new(L) == 1 && lua_tointeger(L, -1) == 1,
+          "map.new creates a handle");
+    int tileset_ref = g_maps[0].tileset_ref;
+    check(tileset_ref != LUA_NOREF && tileset_ref != LUA_REFNIL,
+          "tileset registry ref set");
+    lua_rawgeti(L, LUA_REGISTRYINDEX, tileset_ref);
+    check(lua_istable(L, -1), "tileset anchored in registry");
+    lua_pop(L, 1);
+
+    lua_settop(L, 0);
+    lua_gc(L, LUA_GCCOLLECT, 0);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, tileset_ref);
+    check(lua_istable(L, -1), "tileset survives Lua GC");
+    lua_pop(L, 1);
+
+    lua_settop(L, 0);
+    lua_pushinteger(L, 1);
+    l_map_free(L);
+    check(g_maps[0].used == 0 && g_maps[0].data == NULL &&
+          g_maps[0].tileset_ref == LUA_NOREF,
+          "map.free releases data and tileset ref");
+
+    lua_settop(L, 0);
+    lua_pushcfunction(L, l_map_new);
+    lua_newtable(L);                    /* tileset placeholder          */
+    lua_newtable(L);                    /* mapData                      */
+    lua_newtable(L);                    /* row 1                        */
+    lua_pushinteger(L, 1); lua_rawseti(L, -2, 1);
+    lua_pushliteral(L, "bad"); lua_rawseti(L, -2, 2);
+    lua_rawseti(L, -2, 1);
+    lua_pushinteger(L, 16);
+    lua_pushinteger(L, 16);
+    check(lua_pcall(L, 4, 1, 0) != 0, "non-numeric tile rejected");
+    check(g_maps[0].used == 0 && g_maps[0].data == NULL,
+          "failed map.new leaves slot free");
+
+    lua_settop(L, 0);
+    lua_pushcfunction(L, l_map_new);
+    lua_newtable(L);                    /* tileset placeholder          */
+    lua_newtable(L);                    /* mapData                      */
+    lua_newtable(L);                    /* row 1                        */
+    lua_pushinteger(L, 1); lua_rawseti(L, -2, 1);
+    lua_pushinteger(L, 2); lua_rawseti(L, -2, 2);
+    lua_rawseti(L, -2, 1);
+    lua_newtable(L);                    /* short row 2                  */
+    lua_pushinteger(L, 3); lua_rawseti(L, -2, 1);
+    lua_rawseti(L, -2, 2);
+    lua_pushinteger(L, 16);
+    lua_pushinteger(L, 16);
+    check(lua_pcall(L, 4, 1, 0) != 0, "jagged map row rejected");
+    check(g_maps[0].used == 0 && g_maps[0].data == NULL,
+          "jagged map leaves slot free");
+    lua_close(L);
 
     printf("maps: %d checks, %d failed\n", checks, fails);
     return fails ? 1 : 0;

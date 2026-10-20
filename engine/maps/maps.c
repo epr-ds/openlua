@@ -23,16 +23,18 @@
 #include <lauxlib.h>
 #include <lualib.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAP_MAX 8
 
 typedef struct {
     int          used;
-    OL_Surface  *tileset;     /* borrowed from the image; image must outlive */
+    OL_Surface  *tileset;     /* anchored by tileset_ref until map.free    */
     int          rows, cols;
     int          tileW, tileH;
     int         *data;        /* rows*cols tile indices                     */
     int          tcols;       /* tileset columns of tiles                   */
+    int          tileset_ref; /* Lua registry ref anchoring the image       */
 } OLEmap;
 
 static OLEmap g_maps[MAP_MAX];
@@ -111,6 +113,24 @@ static int l_map_new(lua_State *L)
     if (cols < 1)
         luaL_error(L, "map.new: mapData rows must be non-empty tables");
 
+    /* Validate every cell before allocating so a bad row cannot leak data. */
+    for (int y = 1; y <= rows; y++) {
+        lua_rawgeti(L, 2, y);
+        if (!lua_istable(L, -1)) {
+            lua_pop(L, 1);
+            luaL_error(L, "map.new: mapData row %d is not a table", y);
+        }
+        for (int x = 1; x <= cols; x++) {
+            lua_rawgeti(L, -1, x);
+            if (!lua_isnumber(L, -1)) {
+                lua_pop(L, 2);
+                luaL_error(L, "map.new: tile (%d,%d) is not a number", x, y);
+            }
+            lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
+    }
+
     OLEmap *m = NULL;
     for (int i = 0; i < MAP_MAX; i++)
         if (!g_maps[i].used)
@@ -126,7 +146,7 @@ static int l_map_new(lua_State *L)
         lua_rawgeti(L, 2, y);
         for (int x = 1; x <= cols; x++) {
             lua_rawgeti(L, -1, x);
-            int v = (int)luaL_checkinteger(L, -1);
+            int v = (int)lua_tointeger(L, -1);
             if (v < 0) v = 0;
             m->data[(y - 1) * cols + (x - 1)] = v;
             lua_pop(L, 1);
@@ -134,6 +154,8 @@ static int l_map_new(lua_State *L)
         lua_pop(L, 1);
     }
 
+    lua_pushvalue(L, 1);          /* anchor the tileset for map lifetime */
+    m->tileset_ref = luaL_ref(L, LUA_REGISTRYINDEX);
     m->tileset = tileset;
     m->rows    = rows;
     m->cols    = cols;
@@ -233,7 +255,13 @@ static int l_map_free(lua_State *L)
 {
     int h  = (int)luaL_checkinteger(L, 1);
     OLEmap *m = olmap_get(h);
-    if (m) { free(m->data); m->used = 0; }
+    if (m) {
+        free(m->data);
+        if (m->tileset_ref != LUA_NOREF)
+            luaL_unref(L, LUA_REGISTRYINDEX, m->tileset_ref);
+        memset(m, 0, sizeof(*m));
+        m->tileset_ref = LUA_NOREF;
+    }
     return 0;
 }
 

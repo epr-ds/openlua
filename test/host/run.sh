@@ -30,6 +30,12 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     -lm -o "$BUILD/transform_test"
 "$BUILD/transform_test"
 
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
+    "$ROOT/engine/data/psmf.c" \
+    "$ROOT/test/host/test_psmf.c" \
+    -o "$BUILD/psmf_test"
+"$BUILD/psmf_test"
+
 CORE="lapi lcode ldebug ldo ldump lfunc lgc llex lmem lobject
       lopcodes loslib lparser lstate lstring ltable ltm lvm lzio
       lauxlib lbaselib ldblib liolib lmathlib lstrlib ltablib

@@ -23,6 +23,7 @@
 #include "engine/data/json.h"
 #include "engine/sys/savedata.h"
 #include "engine/maps/maps.h"
+#include "engine/video/pmf.h"
 #include "engine/core/olreg.h"
 PSP_MODULE_INFO("OpenLua", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
@@ -142,6 +143,7 @@ static void register_api(lua_State *L)
     json_api_register(L);     /* json.*     (decode/encode/load/save)        */
     savedata_api_register(L); /* data.* + savedata.* (save/load/delete)      */
     maps_api_register(L);     /* map.*      (new/blit/sizex/sizey/set)       */
+    pmf_api_register(L);      /* pmf.*      (run/play/pause/stop)            */
 }
 
 static void chdir_to_appdir(const char *argv0)

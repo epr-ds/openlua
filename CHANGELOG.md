@@ -6,6 +6,11 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- PMF/PSMF playback through the PSP `sceMpeg` libraries: blocking
+  `pmf.run(path [, x, y])`, global `onPmfPlay(playing)` callbacks,
+  `pmf.play`/`pause`/`stop`, full-screen and positioned video scanout, and
+  ATRAC3+ audio output. A portable PSMF header parser validates the magic,
+  version, stream range, timestamps and dimensions, with 20 host checks (#5).
 - JSON module with `decode`, `encode`, `load` and `save`: bounded file reads,
   atomic writes, strict malformed-input errors, escape/unicode handling and
   host coverage (#30).
@@ -65,7 +70,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   and other method calls work alongside `image.getw(img)`. Added `flipx`/`flipy`
   aliases, a `font.load` alias, clearer `image.load` argument forms, and
   `image.save` now reports write failures (#27).
-- PSP link order no longer triggers `psp-fixup-imports` stub warnings (#6).
+- PMF cleanup no longer frees the `sceMpeg`-owned AVC elementary-stream
+  buffer, which caused end-of-playback hangs and invalid memory accesses.
+- PSP link order no longer triggers `psp-fixup-imports` stub warnings, including
+  the `sceUtility` stub pulled in by libcglue (#6).
 - Documentation no longer claims unimplemented APIs are complete.
 
 ## 2026-10-19

@@ -34,6 +34,7 @@ void gfx_set_clear_color(unsigned int c);
 void gfx_flip_scene(void);
 int gfx_gu_started(void);
 void *gfx_list(void);
+void *gfx_vram_fb(int index);   /* 0/1: GE display buffers, for PMF scanout */
 
 OL_Surface *gfx_surface_new(int w, int h);
 OL_Surface *gfx_surface_clone(OL_Surface *s);

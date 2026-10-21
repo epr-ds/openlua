@@ -50,7 +50,9 @@ OBJS = engine/core/main.o \
 	engine/fs/files.o \
 	engine/fs/ini.o \
 	engine/data/json.o \
+	engine/data/psmf.o \
 	engine/sys/savedata.o \
+	engine/video/pmf.o \
 	engine/maps/maps.o \
 	$(LUAOBJS)
 
@@ -60,7 +62,10 @@ CFLAGS = -O2 -G0 -Wall
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -L.
 
-LIBS = -lpspgu -lpspaudio
+# Pull libcglue's sceUtility stub in with libpsputility so psp-fixup-imports
+# sees all sceUtility stubs as one block instead of splitting the import table.
+LIBS = -lpspgu -lpspaudio -lpspmpeg -lpsputility \
+       -Wl,--undefined=sceUtilityGetSystemParamInt
 
 EXTRA_TARGETS = EBOOT.PBP
 

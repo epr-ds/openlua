@@ -277,11 +277,40 @@ drop the Lua reference after `map.new`; call `map.free` when done. Map handles
 are plain integers with no automatic finalizer, so explicit freeing is
 required (#26).
 
+## pmf
+
+```lua
+pmf.run(path [, x, y])   -- blocking; plays a PMF/PSMF file
+pmf.play()               -- resume after pmf.pause()
+pmf.pause()              -- pause at the next frame boundary
+pmf.stop()               -- stop and restore the previous display buffer
+```
+
+`pmf.run` returns after playback finishes and raises on a bad header, missing
+file, decoder failure or when another movie is already active. `x` and `y`
+default to `0, 0` and place a smaller clip on the 480x272 screen; full-screen
+480x272 clips cover it. Video is decoded with the PSP `sceMpeg` libraries and
+ATRAC3+ audio is played through `sceAudioOutputBlocking`.
+
+If the global `onPmfPlay(playing)` function exists, it is called for every
+displayed frame with `true`, and on every pause update with `false`. The callback
+may call `pmf.pause()`, `pmf.play()` or `pmf.stop()`:
+
+```lua
+function onPmfPlay(playing)
+    if buttons.pressed(buttons.start) then pmf.stop() end
+end
+
+pmf.run("assets/splash.pmf")
+```
+
+The callback runs from inside `pmf.run`; avoid long work there because it delays
+video and audio. MP4 containers are not supported; only PSMF/PMF files are.
+
 ## Planned modules
 
 | Module | Status |
 |---|---|
-| `pmf` / MP4 playback | Planned (#5) |
 | `wlan` / `http` | Not implemented |
 
 ## Known API deviations
@@ -289,3 +318,4 @@ required (#26).
 | Area | Current behaviour | Tracking |
 |---|---|---|
 | Transforms | Fixed in code; pending PSP/PPSSPP device verification | #19, #20 |
+| PMF audio | ATRAC3+ path implemented and verified through a PPSSPP WAV dump; no PSP hardware run yet | #5 |

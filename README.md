@@ -83,7 +83,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Tilemaps | Implemented; host-tested ([#26]) |
 | Renderer correctness | Fixed in code; device verification [#19], [#20] |
 | PSP Go | Storage/boot paths implemented; device verification [#31] |
-| PMF/MP4 video | Planned ([#5]) |
+| PMF/PSMF video + ATRAC3+ audio | Implemented; PPSSPP-verified ([#5]) |
 | WiFi/HTTP | Not started |
 
 The [project board](https://github.com/users/epr-ds/projects/4) is the source
@@ -101,9 +101,10 @@ engine/
   input/  controller polling
   util/   timers
   fs/     portable VFS, files, INI
-  data/   JSON parser/serializer
+  data/   JSON parser/serializer, PSMF header parser
   sys/    save slots
   maps/   tilemap renderer
+  video/  PMF playback through sceMpeg
 third_party/
   lua/    Lua 5.1.5
   stb/    stb_image, stb_image_write

@@ -9,7 +9,7 @@ This document explains the phases and maps the remaining work to issues.
 |---|---|---|
 | **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed, verification pending |
 | **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; host-tested (#25) |
-| **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps host-tested (#4, #26); PMF pending (#5) |
+| **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps host-tested (#4, #26); PMF implemented and PPSSPP-verified (#5) |
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
 | **S6: Testing + Polish** | Boot/verify, renderer, tests, docs | **Current focus** |
@@ -42,9 +42,6 @@ correctly, host tests cover the milestone regressions, and CI is green.
 - #19 frame clear/swap/depth ordering
 - #20 scaled/tinted/rotated blits and buffer lifetime
 
-### Audio
-- #5 PMF/MP4 decode and playback
-
 ### Storage and data
 - #24 savedata root probing and game-id validation
 
@@ -58,7 +55,7 @@ correctly, host tests cover the milestone regressions, and CI is green.
 - `wlan` / HTTP / IRC / adhoc (S5)
 - Archive extraction (`files.extract`, zip/rar)
 - VSH save dialog
-- PMF/MP4 pipeline
+- MP4 container support (PMF/PSMF playback is implemented)
 
 ## Project fields
 

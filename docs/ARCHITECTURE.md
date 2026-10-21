@@ -17,9 +17,10 @@ engine/core/main.c ── register_api() ─────────────
     ├── input/   sceCtrl polling                     (buttons)      │
     ├── util/    gettimeofday timers                 (timers)       │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
-    ├── data/    JSON parser/serializer              (json)         │
+    ├── data/    JSON + PSMF header parsing          (json)         │
     ├── sys/     save slots                          (data)         │
-    └── maps/    tile grid renderer                  (map)          │
+    ├── maps/    tile grid renderer                  (map)          │
+    └── video/   PMF playback via sceMpeg            (pmf)          │
                                                                    │
                                                             Lua globals
 ```
@@ -102,6 +103,19 @@ targeted `sceKernelDcacheWritebackRange` is the intended optimisation.
    paced by the hardware even if the frame loop slows down.
 5. Channels are released on stop, free, or natural end of playback.
 
+## PMF playback
+
+`engine/video/pmf.c` is PSP-only. `pmf.run` loads the AV codec modules, opens
+the file with `sceIoOpen`, validates the 2048-byte PSMF header through the
+portable `engine/data/psmf.c` parser, and streams the MPEG program stream
+through a custom `SceMpegRingbuffer`. H.264 frames are decoded to a 512x272
+main-memory buffer and composited into the inactive GE display buffer at the
+requested position; ATRAC3+ audio is decoded and played through a reserved
+audio channel. The callback can pause, resume or stop playback between frames.
+
+The parser is host-tested, while the decoder is exercised on-device/PPSSPP.
+`pmf.run` is intentionally blocking; scripts should keep `onPmfPlay` short.
+
 ## Storage and data
 
 `engine/fs/olfs.c` is the only platform-specific filesystem layer. It provides
@@ -150,7 +164,8 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers | `timers.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
-| `engine/data` | JSON parser/serializer | `json.*` |
+| `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
 | `engine/sys` | save slots | `data.*` / `savedata.*` |
 | `engine/maps` | tilemaps | `map.*` |
+| `engine/video` | PMF playback through `sceMpeg` | `pmf.*` |
 | `third_party` | Lua 5.1.5, stb_image/stb_image_write | — |

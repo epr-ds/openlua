@@ -21,6 +21,7 @@
 static unsigned int __attribute__((aligned(16))) gu_list[0x40000 / 4];
 static int gu_started = 0;
 static unsigned int clear_color = 0xFF000000;
+static void *vram_fb[2] = { NULL, NULL };
 
 /*=========================================================================
  * Helpers
@@ -60,6 +61,9 @@ void gfx_init(void)
 
     if (gu_started)
         return;
+
+    vram_fb[0] = fb0;
+    vram_fb[1] = fb1;
 
     sceGuInit();
     sceGuStart(GU_DIRECT, gu_list);
@@ -119,6 +123,11 @@ int gfx_gu_started(void)
 void *gfx_list(void)
 {
     return gu_list;
+}
+
+void *gfx_vram_fb(int index)
+{
+    return vram_fb[index ? 1 : 0];
 }
 
 /*=========================================================================

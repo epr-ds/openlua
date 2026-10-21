@@ -66,13 +66,22 @@ as a field. Handles are 1-based integers into fixed-size global arrays
 `engine/gfx/gfx.c`
 
 - `OL_Surface` is a 32-bit ABGR pixel buffer with power-of-two `realW`/`realH`
-  pitch. Textures are uploaded straight from this buffer.
-- `gfx_init` allocates three 512x272x4 buffers from VRAM (`0x04000000`) and
-  configures the GE for 2D sprites.
+  pitch. Pixel storage is 16-byte aligned and textures are uploaded straight
+  from this buffer.
+- `gfx_init` allocates three 512x272x4 buffers as 8192-byte-aligned EDRAM
+  offsets and configures the GE for 2D sprites. GU draw/display/depth buffer
+  APIs take VRAM offsets, not absolute `0x04000000` pointers;
+  `gfx_vram_fb()` adds `sceGeEdramGetAddr()` only for callers that need a real
+  scanout address (PMF).
+- The 2D depth range is `0..0xFFFF`, the depth buffer clears to 0 and the
+  comparison is `GU_GEQUAL`, so the default `z=0` plane renders and larger
+  z-indexes draw in front. Face culling is disabled because flips and rotation
+  can reverse quad winding.
 - `gfx_blit` is the per-sprite entry point. `transform.c` computes the four
-  destination vertices and UVs; `gfx_blit` uploads the surface and draws a
-  textured `GU_TRIANGLE_FAN` with nearest sampling. Scale, rotation, flips,
-  pivot and tint are all applied to that single quad.
+  destination vertices and normalised UVs; `gfx_blit` converts UVs to the
+  texel coordinates the GE samples, uploads the surface and draws a textured
+  `GU_TRIANGLE_FAN` with nearest sampling. Scale, rotation, flips, pivot and
+  tint are all applied to that single quad.
 - `draw.c` submits primitives with `GU_DIRECT` and flat shading.
 - `screen.flip()` calls `sound_pump()` and then `gfx_flip_scene()`.
 

@@ -7,7 +7,7 @@ This document explains the phases and maps the remaining work to issues.
 
 | Phase | Scope | State |
 |---|---|---|
-| **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed, verification pending |
+| **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed and PPSSPP-verified (PSP hardware pending) |
 | **S2: Font + Sound** | SFont, `screen.print`, WAV/VMA audio | Implemented; host-tested (#25) |
 | **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, PMF video | Maps host-tested (#4, #26); PMF implemented and PPSSPP-verified (#5) |
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
@@ -22,8 +22,8 @@ mean every edge case is correct; the linked issues are the source of truth.
 
 | Issue | Work | Area |
 |---|---|---|
-| #19 | Frame lifecycle fix; verify on device | GFX |
-| #20 | Transform/blit fix; verify on device | GFX |
+| #19 | Frame lifecycle + 2D depth fix; PPSSPP-verified | GFX |
+| #20 | Transform/blit fix; PPSSPP-verified | GFX |
 | #6 | PPSSPP black-screen / silent halt | Core |
 | #7 | Verify EBOOT in native PPSSPP | Core |
 
@@ -37,10 +37,6 @@ correctly, host tests cover the milestone regressions, and CI is green.
 | #31 | PSP Go compatibility | Internal storage/M2 paths implemented; device/PPSSPP verification pending |
 
 ## Backlog by theme
-
-### Renderer and assets
-- #19 frame clear/swap/depth ordering
-- #20 scaled/tinted/rotated blits and buffer lifetime
 
 ### Storage and data
 - #24 savedata root probing and game-id validation

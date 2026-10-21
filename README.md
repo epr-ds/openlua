@@ -81,7 +81,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Files / INI / Savedata | Implemented; hardening [#24] |
 | JSON | Implemented; host-tested ([#30]) |
 | Tilemaps | Implemented; host-tested ([#26]) |
-| Renderer correctness | Fixed in code; device verification [#19], [#20] |
+| Renderer correctness | Fixed and PPSSPP-verified; PSP hardware pending ([#19], [#20]) |
 | PSP Go | Storage/boot paths implemented; device verification [#31] |
 | PMF/PSMF video + ATRAC3+ audio | Implemented; PPSSPP-verified ([#5]) |
 | WiFi/HTTP | Not started |

@@ -24,15 +24,16 @@ while true do
     image.tint(img, 0xFFFFFFFF)
     image.blitsprite(img, 40, 100, 0)
 
-    -- Rotating around the frame center.
+    -- Rotating around the frame center.  The triangle makes the rotation
+    -- visible (a circle looks identical at every angle).
     image.pivot(img, 32, 32)
-    image.rotate(angle)
-    image.blitsprite(img, 150, 100, 1)
+    image.rotate(img, angle)
+    image.blitsprite(img, 150, 100, 2)
 
     -- Scaled 1.5x.
-    image.rotate(0)
+    image.rotate(img, 0)
     image.scale(img, 1.5, 1.5)
-    image.blitsprite(img, 300, 90, 2)
+    image.blitsprite(img, 300, 90, 1)
 
     -- Tinted warm orange.
     image.scale(img, 1.0, 1.0)

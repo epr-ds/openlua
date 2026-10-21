@@ -317,5 +317,5 @@ video and audio. MP4 containers are not supported; only PSMF/PMF files are.
 
 | Area | Current behaviour | Tracking |
 |---|---|---|
-| Transforms | Fixed in code; pending PSP/PPSSPP device verification | #19, #20 |
+| Transforms | Implemented and PPSSPP-verified; PSP hardware pending | #19, #20 |
 | PMF audio | ATRAC3+ path implemented and verified through a PPSSPP WAV dump; no PSP hardware run yet | #5 |

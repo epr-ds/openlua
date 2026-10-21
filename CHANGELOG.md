@@ -46,6 +46,19 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Renderer now draws one transformed quad per sprite, with correct source
   stride, pivot, scale, flip, tint, per-blit alpha and no temporary-buffer leak
   (#19, #20).
+- GE draw/display/depth buffers are now passed as EDRAM offsets instead of
+  absolute `0x04000000` pointers. `sceGuSwapBuffers` adds the EDRAM base
+  itself, so the previous values presented main-memory garbage.
+  `gfx_vram_fb()` still returns an absolute address for PMF scanout.
+- 2D depth setup now uses a `0..0xFFFF` range, clears depth to zero and keeps
+  `GU_GEQUAL`, so the default `z=0` primitives render and larger z-indexes draw
+  in front. Face culling is disabled because flips/rotation reverse winding.
+- Sprite pixel buffers are 16-byte aligned, and blit UVs are converted from
+  normalised coordinates to the texel space the GE samples. This fixes
+  spritesheet frames and non-zero source rectangles.
+- The transforms demo now passes the image handle to `image.rotate` /
+  `image.scale` / `image.tint` and rotates the asymmetric triangle frame so the
+  rotation is visible.
 - Frame clear now happens after the buffer swap, so the presented frame is no
   longer cleared (#19).
 - `image.blit` accepts a source rectangle without an explicit alpha argument.

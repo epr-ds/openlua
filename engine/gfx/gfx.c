@@ -5,6 +5,7 @@
 #include <pspkernel.h>
 #include <pspdisplay.h>
 #include <pspgu.h>
+#include <pspge.h>
 #include <psputils.h>
 
 #include "gfx.h"
@@ -13,6 +14,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
 
 #define BUF_WIDTH 512
 #define SCR_WIDTH 480
@@ -29,10 +31,13 @@ static void *vram_fb[2] = { NULL, NULL };
 
 static void *vram_alloc(int size)
 {
-    /* Use long to ensure proper pointer arithmetic on all architectures */
-    static long head = 0;
-    void *p = (void *)(0x04000000 + head);
-    head += (size + 15) & ~15; /* align to 16 bytes */
+    /* GU buffer pointers are offsets from the start of EDRAM.  Keep them
+     * relative here; gfx_vram_fb() adds sceGeEdramGetAddr() for callers that
+     * need a real display address.  GE frame buffers must be 8192-byte
+     * aligned. */
+    static unsigned int head = 0;
+    void *p = (void *)head;
+    head += ((unsigned int)size + 0x1FFF) & ~0x1FFFu;
     return p;
 }
 
@@ -72,13 +77,16 @@ void gfx_init(void)
     sceGuDepthBuffer(zbd, BUF_WIDTH);
     sceGuOffset(2048 - (SCR_WIDTH / 2), 2048 - (SCR_HEIGHT / 2));
     sceGuViewport(2048, 2048, SCR_WIDTH, SCR_HEIGHT);
-    sceGuDepthRange(0xc350, 0x2710);
+    /* 2D depth ordering: z=0 is the default plane, larger z is nearer.
+     * Clear depth to 0 so z=0 passes GEQUAL, and keep culling off because
+     * flips/rotation can reverse a quad's winding. */
+    sceGuDepthRange(0, 0xFFFF);
     sceGuEnable(GU_SCISSOR_TEST);
     sceGuScissor(0, 0, SCR_WIDTH, SCR_HEIGHT);
-    sceGuFrontFace(GU_CW);
-    sceGuEnable(GU_CULL_FACE);
+    sceGuDisable(GU_CULL_FACE);
     sceGuShadeModel(GU_SMOOTH);
     sceGuDepthFunc(GU_GEQUAL);
+    sceGuClearDepth(0);
     sceGuEnable(GU_DEPTH_TEST);
     sceGuEnable(GU_TEXTURE_2D);
     sceGuTexMode(GU_PSM_8888, 0, 0, 0);
@@ -127,7 +135,8 @@ void *gfx_list(void)
 
 void *gfx_vram_fb(int index)
 {
-    return vram_fb[index ? 1 : 0];
+    return (void *)((unsigned int)sceGeEdramGetAddr() +
+                    (unsigned int)vram_fb[index ? 1 : 0]);
 }
 
 /*=========================================================================
@@ -159,11 +168,12 @@ OL_Surface *gfx_surface_new(int w, int h)
     s->centerOffX = 0;
     s->centerOffY = 0;
     s->tint = 0xFFFFFFFFu;
-    s->pixels = (unsigned int *)calloc(1, (size_t)s->realW * s->realH * 4);
+    s->pixels = (unsigned int *)memalign(16, (size_t)s->realW * s->realH * 4);
     if (!s->pixels) {
         free(s);
         return NULL;
     }
+    memset(s->pixels, 0, (size_t)s->realW * s->realH * 4);
     return s;
 }
 
@@ -321,8 +331,9 @@ void gfx_blit(OL_Surface *s, int x, int y,
 
     Vert *v = (Vert *)sceGuGetMemory(4 * sizeof(Vert));
     for (int i = 0; i < 4; i++) {
-        v[i].u = q[i].u;
-        v[i].v = q[i].v;
+        /* transform.c produces normalised UVs; the GE samples in texels. */
+        v[i].u = q[i].u * (float)s->realW;
+        v[i].v = q[i].v * (float)s->realH;
         v[i].color = color;
         v[i].x = (short)lrintf(q[i].x);
         v[i].y = (short)lrintf(q[i].y);

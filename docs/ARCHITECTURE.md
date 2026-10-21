@@ -15,7 +15,7 @@ engine/core/main.c ── register_api() ─────────────
     ├── font/    SFont tilemap renderer              (font, screen) │
     ├── snd/     WAV/VMA decode + PSP audio          (sound)        │
     ├── input/   sceCtrl polling                     (buttons)      │
-    ├── util/    gettimeofday timers                 (timers)       │
+    ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
     ├── data/    JSON + PSMF header parsing          (json)         │
     ├── sys/     save slots                          (data)         │
@@ -155,10 +155,11 @@ needed, and searches both roots for loads and deletes.
 ## Host testing
 
 The PSP headers keep most graphics/input code out of host builds. The storage
-layer, timers, transform math, map geometry, sound parsing/channel bookkeeping,
-`engine/core/olreg.c`, and the Lua sources compile and run on the host.
-`test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry, sound, and
-Lua-level files/INI/savedata/timers/sound tests. `.github/workflows/build.yml`
+layer, timers, OneLua math helpers, transform math, map geometry, sound parsing
+and channel bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and
+run on the host. `test/host/run.sh` covers OLFS paths/cwd, transforms, map
+geometry, sound, and Lua-level files/INI/savedata/timers/math/sound tests.
+`.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
 ## Module map
@@ -171,7 +172,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/font` | SFont loader/renderer | `font.*`, `screen.print` |
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
-| `engine/util` | millisecond timers | `timers.*` |
+| `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
 | `engine/sys` | save slots | `data.*` / `savedata.*` |

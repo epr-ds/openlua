@@ -13,6 +13,7 @@
 #include "engine/data/json.h"
 #include "engine/snd/sound.h"
 #include "engine/sys/savedata.h"
+#include "engine/util/olmath.h"
 #include "engine/util/timers.h"
 
 int main(int argc, char **argv)
@@ -32,6 +33,7 @@ int main(int argc, char **argv)
     savedata_api_register(L);
     sound_api_register(L);
     timers_api_register(L);
+    olmath_api_register(L);
 
     if (luaL_dofile(L, argv[1]) != 0)
     {

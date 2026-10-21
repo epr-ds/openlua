@@ -43,6 +43,7 @@ OBJS = engine/core/main.o \
 	engine/gfx/draw.o \
 	engine/img/image.o \
 	engine/input/buttons.o \
+	engine/util/olmath.o \
 	engine/util/timers.o \
 	engine/font/font.o \
 	engine/snd/sound.o \

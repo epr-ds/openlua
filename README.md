@@ -36,7 +36,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 255 C checks + 257 Lua assertions
+bash test/host/run.sh              # 275 C checks + 280 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -78,6 +78,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
+| OneLua math helpers | Implemented; host-tested and PPSSPP-verified ([#32]) |
 | Files / INI / Savedata | Implemented; hardening [#24] |
 | JSON | Implemented; host-tested ([#30]) |
 | Tilemaps | Implemented; host-tested ([#26]) |
@@ -99,7 +100,7 @@ engine/
   font/   SFont loader and renderer
   snd/    WAV/VMA decoder and PSP audio
   input/  controller polling
-  util/   timers
+  util/   timers, OneLua math helpers
   fs/     portable VFS, files, INI
   data/   JSON parser/serializer, PSMF header parser
   sys/    save slots
@@ -154,7 +155,8 @@ for a local toolchain build, host tests and debugging.
 | `draw` | `line`, `rect`, `fillrect`, `circle` | `gradrect` pending |
 | `buttons` | `read` + button constants | `waitforkey`/`interval` pending |
 | `timers` | `timers.new([initial_ms])` + methods | Implemented; host-tested ([#21]) |
-| `font` / `sfont` | `font.new`/`font.load`, `print`, `textwidth` | SFont PNG sheets |
+| `math` | `minmax`, `bitnot`, `bitand`, `bitor` | Extends Lua 5.1 `math`; 32-bit signed bitwise results; host-tested ([#32]) |
+| `font` / `sfont` | `font.new`/`font.load`, `print`, `textwidth` | SFont PNG sheets; `sfont` alias and PGF loading are tracked in [#37]/[#38] |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |
@@ -180,3 +182,6 @@ used or modified.
 [#27]: https://github.com/epr-ds/openlua/issues/27
 [#30]: https://github.com/epr-ds/openlua/issues/30
 [#31]: https://github.com/epr-ds/openlua/issues/31
+[#32]: https://github.com/epr-ds/openlua/issues/32
+[#37]: https://github.com/epr-ds/openlua/issues/37
+[#38]: https://github.com/epr-ds/openlua/issues/38

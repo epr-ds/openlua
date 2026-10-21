@@ -6,6 +6,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `math` compatibility helpers: `math.minmax`, `math.bitnot`,
+  `math.bitand` and `math.bitor` extend the standard Lua 5.1 table with
+  32-bit signed bitwise semantics. Includes 23 host assertions and a
+  self-contained graphical demo (#32).
 - PMF/PSMF playback through the PSP `sceMpeg` libraries: blocking
   `pmf.run(path [, x, y])`, global `onPmfPlay(playing)` callbacks,
   `pmf.play`/`pause`/`stop`, full-screen and positioned video scanout, and
@@ -34,6 +38,9 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   to `docs/archive/`.
 - Demo and asset paths consolidated; generators now default to `assets/`.
 - Project board populated with fields, views and audit-derived backlog.
+- OneLua module-index audit added scoped parity issues #33–#45 (battery,
+  power, OS, hardware, fonts, 3D, game, splash, OSK, camera, peripherals and
+  networking) to the project board.
 
 ### Fixed
 - Sound playback now reserves explicit channels through `sceAudioChReserve`,

@@ -25,6 +25,7 @@ file itself.
 | `smoke.lua` | Minimal boot check: clear, fill, outline, line | none |
 | `flip.lua` | `image.fliph` / `image.flipv`, sprite frames, source rects | `assets/test_sheet.png` |
 | `font.lua` | SFont loading, `screen.print`, tint, text width | `assets/font.png` |
+| `math.lua` | `math.minmax` clamping and `bitand`/`bitor`/`bitnot` bit patterns | none (built-in 5x7 font) |
 | `sound.lua` | WAV load/loop/volume, audio pumped by `screen.flip` | `assets/beep.wav` |
 | `transforms.lua` | Rotation, scale, tint, pivot | `assets/test_sheet.png` |
 

@@ -151,6 +151,35 @@ and returns the same result on repeated calls. `start` and `reset` restart the
 timer and return its new value. There is no `timers.start(t)` function; use the
 method form.
 
+## math
+
+OpenLua extends Lua 5.1's standard `math` table rather than replacing it, so
+`math.floor`, `math.sqrt`, `math.pi` and the rest of the standard library keep
+working.
+
+| Function | Description |
+|---|---|
+| `math.minmax(x, min, max)` | Clamp `x` into the inclusive range `[min, max]`. |
+| `math.bitnot(bit)` | Bitwise NOT of a 32-bit integer. |
+| `math.bitand(a, b)` | Bitwise AND of two 32-bit integers. |
+| `math.bitor(a, b)` | Bitwise OR of two 32-bit integers. |
+
+Bitwise operands must be integral values in `[-2^31, 2^32-1]`; fractional or
+out-of-range operands raise an error. Results are signed 32-bit integers, so the
+high bit is represented as a negative Lua number.
+
+```lua
+math.minmax(45, 0, 30)     --> 30
+math.minmax(-5, 0, 10)     --> 0
+math.bitand(0xAA, 0xCC)    --> 136
+math.bitor(0xAA, 0xCC)     --> 238
+math.bitnot(0x0F)          --> -16
+math.bitnot(0)             --> -1
+```
+
+The `math.lua` demo visualises clamping and the low eight bits of the bitwise
+results; it does not require any external assets.
+
 ## sound
 
 | Function | Description |

@@ -67,6 +67,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/data/json.c" \
     "$ROOT/engine/snd/sound.c" \
     "$ROOT/engine/sys/savedata.c" \
+    "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
     "${OBJS[@]}" \
     -lm -o "$BUILD/host_test"
@@ -75,6 +76,7 @@ rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork "$BUILD"
 cd "$BUILD"
 ./host_test "$ROOT/test/host/test_phase3.lua"
 ./host_test "$ROOT/test/host/test_timers.lua"
+./host_test "$ROOT/test/host/test_math.lua"
 ./host_test "$ROOT/test/host/test_ini.lua"
 ./host_test "$ROOT/test/host/test_json.lua"
 ./host_test "$ROOT/test/host/test_savedata.lua"

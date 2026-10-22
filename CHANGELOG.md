@@ -6,6 +6,11 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `power` management module: `plugged`, `lock`, `unlock`, `tick`,
+  `suspend` and `off` over the public PSPSDK power API. `power.off()` requests
+  standby because PSPSDK has no user-mode software shutdown; suspend/standby
+  calls use inert host stubs and are omitted from the demo. Includes 14 host
+  assertions and a self-contained graphical demo (#34).
 - OneLua `batt` battery telemetry: read-only `exists`, `charging`,
   `lifepercent`, `lifetimemin`, `lifetime`, `temp`, `volt`, `remaincap`,
   `fullcap` and `low` bindings over `scePower`, with host-tested formatting

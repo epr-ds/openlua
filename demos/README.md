@@ -27,6 +27,7 @@ file itself.
 | `font.lua` | SFont loading, `screen.print`, tint, text width | `assets/font.png` |
 | `math.lua` | `math.minmax` clamping and `bitand`/`bitor`/`bitnot` bit patterns | none (built-in 5x7 font) |
 | `battery.lua` | Read-only `batt.*` telemetry: level, time, temperature, voltage, capacity | none (built-in 5x7 font) |
+| `power.lua` | `power.*`: AC status, switch lock/unlock and tick; suspend/off shown but not invoked | none (built-in 5x7 font) |
 | `sound.lua` | WAV load/loop/volume, audio pumped by `screen.flip` | `assets/beep.wav` |
 | `transforms.lua` | Rotation, scale, tint, pivot | `assets/test_sheet.png` |
 
@@ -49,3 +50,9 @@ file itself.
   `screen.font`.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
+- `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never
+  calls them. `power.off()` requests standby, not a true shutdown; use the
+  hardware power switch for that (#34).
+- PPSSPP 1.20.4 does not implement `scePowerLock`/`scePowerUnlock`; the power
+  demo shows `LOCK`/`UNLOCK` as `NO` with `HLE N/A` there. They call the real
+  PSPSDK functions on a PSP.

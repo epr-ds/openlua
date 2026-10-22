@@ -19,7 +19,8 @@ modules on top of the hardware:
 - Native WAV/VMA audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
 - Read-only battery telemetry through the OneLua `batt` table.
-- Builds with PSPSDK in Docker; storage modules are host-testable.
+- Power management through the OneLua `power` table.
+- Builds with PSPSDK in Docker; storage and platform modules are host-testable.
 
 ## Quick start
 
@@ -37,7 +38,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 291 C checks + 302 Lua assertions
+bash test/host/run.sh              # 291 C checks + 316 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -81,6 +82,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Timers | Implemented; elapsed-time fix [#21] |
 | OneLua math helpers | Implemented; host-tested and PPSSPP-verified ([#32]) |
 | Battery telemetry | Implemented; host-tested and PPSSPP-verified ([#33]) |
+| Power management | Implemented; host-tested; `plugged`/`tick` PPSSPP-verified, lock/unlock HLE missing ([#34]) |
 | Files / INI / Savedata | Implemented; hardening [#24] |
 | JSON | Implemented; host-tested ([#30]) |
 | Tilemaps | Implemented; host-tested ([#26]) |
@@ -105,7 +107,7 @@ engine/
   util/   timers, OneLua math helpers
   fs/     portable VFS, files, INI
   data/   JSON parser/serializer, PSMF header parser
-  sys/    save slots, battery telemetry
+  sys/    save slots, battery telemetry, power management
   maps/   tilemap renderer
   video/  PMF playback through sceMpeg
 third_party/
@@ -159,6 +161,7 @@ for a local toolchain build, host tests and debugging.
 | `timers` | `timers.new([initial_ms])` + methods | Implemented; host-tested ([#21]) |
 | `math` | `minmax`, `bitnot`, `bitand`, `bitor` | Extends Lua 5.1 `math`; 32-bit signed bitwise results; host-tested ([#32]) |
 | `batt` | `exists`, `charging`, `lifepercent`, `lifetime`, `temp`, `volt`, `remaincap`, `fullcap`, `low` | Read-only telemetry; serial/mode/EEPROM operations are safe no-ops ([#33]) |
+| `power` | `plugged`, `suspend`, `lock`, `unlock`, `tick`, `off` | Implemented; `off` requests standby because PSPSDK lacks software shutdown; PPSSPP 1.20.4 lacks lock/unlock HLE; host-tested ([#34]) |
 | `font` / `sfont` | `font.new`/`font.load`, `print`, `textwidth` | SFont PNG sheets; `sfont` alias and PGF loading are tracked in [#37]/[#38] |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
@@ -187,5 +190,6 @@ used or modified.
 [#31]: https://github.com/epr-ds/openlua/issues/31
 [#32]: https://github.com/epr-ds/openlua/issues/32
 [#33]: https://github.com/epr-ds/openlua/issues/33
+[#34]: https://github.com/epr-ds/openlua/issues/34
 [#37]: https://github.com/epr-ds/openlua/issues/37
 [#38]: https://github.com/epr-ds/openlua/issues/38

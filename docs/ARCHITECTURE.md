@@ -18,7 +18,7 @@ engine/core/main.c ── register_api() ─────────────
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
     ├── data/    JSON + PSMF header parsing          (json)         │
-    ├── sys/     save slots + battery telemetry      (data, batt)   │
+    ├── sys/     saves + battery + power        (data, batt, power) │
     ├── maps/    tile grid renderer                  (map)          │
     └── video/   PMF playback via sceMpeg            (pmf)          │
                                                                    │
@@ -169,6 +169,27 @@ Battery serial/mode queries, mode changes, and EEPROM backup/restore have no
 safe public user-mode PSPSDK API. Those Lua entry points keep the OneLua
 signatures but return `"-"` or `0`; they never touch flash, EEPROM or NAND.
 
+## Power management
+
+`engine/sys/power.c` registers the OneLua `power` table:
+
+| Lua | PSPSDK |
+|---|---|
+| `power.plugged()` | `scePowerIsPowerOnline()` |
+| `power.suspend()` | `scePowerRequestSuspend()` |
+| `power.lock()` | `scePowerLock(0)` |
+| `power.unlock()` | `scePowerUnlock(0)` |
+| `power.tick()` | `scePowerTick(PSP_POWER_TICK_ALL)` |
+| `power.off()` | `scePowerRequestStandby()` |
+
+The public PSPSDK has no user-mode software shutdown. `power.off()` therefore
+requests standby, the closest safe operation; a full power-off still requires
+the hardware power switch. The host build provides inert stubs, and the PPSSPP
+demo exercises only `plugged`, `lock`, `unlock` and `tick` so it never suspends
+or powers down the emulator. PPSSPP 1.20.4 does not implement
+`scePowerLock`/`scePowerUnlock`, so the demo shows those two calls as failures
+with an `HLE N/A` note; `plugged` and `tick` work in the emulator.
+
 ## Memory and limits
 
 - `PSP_HEAP_SIZE_KB(20000)` — roughly 20 MB.
@@ -181,12 +202,12 @@ signatures but return `"-"` or `0`; they never touch flash, EEPROM or NAND.
 ## Host testing
 
 The PSP headers keep most graphics/input code out of host builds. The storage
-layer, timers, OneLua math helpers, battery formatting and host mocks,
-transform math, map geometry, sound parsing and channel bookkeeping,
-`engine/core/olreg.c`, and the Lua sources compile and run on the host.
-`test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry, sound,
-battery formatting, and Lua-level files/INI/savedata/timers/math/battery/sound
-tests.
+layer, timers, OneLua math helpers, battery formatting and host mocks, power
+bindings and stubs, transform math, map geometry, sound parsing and channel
+bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and run on the
+host. `test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry,
+sound, battery formatting, and Lua-level
+files/INI/savedata/timers/math/battery/power/sound tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -203,7 +224,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
-| `engine/sys` | save slots, battery telemetry | `data.*` / `savedata.*`, `batt.*` |
+| `engine/sys` | save slots, battery telemetry, power management | `data.*` / `savedata.*`, `batt.*`, `power.*` |
 | `engine/maps` | tilemaps | `map.*` |
 | `engine/video` | PMF playback through `sceMpeg` | `pmf.*` |
 | `third_party` | Lua 5.1.5, stb_image/stb_image_write | — |

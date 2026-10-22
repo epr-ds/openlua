@@ -53,7 +53,7 @@ make clean
 
 ## Host tests
 
-Host-testable pieces (VFS, timers, OneLua math/battery helpers, transform math, Lua modules):
+Host-testable pieces (VFS, timers, OneLua math/battery helpers, power bindings, transform math, Lua modules):
 
 ```bash
 bash test/host/run.sh
@@ -65,10 +65,10 @@ Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
 total), then `RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for
 timers, `RESULT: 23 passed, 0 failed` for math, `RESULT: 24 passed, 0 failed`
 for INI, `RESULT: 89 passed, 0 failed` for JSON, `RESULT: 64 passed, 0 failed`
-for savedata, `RESULT: 22 passed, 0 failed` for battery, and
-`RESULT: 13 passed, 0 failed` for sound (302 Lua assertions total). Build
-output is kept in `out/build.log`; the script prints it only when a build
-fails.
+for savedata, `RESULT: 22 passed, 0 failed` for battery,
+`RESULT: 14 passed, 0 failed` for power, and `RESULT: 13 passed, 0 failed`
+for sound (316 Lua assertions total). Build output is kept in `out/build.log`;
+the script prints it only when a build fails.
 
 Repository hygiene check:
 
@@ -82,8 +82,8 @@ is tracked.
 The script builds all host targets with `-Wall -Wextra -Werror` and runs the C
 tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_batt.c`,
 `test_maps.c`, `test_sound.c`) plus the Lua suites for
-files/INI/JSON/savedata/timers/math/battery/sound in `out/`. Compiler output is
-captured in `out/build.log` and shown only if a build fails.
+files/INI/JSON/savedata/timers/math/battery/power/sound in `out/`. Compiler
+output is captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
 
@@ -98,7 +98,7 @@ engine/
   util/   timers.c/h, olmath.c/h (OneLua math helpers)
   fs/     olfs.c/h (platform VFS), files.c/h, ini.c/h
   data/   json.c/h
-  sys/    savedata.c/h, battery.c/h
+  sys/    savedata.c/h, battery.c/h, power.c/h
   maps/   maps.c/h
 third_party/
   lua/src Lua 5.1.5
@@ -173,6 +173,7 @@ volumes for loads and deletes.
 | Blank frame after `screen.flip()` | Frame clear/swap ordering (#19) |
 | Garbled scaled sprite | Wrong stride or non-power-of-two upload (#20) |
 | Save not found on PSP | Save root probe did not create the directory (#24) |
+| `power.off()` enters standby instead of switching off | PSPSDK has no user-mode software shutdown; use the hardware power switch (#34) |
 
 ## PSP model compatibility
 

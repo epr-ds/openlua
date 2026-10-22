@@ -224,6 +224,37 @@ end
 Host tests use mocked battery values; the `battery.lua` demo shows the values
 reported by the current PPSSPP build.
 
+## power
+
+The `power` table exposes the OneLua power-management calls. `plugged`, `lock`,
+`unlock` and `tick` are safe to use in a frame loop. `suspend` and `off` change
+the console's power state.
+
+| Function | Returns | Behaviour |
+|---|---|---|
+| `power.plugged()` | Boolean: AC adapter or charger is connected. | `scePowerIsPowerOnline()` |
+| `power.suspend()` | `nil` | Requests suspend. May not return until the console resumes. |
+| `power.lock()` | Boolean: the power switch was locked. | `scePowerLock(0)` |
+| `power.unlock()` | Boolean: the power switch was unlocked. | `scePowerUnlock(0)` |
+| `power.tick()` | `nil` | Resets the idle timer with `scePowerTick(PSP_POWER_TICK_ALL)`. |
+| `power.off()` | `nil` | Requests standby; see the shutdown limitation below. |
+
+`power.tick()` is not called automatically by `screen.flip()`. Long-running
+scripts that must stay awake should call it periodically.
+
+The public PSPSDK has no user-mode software power-off function. `power.off()`
+therefore calls `scePowerRequestStandby()`, the closest safe operation, rather
+than using undocumented syscon commands. On real hardware this is a standby
+request, not a guaranteed full shutdown; use the PSP's hardware power switch
+for a true power-off. `power.suspend()` and `power.off()` may block until the
+console wakes.
+
+The host build substitutes inert power stubs and the `power.lua` demo never
+calls `suspend()` or `off()`. PPSSPP 1.20.4 reports AC status and accepts
+`tick()`, but its HLE does not implement `scePowerLock`/`scePowerUnlock`; the
+demo labels those failures `HLE N/A`. PPSSPP does not model real suspend or
+standby.
+
 ## sound
 
 | Function | Description |
@@ -393,3 +424,4 @@ video and audio. MP4 containers are not supported; only PSMF/PMF files are.
 | Transforms | Implemented and PPSSPP-verified; PSP hardware pending | #19, #20 |
 | PMF audio | ATRAC3+ path implemented and verified through a PPSSPP WAV dump; no PSP hardware run yet | #5 |
 | Battery mode/EEPROM | Read-only telemetry implemented; serial/mode return `"-"` and mode/EEPROM calls return `0` without hardware access | #33 |
+| Power off | PSPSDK exposes no user-mode software shutdown; `power.off()` requests standby, and a full power-off needs the hardware switch | #34 |

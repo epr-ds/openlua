@@ -74,6 +74,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/snd/sound.c" \
     "$ROOT/engine/sys/savedata.c" \
     "$ROOT/engine/sys/battery.c" \
+    "$ROOT/engine/sys/power.c" \
     "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
     "${OBJS[@]}" \
@@ -88,4 +89,5 @@ cd "$BUILD"
 ./host_test "$ROOT/test/host/test_json.lua"
 ./host_test "$ROOT/test/host/test_savedata.lua"
 ./host_test "$ROOT/test/host/test_batt.lua"
+./host_test "$ROOT/test/host/test_power.lua"
 ./host_test "$ROOT/test/host/test_sound.lua"

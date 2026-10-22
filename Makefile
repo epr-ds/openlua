@@ -54,6 +54,7 @@ OBJS = engine/core/main.o \
 	engine/data/psmf.o \
 	engine/sys/savedata.o \
 	engine/sys/battery.o \
+	engine/sys/power.o \
 	engine/video/pmf.o \
 	engine/maps/maps.o \
 	$(LUAOBJS)

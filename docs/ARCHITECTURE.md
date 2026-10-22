@@ -18,7 +18,7 @@ engine/core/main.c ── register_api() ─────────────
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
     ├── data/    JSON + PSMF header parsing          (json)         │
-    ├── sys/     saves + battery + power + os   (data, batt, power, os) │
+    ├── sys/     saves + battery + power + os + hw                  │
     ├── maps/    tile grid renderer                  (map)          │
     └── video/   PMF playback via sceMpeg            (pmf)          │
                                                                    │
@@ -226,6 +226,39 @@ the Lua surface can be exercised without touching the test machine. The
 `os.lua` demo calls only read-only queries; `os.exit()`, `os.restart()`, the
 dialog calls and the PRX helpers are never invoked by the demo or host tests.
 
+## Hardware information and audio
+
+`engine/sys/hardware.c` registers the OneLua `hw` table. The user-mode subset
+uses public PSPSDK calls:
+
+| Lua | PSPSDK / implementation |
+|---|---|
+| `hw.getmodel()` | PPSSPP nickname marker, `ef0:/` probe, or `"UNK"` |
+| `hw.firmware()` | `sceKernelDevkitVersion()` formatted as `major.minorRevision` |
+| `hw.volume([level])` | `/CONFIG/SYSTEM/SOUND` `main_volume`, clamped 1..30 |
+| `hw.mute([mode])` | `/CONFIG/SYSTEM/SOUND` `mute`, clamped 0/1 |
+| `hw.headphone()` | `sceHprmIsHeadphoneExist()` |
+| `hw.audioout([mode])` | `sceAudioRoutingSetMode()` / `sceAudioRoutingGetMode()` |
+| `hw.led(led, state)` | `-1`; `sceSysconCtrlLED` is kernel-only |
+
+The motherboard/fuse/NAND and region values require kernel-mode IDStorage or
+syscon access. Their OneLua entry points are retained with predictable
+fallbacks (`"UNK"`, `"0"`, `"false"`) rather than importing a kernel driver
+from the user EBOOT. Registry access is isolated in
+`hw_read_sound_key`/`hw_write_sound_key` and never runs in host builds. The
+audio-route setter is the only call that changes console state, and the demo
+never invokes it.
+
+PPSSPP 1.20.4 does not expose `/CONFIG/SYSTEM/SOUND`, so the PSP build keeps a
+session-local `27`/`0` fallback and still attempts the registry write. The
+`hw.audioout()` getter reflects PPSSPP's HLE, which always returns `0`. The
+`hardware.lua` demo calls only getters; setters and LED control are marked as
+not run because they change console state.
+
+Host builds use the same formatting/clamping helpers with fixed mocks. The
+pure helpers are covered by `test/host/test_hardware.c`; the Lua surface is
+covered by `test/host/test_hardware.lua`.
+
 ## Memory and limits
 
 - `PSP_HEAP_SIZE_KB(20000)` — roughly 20 MB.
@@ -239,11 +272,12 @@ dialog calls and the PRX helpers are never invoked by the demo or host tests.
 
 The PSP headers keep most graphics/input code out of host builds. The storage
 layer, timers, OneLua math helpers, battery formatting and host mocks, power
-bindings and stubs, OS formatting and host mocks, transform math, map geometry,
-sound parsing and channel bookkeeping, `engine/core/olreg.c`, and the Lua
-sources compile and run on the host. `test/host/run.sh` covers OLFS paths/cwd,
-transforms, map geometry, sound, battery/OS formatting, and Lua-level
-files/INI/savedata/timers/math/battery/power/os/sound tests.
+bindings and stubs, OS formatting and host mocks, hardware formatting/clamping
+and host mocks, transform math, map geometry, sound parsing and channel
+bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and run on the
+host. `test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry,
+sound, battery/OS/hardware formatting, and Lua-level
+files/INI/savedata/timers/math/battery/power/os/hardware/sound tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -260,7 +294,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
-| `engine/sys` | save slots, battery telemetry, power management, OS queries | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*` |
+| `engine/sys` | save slots, battery, power, OS queries, hardware info/audio | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*` |
 | `engine/maps` | tilemaps | `map.*` |
 | `engine/video` | PMF playback through `sceMpeg` | `pmf.*` |
 | `third_party` | Lua 5.1.5, stb_image/stb_image_write | — |

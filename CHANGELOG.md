@@ -6,6 +6,17 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `hw` hardware compatibility: `getmodel`, `firmware`, `region`,
+  `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`,
+  `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`,
+  `mute`, `headphone`, `audioout` and `led`. Model/firmware use public
+  user-mode queries; volume/mute use the `/CONFIG/SYSTEM/SOUND` registry with
+  clamped 1..30 and 0/1 inputs; headphone detection and audio routing use
+  `sceHprm`/`sceAudioRouting`. Kernel-only motherboard/fuse/NAND/region/LED
+  values return documented fallbacks instead of importing a kernel driver.
+  PPSSPP 1.20.4 lacks the sound registry category, so it reports the
+  session-local `27`/`0` fallback. Includes 54 host formatting/clamping checks,
+  67 Lua assertions and a self-contained graphical demo (#36).
 - OneLua `os` system compatibility: extends the stock Lua `os` table with
   `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`,
   `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt` and an explicit

@@ -29,6 +29,7 @@ file itself.
 | `battery.lua` | Read-only `batt.*` telemetry: level, time, temperature, voltage, capacity | none (built-in 5x7 font) |
 | `power.lua` | `power.*`: AC status, switch lock/unlock and tick; suspend/off shown but not invoked | none (built-in 5x7 font) |
 | `os.lua` | `os.*` system info: nickname, language, MAC, CFW/version, date, CPU/bus, RAM and storage; destructive/dialog calls marked not run | none (built-in 5x7 font) |
+| `hardware.lua` | `hw.*` identity, firmware, volume/mute, headphone and audio route; kernel-only ID/LED fields marked as fallbacks, setters not run | none (built-in 5x7 font) |
 | `sound.lua` | WAV load/loop/volume, audio pumped by `screen.flip` | `assets/beep.wav` |
 | `transforms.lua` | Rotation, scale, tint, pivot | `assets/test_sheet.png` |
 
@@ -61,3 +62,10 @@ file itself.
   never calls them. Dialog/PRX calls are stubs in this pass; `os.password()`
   returns `""` and `os.cfw()` returns `"HOST"`/`"UNK"` because PSPSDK has no
   public password or reliable CFW query (#35).
+- The hardware demo only reads values. Motherboard/fuse/NAND/region and LED
+  control need kernel mode, so they show `UNK`/`N/A`; `hw.volume()`,
+  `hw.mute()`, `hw.audioout()` and `hw.led()` setters are not called (#36).
+- PPSSPP 1.20.4 does not expose `/CONFIG/SYSTEM/SOUND`, so it shows the
+  session fallback `27`/`0`; `sceAudioRoutingGetMode` also always returns `0`
+  there. On a PSP the registry is written when available and the routing value
+  is passed through (#36).

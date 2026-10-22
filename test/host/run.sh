@@ -59,6 +59,12 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "${OBJS[@]}" -lm -o "$BUILD/os_test"
 "$BUILD/os_test"
 
+run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
+    "$ROOT/test/host/test_hardware.c" \
+    "$ROOT/engine/sys/hardware.c" "$ROOT/engine/core/olreg.c" \
+    "${OBJS[@]}" -lm -o "$BUILD/hardware_test"
+"$BUILD/hardware_test"
+
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/test_maps.c" "$ROOT/engine/core/olreg.c" \
     "${OBJS[@]}" -lm -o "$BUILD/maps_test"
@@ -82,6 +88,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/sys/battery.c" \
     "$ROOT/engine/sys/power.c" \
     "$ROOT/engine/sys/os.c" \
+    "$ROOT/engine/sys/hardware.c" \
     "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
     "${OBJS[@]}" \
@@ -98,4 +105,5 @@ cd "$BUILD"
 ./host_test "$ROOT/test/host/test_batt.lua"
 ./host_test "$ROOT/test/host/test_power.lua"
 ./host_test "$ROOT/test/host/test_os.lua"
+./host_test "$ROOT/test/host/test_hardware.lua"
 ./host_test "$ROOT/test/host/test_sound.lua"

@@ -21,6 +21,8 @@ modules on top of the hardware:
 - Read-only battery telemetry through the OneLua `batt` table.
 - Power management through the OneLua `power` table.
 - OS system queries and safe utilities through an extended Lua `os` table.
+- Hardware identity, sound-registry volume/mute, headphone detection and audio
+  routing through the OneLua `hw` table.
 - Builds with PSPSDK in Docker; storage and platform modules are host-testable.
 
 ## Quick start
@@ -85,6 +87,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Battery telemetry | Implemented; host-tested and PPSSPP-verified ([#33]) |
 | Power management | Implemented; host-tested; `plugged`/`tick` PPSSPP-verified, lock/unlock HLE missing ([#34]) |
 | OS system queries | Implemented; host-tested and PPSSPP-verified; password/CFW/dialog/PRX limits documented ([#35]) |
+| Hardware info/audio | Implemented; host-tested and PPSSPP-verified; kernel-only ID/LED fields return documented fallbacks ([#36]) |
 | Files / INI / Savedata | Implemented; hardening [#24] |
 | JSON | Implemented; host-tested ([#30]) |
 | Tilemaps | Implemented; host-tested ([#26]) |
@@ -109,7 +112,7 @@ engine/
   util/   timers, OneLua math helpers
   fs/     portable VFS, files, INI
   data/   JSON parser/serializer, PSMF header parser
-  sys/    save slots, battery telemetry, power management, OS queries
+  sys/    save slots, battery, power, OS queries, hardware info/audio
   maps/   tilemap renderer
   video/  PMF playback through sceMpeg
 third_party/
@@ -165,6 +168,7 @@ for a local toolchain build, host tests and debugging.
 | `batt` | `exists`, `charging`, `lifepercent`, `lifetime`, `temp`, `volt`, `remaincap`, `fullcap`, `low` | Read-only telemetry; serial/mode/EEPROM operations are safe no-ops ([#33]) |
 | `power` | `plugged`, `suspend`, `lock`, `unlock`, `tick`, `off` | Implemented; `off` requests standby because PSPSDK lacks software shutdown; PPSSPP 1.20.4 lacks lock/unlock HLE; host-tested ([#34]) |
 | `os` | `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`, `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt`, `restart`, dialogs/PRX | Extends stock Lua `os`; host-tested and PPSSPP-verified; password/CFW and dialog/PRX limits documented ([#35]) |
+| `hw` | `getmodel`, `firmware`, `region`, `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`, `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`, `mute`, `headphone`, `audioout`, `led` | Host-tested and PPSSPP-verified; ID/fuse/NAND/LED values need kernel mode and return documented fallbacks; volume/mute use the sound registry with a session fallback; audio routing uses `sceAudioRouting` ([#36]) |
 | `font` / `sfont` | `font.new`/`font.load`, `print`, `textwidth` | SFont PNG sheets; `sfont` alias and PGF loading are tracked in [#37]/[#38] |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
@@ -195,5 +199,6 @@ used or modified.
 [#33]: https://github.com/epr-ds/openlua/issues/33
 [#34]: https://github.com/epr-ds/openlua/issues/34
 [#35]: https://github.com/epr-ds/openlua/issues/35
+[#36]: https://github.com/epr-ds/openlua/issues/36
 [#37]: https://github.com/epr-ds/openlua/issues/37
 [#38]: https://github.com/epr-ds/openlua/issues/38

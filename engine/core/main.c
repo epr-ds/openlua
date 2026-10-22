@@ -26,6 +26,7 @@
 #include "engine/sys/battery.h"
 #include "engine/sys/power.h"
 #include "engine/sys/os.h"
+#include "engine/sys/hardware.h"
 #include "engine/maps/maps.h"
 #include "engine/video/pmf.h"
 #include "engine/core/olreg.h"
@@ -150,6 +151,7 @@ static void register_api(lua_State *L)
     battery_api_register(L);  /* batt.*     (read-only telemetry)           */
     power_api_register(L);    /* power.*    (power switch/suspend/tick)     */
     os_api_register(L);       /* os.*       (extends Lua's os table)        */
+    hardware_api_register(L); /* hw.*       (identity/volume/route/LED)      */
     maps_api_register(L);     /* map.*      (new/blit/sizex/sizey/set)       */
     pmf_api_register(L);      /* pmf.*      (run/play/pause/stop)            */
 }

@@ -53,7 +53,8 @@ make clean
 
 ## Host tests
 
-Host-testable pieces (VFS, timers, OneLua math/battery/OS helpers, power/OS bindings, transform math, Lua modules):
+Host-testable pieces (VFS, timers, OneLua math/battery/OS/hardware helpers,
+power/OS/hardware bindings, transform math, Lua modules):
 
 ```bash
 bash test/host/run.sh
@@ -62,15 +63,16 @@ bash test/host/run.sh
 Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
 `psmf: 20 checks, 0 failed`, `battery: 16 checks, 0 failed`,
 `RESULT: 10 passed, 0 failed` for the OS C helpers,
-`maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed` (301 C checks
+`RESULT: 54 passed, 0 failed` for the hardware helpers,
+`maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed` (355 C checks
 total), then `RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for
 timers, `RESULT: 23 passed, 0 failed` for math, `RESULT: 24 passed, 0 failed`
 for INI, `RESULT: 89 passed, 0 failed` for JSON, `RESULT: 64 passed, 0 failed`
 for savedata, `RESULT: 22 passed, 0 failed` for battery,
 `RESULT: 14 passed, 0 failed` for power, `RESULT: 61 passed, 0 failed` for
-the OS Lua surface, and `RESULT: 13 passed, 0 failed` for sound (377 Lua
-assertions total). Build output is kept in `out/build.log`; the script prints it
-only when a build fails.
+the OS Lua surface, `RESULT: 67 passed, 0 failed` for hardware, and
+`RESULT: 13 passed, 0 failed` for sound (444 Lua assertions total). Build
+output is kept in `out/build.log`; the script prints it only when a build fails.
 
 Repository hygiene check:
 
@@ -178,6 +180,9 @@ volumes for loads and deletes.
 | `power.off()` enters standby instead of switching off | PSPSDK has no user-mode software shutdown; use the hardware power switch (#34) |
 | Script unexpectedly relaunches | `os.restart()` is destructive and PSP-only; keep it behind an explicit user action (#35) |
 | `os.password()`/`os.cfw()` look empty or `UNK` | PSPSDK has no public password or reliable CFW query; these are documented fallbacks (#35) |
+| `hw.baryon()`/`tachyon`/`board`/`gen`/`nand` all show `UNK` | Motherboard, fuse and NAND identity need kernel-mode IDStorage/syscon; user-mode builds return documented fallbacks (#36) |
+| `hw.volume()` shows `27` and does not change PPSSPP audio | PPSSPP 1.20.4 has no `/CONFIG/SYSTEM/SOUND` registry category; OpenLua reports a session-local `27`/`0` fallback and still writes the registry when available (#36) |
+| `hw.audioout()` always shows `0` in PPSSPP | PPSSPP 1.20.4's `sceAudioRoutingGetMode` HLE always returns `0`; the setter still selects the route (#36) |
 
 ## PSP model compatibility
 

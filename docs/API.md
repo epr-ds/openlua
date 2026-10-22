@@ -306,6 +306,60 @@ end
 print(os.nick(), os.mac(), os.getdate())
 ```
 
+## hardware
+
+The `hw` table follows the OneLua hardware surface. Calls that need kernel-only
+IDStorage or syscon access keep their OneLua signatures but return documented
+fallbacks; the EBOOT never imports a kernel driver.
+
+| Function | Returns | Behaviour |
+|---|---|---|
+| `hw.getmodel()` | String | `"Emulator"` for PPSSPP's default nickname, `"Go"` when `ef0:/` is available, otherwise `"UNK"`. |
+| `hw.firmware()` | String | Current firmware from `sceKernelDevkitVersion()`, for example `"6.60"`; `"UNK"` when unavailable. |
+| `hw.region()` | String | `"--"`; IDStorage region data is kernel-only. |
+| `hw.baryon()` | String | `"UNK"`; syscon is kernel-only. |
+| `hw.tachyon()` | String | `"UNK"`; syscon is kernel-only. |
+| `hw.pommel()` | Number | `0`; syscon is kernel-only. |
+| `hw.fuseid()` | String | `"UNK"`; fuse data is kernel-only. |
+| `hw.fusecfg()` | String | `"UNK"`; fuse data is kernel-only. |
+| `hw.kirk()` | String | `"UNK"`; Kirk data is kernel-only. |
+| `hw.spock()` | String | `"UNK"`; Spock data is kernel-only. |
+| `hw.nandseed()` | String | `"UNK"`; IDStorage is kernel-only. |
+| `hw.ofwinitial()` | String | `"UNK"`; factory firmware is stored in IDStorage. |
+| `hw.board()` | String | `"UNK"`; motherboard type is derived from kernel-only data. |
+| `hw.gen()` | String | `"UNK"`; motherboard generation is derived from kernel-only data. |
+| `hw.pandora()` | Boolean | `false`; Pandora battery detection needs syscon. |
+| `hw.nand()` | String | `"UNK"`; NAND size needs kernel/IDStorage access. |
+| `hw.volume()` | Number | Current `/CONFIG/SYSTEM/SOUND/main_volume` value (normally 1..30). |
+| `hw.volume(level)` | Number | Clamps `level` to 1..30, writes `main_volume`, and returns the clamped level. |
+| `hw.mute()` | Number | `1` when `/CONFIG/SYSTEM/SOUND/mute` is set, otherwise `0`. |
+| `hw.mute(mode)` | `nil` | Clamps `mode` to 0/1 and writes `mute`. |
+| `hw.headphone()` | Number | `1` when the headphone is connected, otherwise `0`, from `sceHprmIsHeadphoneExist()`. |
+| `hw.audioout()` | Number | Current `sceAudioRoutingGetMode()`: `0` headphones, `1` speakers, or `-1` on error. |
+| `hw.audioout(mode)` | Number | Selects `0` headphones or `1` speakers; returns `0` on success, `<0` on error. |
+| `hw.led(led, state)` | Number | `0` on success, `<0` on error. PSP builds return `-1` because `sceSysconCtrlLED` is kernel-only; host mocks accept LED indices 0..3. |
+
+Volume and mute use the firmware sound registry through `libpspreg`. PPSSPP
+1.20.4 does not expose the `/CONFIG/SYSTEM/SOUND` category, so OpenLua keeps a
+session-local `27`/`0` fallback there; writes update that session value but do
+not change PPSSPP's mixer. On a real PSP the registry write is attempted and
+persisted when the category is available. Volume changes are registry settings,
+not per-channel `sound.vol()` mixer levels.
+
+PPSSPP 1.20.4's `sceAudioRoutingGetMode` HLE always reports `0`, even though
+the default route is speakers; `hw.audioout(mode)` still selects and restores
+the route. The PSP value is passed through directly.
+
+LED indices follow OneLua: `0` Memory Stick, `1` WLAN, `2` power, `3` Bluetooth.
+No LED call crashes or changes hardware from the user-mode build.
+
+```lua
+local model = hw.getmodel()
+local level = hw.volume()
+local muted = hw.mute() == 1
+local phones = hw.headphone() == 1
+```
+
 ## sound
 
 | Function | Description |
@@ -479,3 +533,7 @@ video and audio. MP4 containers are not supported; only PSMF/PMF files are.
 | OS password/CFW | `os.password()` returns `""` because PSPSDK has no public password API; `os.cfw()` returns `"UNK"` because no reliable CFW detector exists | #35 |
 | OS dialogs/PRX | `os.message`/`messagebox`/`initprx`/`stopprx`/`requiere` are predictable no-side-effect stubs; no utility dialog or PRX is loaded | #35 |
 | OS restart | `os.restart()` is explicit and PSP-only via `sceKernelLoadExec`; host calls are no-ops and the demo/tests never call it | #35 |
+| Hardware identity | Motherboard/fuse/NAND/board/gen/region and Pandora data need kernel-mode IDStorage/syscon; OpenLua returns `"UNK"`, `0` or `false` | #36 |
+| Hardware LED | `hw.led()` is present but returns `-1` because `sceSysconCtrlLED` is kernel-only | #36 |
+| Hardware volume/mute | Uses `/CONFIG/SYSTEM/SOUND`; PPSSPP 1.20.4 lacks that registry category, so the session fallback `27`/`0` is reported and writes are not applied to the emulator mixer | #36 |
+| Hardware audio route | `hw.audioout(mode)` uses `sceAudioRoutingSetMode`; PPSSPP 1.20.4's `GetMode` HLE always returns `0` | #36 |

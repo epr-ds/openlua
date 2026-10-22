@@ -47,6 +47,12 @@ for f in $CORE; do
     OBJS+=("$BUILD/$f.o")
 done
 
+run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
+    "$ROOT/test/host/test_batt.c" \
+    "$ROOT/engine/sys/battery.c" "$ROOT/engine/core/olreg.c" \
+    "${OBJS[@]}" -lm -o "$BUILD/batt_test"
+"$BUILD/batt_test"
+
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/test_maps.c" "$ROOT/engine/core/olreg.c" \
     "${OBJS[@]}" -lm -o "$BUILD/maps_test"
@@ -67,6 +73,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/data/json.c" \
     "$ROOT/engine/snd/sound.c" \
     "$ROOT/engine/sys/savedata.c" \
+    "$ROOT/engine/sys/battery.c" \
     "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
     "${OBJS[@]}" \
@@ -80,4 +87,5 @@ cd "$BUILD"
 ./host_test "$ROOT/test/host/test_ini.lua"
 ./host_test "$ROOT/test/host/test_json.lua"
 ./host_test "$ROOT/test/host/test_savedata.lua"
+./host_test "$ROOT/test/host/test_batt.lua"
 ./host_test "$ROOT/test/host/test_sound.lua"

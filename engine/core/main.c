@@ -23,6 +23,7 @@
 #include "engine/fs/olfs.h"
 #include "engine/data/json.h"
 #include "engine/sys/savedata.h"
+#include "engine/sys/battery.h"
 #include "engine/maps/maps.h"
 #include "engine/video/pmf.h"
 #include "engine/core/olreg.h"
@@ -144,6 +145,7 @@ static void register_api(lua_State *L)
     ini_api_register(L);      /* ini.*      (read/write)                     */
     json_api_register(L);     /* json.*     (decode/encode/load/save)        */
     savedata_api_register(L); /* data.* + savedata.* (save/load/delete)      */
+    battery_api_register(L);  /* batt.*     (read-only telemetry)           */
     maps_api_register(L);     /* map.*      (new/blit/sizex/sizey/set)       */
     pmf_api_register(L);      /* pmf.*      (run/play/pause/stop)            */
 }

@@ -13,6 +13,7 @@
 #include "engine/data/json.h"
 #include "engine/snd/sound.h"
 #include "engine/sys/savedata.h"
+#include "engine/sys/battery.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
 
@@ -31,6 +32,7 @@ int main(int argc, char **argv)
     ini_api_register(L);
     json_api_register(L);
     savedata_api_register(L);
+    battery_api_register(L);
     sound_api_register(L);
     timers_api_register(L);
     olmath_api_register(L);

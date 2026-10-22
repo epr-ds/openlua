@@ -1,4 +1,4 @@
-# Renderer verification (PPSSPP)
+# PPSSPP verification
 
 These captures were produced with PPSSPP v1.20.4 using the **software**
 renderer on a headless Xvfb display. No PSP hardware was available, so this is
@@ -15,6 +15,7 @@ from the 960x544 PPSSPP window to the native 480x272 PSP resolution. The
 | ![transforms](transforms.png) | Triangle at 0/30/60/90 degrees, 45-degree scaled + tinted triangle, 2x circle, vertically flipped triangle | `transform_check.lua` |
 | ![flip](flip.png) | Normal, horizontal, vertical and combined flips; explicit source rects and whole-sheet blit | `demos/flip.lua` |
 | ![depth](depth.png) | Red (z=10) drawn before green (z=5); red remains on top in the overlap. Blue (z=20) is separate | `depth_check.lua` |
+| ![battery](battery.png) | `batt` telemetry: 100%, ON BATTERY, 0:00 remaining, 0 C; PPSSPP reports no voltage/capacity, so those fields show `-` | `demos/battery.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was

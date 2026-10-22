@@ -18,7 +18,7 @@ engine/core/main.c ── register_api() ─────────────
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
     ├── data/    JSON + PSMF header parsing          (json)         │
-    ├── sys/     save slots                          (data)         │
+    ├── sys/     save slots + battery telemetry      (data, batt)   │
     ├── maps/    tile grid renderer                  (map)          │
     └── video/   PMF playback via sceMpeg            (pmf)          │
                                                                    │
@@ -143,6 +143,32 @@ On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
 M2 (`ms0:`) and PSP Go internal storage (`ef0:`), creates `PSP/SAVEDATA` when
 needed, and searches both roots for loads and deletes.
 
+## Battery telemetry
+
+`engine/sys/battery.c` registers the OneLua `batt` table. The read-only
+functions map directly to the documented `scePower` API:
+
+| Lua | PSPSDK |
+|---|---|
+| `batt.exists()` | `scePowerIsBatteryExist()` |
+| `batt.charging()` | `scePowerIsBatteryCharging()` |
+| `batt.lifepercent()` | `scePowerGetBatteryLifePercent()` |
+| `batt.lifetimemin()` | `scePowerGetBatteryLifeTime()` |
+| `batt.temp()` | `scePowerGetBatteryTemp()` |
+| `batt.volt()` | `scePowerGetBatteryVolt()` |
+| `batt.remaincap()` | `scePowerGetBatteryRemainCapacity()` |
+| `batt.fullcap()` | `scePowerGetBatteryFullCapacity()` |
+| `batt.low()` | `scePowerIsLowBattery()` |
+
+Formatting helpers (`batt_format_lifetime`, `batt_format_volt`,
+`batt_format_capacity`) avoid floating-point printf and are covered by
+`test/host/test_batt.c`. The host build substitutes fixed mock values so the
+Lua table can be exercised by `test_batt.lua`.
+
+Battery serial/mode queries, mode changes, and EEPROM backup/restore have no
+safe public user-mode PSPSDK API. Those Lua entry points keep the OneLua
+signatures but return `"-"` or `0`; they never touch flash, EEPROM or NAND.
+
 ## Memory and limits
 
 - `PSP_HEAP_SIZE_KB(20000)` — roughly 20 MB.
@@ -155,10 +181,12 @@ needed, and searches both roots for loads and deletes.
 ## Host testing
 
 The PSP headers keep most graphics/input code out of host builds. The storage
-layer, timers, OneLua math helpers, transform math, map geometry, sound parsing
-and channel bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and
-run on the host. `test/host/run.sh` covers OLFS paths/cwd, transforms, map
-geometry, sound, and Lua-level files/INI/savedata/timers/math/sound tests.
+layer, timers, OneLua math helpers, battery formatting and host mocks,
+transform math, map geometry, sound parsing and channel bookkeeping,
+`engine/core/olreg.c`, and the Lua sources compile and run on the host.
+`test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry, sound,
+battery formatting, and Lua-level files/INI/savedata/timers/math/battery/sound
+tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -175,7 +203,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
-| `engine/sys` | save slots | `data.*` / `savedata.*` |
+| `engine/sys` | save slots, battery telemetry | `data.*` / `savedata.*`, `batt.*` |
 | `engine/maps` | tilemaps | `map.*` |
 | `engine/video` | PMF playback through `sceMpeg` | `pmf.*` |
 | `third_party` | Lua 5.1.5, stb_image/stb_image_write | — |

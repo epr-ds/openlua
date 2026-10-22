@@ -180,6 +180,50 @@ math.bitnot(0)             --> -1
 The `math.lua` demo visualises clamping and the low eight bits of the bitwise
 results; it does not require any external assets.
 
+## battery
+
+The `batt` table exposes read-only battery telemetry. The read-only calls are
+safe to make every frame; they do not change clock, charging or power state.
+
+| Function | Returns |
+|---|---|
+| `batt.exists()` | Boolean: a battery is present. |
+| `batt.charging()` | Boolean: the battery is charging. |
+| `batt.lifepercent()` | Number: remaining charge percentage. Negative when unavailable. |
+| `batt.lifetimemin()` | Number: remaining time in minutes. Negative when unavailable. |
+| `batt.lifetime()` | String: remaining time as `H:MM`, or `"-"` when unavailable. |
+| `batt.temp()` | Number: battery temperature in degrees Celsius. Negative when unavailable. |
+| `batt.volt()` | String: voltage in volts with two decimals (for example `"4.02"`), or `"-"`. |
+| `batt.remaincap()` | String: remaining capacity in mAh as a decimal string, or `"-"`. |
+| `batt.fullcap()` | String: full capacity in mAh as a decimal string, or `"-"`. |
+| `batt.low()` | Boolean: the firmware reports a low battery. |
+| `batt.serial()` | `"-"`; no safe user-mode PSPSDK API is available. |
+| `batt.mode()` | `"-"`; no safe user-mode PSPSDK API is available. |
+| `batt.tonormal()` | `0`; mode changes are not implemented. |
+| `batt.topandora()` | `0`; mode changes are not implemented. |
+| `batt.toautoboot()` | `0`; mode changes are not implemented. |
+| `batt.backupbat(path)` | `0`; EEPROM backup is not implemented. |
+| `batt.restorebat(path)` | `0`; EEPROM restore is not implemented. |
+
+The last five calls accept the OneLua signatures and always report failure.
+They never write to flash, EEPROM or NAND. The public PSPSDK user-mode API has
+no battery serial/mode or EEPROM access, so returning a safe failure is
+preferable to issuing undocumented syscon commands. `backupbat` and
+`restorebat` require a string path for signature compatibility, but the path
+is never opened.
+
+```lua
+if batt.exists() then
+    local percent = batt.lifepercent()
+    local time    = batt.lifetime()
+    local volts   = batt.volt()
+    local temp    = batt.temp()
+end
+```
+
+Host tests use mocked battery values; the `battery.lua` demo shows the values
+reported by the current PPSSPP build.
+
 ## sound
 
 | Function | Description |
@@ -348,3 +392,4 @@ video and audio. MP4 containers are not supported; only PSMF/PMF files are.
 |---|---|---|
 | Transforms | Implemented and PPSSPP-verified; PSP hardware pending | #19, #20 |
 | PMF audio | ATRAC3+ path implemented and verified through a PPSSPP WAV dump; no PSP hardware run yet | #5 |
+| Battery mode/EEPROM | Read-only telemetry implemented; serial/mode return `"-"` and mode/EEPROM calls return `0` without hardware access | #33 |

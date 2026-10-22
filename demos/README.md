@@ -26,6 +26,7 @@ file itself.
 | `flip.lua` | `image.fliph` / `image.flipv`, sprite frames, source rects | `assets/test_sheet.png` |
 | `font.lua` | SFont loading, `screen.print`, tint, text width | `assets/font.png` |
 | `math.lua` | `math.minmax` clamping and `bitand`/`bitor`/`bitnot` bit patterns | none (built-in 5x7 font) |
+| `battery.lua` | Read-only `batt.*` telemetry: level, time, temperature, voltage, capacity | none (built-in 5x7 font) |
 | `sound.lua` | WAV load/loop/volume, audio pumped by `screen.flip` | `assets/beep.wav` |
 | `transforms.lua` | Rotation, scale, tint, pivot | `assets/test_sheet.png` |
 
@@ -46,3 +47,5 @@ file itself.
   #19/#20; visual confirmation on PSP/PPSSPP is still pending.
 - `screen.print` requires a font; load one with `font.new` and select it with
   `screen.font`.
+- `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
+  backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).

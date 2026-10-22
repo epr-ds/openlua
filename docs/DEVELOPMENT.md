@@ -53,21 +53,22 @@ make clean
 
 ## Host tests
 
-Host-testable pieces (VFS, timers, OneLua math helpers, transform math, Lua modules):
+Host-testable pieces (VFS, timers, OneLua math/battery helpers, transform math, Lua modules):
 
 ```bash
 bash test/host/run.sh
 ```
 
 Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
-`psmf: 20 checks, 0 failed`, `maps: 26 checks, 0 failed`,
-`sound: 48 checks, 0 failed` (275 C checks total), then
-`RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for timers,
-`RESULT: 23 passed, 0 failed` for math, `RESULT: 24 passed, 0 failed` for INI,
-`RESULT: 89 passed, 0 failed` for JSON, `RESULT: 64 passed, 0 failed` for
-savedata, and `RESULT: 13 passed, 0 failed` for sound (280 Lua assertions
-total). Build output is kept in `out/build.log`; the script prints it only when
-a build fails.
+`psmf: 20 checks, 0 failed`, `battery: 16 checks, 0 failed`,
+`maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed` (291 C checks
+total), then `RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for
+timers, `RESULT: 23 passed, 0 failed` for math, `RESULT: 24 passed, 0 failed`
+for INI, `RESULT: 89 passed, 0 failed` for JSON, `RESULT: 64 passed, 0 failed`
+for savedata, `RESULT: 22 passed, 0 failed` for battery, and
+`RESULT: 13 passed, 0 failed` for sound (302 Lua assertions total). Build
+output is kept in `out/build.log`; the script prints it only when a build
+fails.
 
 Repository hygiene check:
 
@@ -79,10 +80,10 @@ This fails if `*.o`, `*.elf`, `*.pbp`, `EBOOT.PBP`, `PARAM.SFO` or an AppImage
 is tracked.
 
 The script builds all host targets with `-Wall -Wextra -Werror` and runs the C
-tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_maps.c`,
-`test_sound.c`) plus the Lua suites for
-files/INI/JSON/savedata/timers/math/sound in `out/`. Compiler output is captured
-in `out/build.log` and shown only if a build fails.
+tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_batt.c`,
+`test_maps.c`, `test_sound.c`) plus the Lua suites for
+files/INI/JSON/savedata/timers/math/battery/sound in `out/`. Compiler output is
+captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
 
@@ -97,7 +98,7 @@ engine/
   util/   timers.c/h, olmath.c/h (OneLua math helpers)
   fs/     olfs.c/h (platform VFS), files.c/h, ini.c/h
   data/   json.c/h
-  sys/    savedata.c/h
+  sys/    savedata.c/h, battery.c/h
   maps/   maps.c/h
 third_party/
   lua/src Lua 5.1.5

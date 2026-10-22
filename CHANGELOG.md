@@ -6,6 +6,12 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `batt` battery telemetry: read-only `exists`, `charging`,
+  `lifepercent`, `lifetimemin`, `lifetime`, `temp`, `volt`, `remaincap`,
+  `fullcap` and `low` bindings over `scePower`, with host-tested formatting
+  and a self-contained demo. Battery serial/mode queries, mode changes and
+  EEPROM backup/restore are documented safe no-ops because the public PSPSDK
+  user-mode API does not expose them (#33).
 - OneLua `math` compatibility helpers: `math.minmax`, `math.bitnot`,
   `math.bitand` and `math.bitor` extend the standard Lua 5.1 table with
   32-bit signed bitwise semantics. Includes 23 host assertions and a

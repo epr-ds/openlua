@@ -6,6 +6,15 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `os` system compatibility: extends the stock Lua `os` table with
+  `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`,
+  `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt` and an explicit
+  PSP-only `restart`. System parameters, RTC, WLAN, memory, clock and
+  filesystem capacity use public PSPSDK APIs with documented host fallbacks.
+  `password`/`cfw` report safe fallbacks, `restart` uses
+  `sceKernelLoadExec`, and dialog/PRX calls are predictable no-side-effect
+  stubs. Includes 10 host formatting checks, 61 Lua assertions and a
+  self-contained graphical demo (#35).
 - OneLua `power` management module: `plugged`, `lock`, `unlock`, `tick`,
   `suspend` and `off` over the public PSPSDK power API. `power.off()` requests
   standby because PSPSDK has no user-mode software shutdown; suspend/standby

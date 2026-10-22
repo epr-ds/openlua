@@ -17,6 +17,7 @@ from the 960x544 PPSSPP window to the native 480x272 PSP resolution. The
 | ![depth](depth.png) | Red (z=10) drawn before green (z=5); red remains on top in the overlap. Blue (z=20) is separate | `depth_check.lua` |
 | ![battery](battery.png) | `batt` telemetry: 100%, ON BATTERY, 0:00 remaining, 0 C; PPSSPP reports no voltage/capacity, so those fields show `-` | `demos/battery.lua` |
 | ![power](power.png) | `power` demo: PLUGGED YES, TICK YES; PPSSPP 1.20.4 does not implement lock/unlock, so those show NO with HLE N/A; suspend/off are marked NOT RUN | `demos/power.lua` |
+| ![os](os.png) | `os` demo: PPSSPP nickname/language/MAC, RTC date, 222/111 MHz clocks and free/total memory; PPSSPP reports no flash0 version or MS/ef0 capacity, so those show N/A; CFW is UNKNOWN | `demos/os.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was

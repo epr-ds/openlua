@@ -255,6 +255,57 @@ calls `suspend()` or `off()`. PPSSPP 1.20.4 reports AC status and accepts
 demo labels those failures `HLE N/A`. PPSSPP does not model real suspend or
 standby.
 
+## os
+
+OpenLua extends the standard Lua `os` table instead of replacing it.
+`os.time`, `os.date` and `os.exit` remain the stock Lua 5.1 functions; the
+entries below add the OneLua PSP surface. Host tests never call `os.exit` or
+`os.restart`.
+
+| Function | Returns | Behaviour |
+|---|---|---|
+| `os.delay(ms)` | `nil` | Sleeps for `ms` milliseconds. Non-positive values return immediately. |
+| `os.getdate()` | String `DD/MM/YYYY @ HH:MM:SS` | Local time from `sceRtcGetCurrentClockLocalTime()`. |
+| `os.nick()` | String | PSP nickname through `sceUtilityGetSystemParamString()`; `""` when unavailable. |
+| `os.mac()` | String | Uppercase `XX:XX:XX:XX:XX:XX` from `sceWlanGetEtherAddr()`; all-zero when unavailable. |
+| `os.language()` | String | Uppercase system language name, or `"UNKNOWN"`. |
+| `os.password()` | `""` | PSPSDK has no public user-mode parental-password API. |
+| `os.ram()` | Number | Free memory in bytes at the time of the call. |
+| `os.totalram()` | Number | Free memory cached when the module registers; this is not physical installed RAM. |
+| `os.cpu()` | Number | Current CPU clock in MHz. |
+| `os.cpu(mhz)` | `nil` | Requests `mhz` in the 1..333 range; invalid values are a no-op. |
+| `os.bus()` | Number | Current bus clock in MHz. |
+| `os.infoms0()` | Table or `nil` | `{ max, free, used }` in bytes for `ms0:/`, or `nil` when the device/capacity is unavailable. |
+| `os.infoef0()` | Table or `nil` | The same fields for `ef0:/`; `nil` on non-PSP-Go models and hosts. |
+| `os.cfw()` | String | `"HOST"` in host builds, otherwise `"UNK"`; no reliable public CFW detector exists. |
+| `os.versiontxt()` | String | Trimmed `flash0:/etc/version.txt` contents, or `""` when unreadable. Host builds return `"HOST"`. |
+| `os.restart()` | `nil` | Explicit PSP-only relaunch through `sceKernelLoadExec(cwd/EBOOT.PBP)`; a host call is a no-op. |
+| `os.message(msg [, mode])` | `nil` or `-1` | Predictable stub; no dialog is created. |
+| `os.messagebox(title, msg)` | `0` | Predictable stub; no dialog is created. |
+| `os.initprx(path [, argv])` | `0` | Predictable stub; no module is loaded. |
+| `os.stopprx(id)` | `false` | Predictable stub; no module is stopped. |
+| `os.requiere(path)` | `0` | Predictable stub; no module is loaded. |
+
+Filesystem capacities are reported in bytes. On the host, `os.infoms0()` maps
+to the current directory so the table shape is testable, while `os.infoef0()`
+returns `nil`. PPSSPP may return an all-zero `statvfs`; OpenLua treats a zero
+capacity as unavailable and returns `nil`.
+
+Dialog and PRX calls are intentionally scoped out of this pass. They accept the
+OneLua argument shapes and return the documented failure/no-selection values
+without opening a utility dialog, loading a PRX or changing module state.
+`os.restart()` is destructive by design: it is never called by the host tests
+or the demo, and there is no automatic restart path.
+
+```lua
+local fs = os.infoms0()
+if fs then
+    print(string.format("%.1f / %.1f MB used",
+                        fs.used / (1024 * 1024), fs.max / (1024 * 1024)))
+end
+print(os.nick(), os.mac(), os.getdate())
+```
+
 ## sound
 
 | Function | Description |
@@ -425,3 +476,6 @@ video and audio. MP4 containers are not supported; only PSMF/PMF files are.
 | PMF audio | ATRAC3+ path implemented and verified through a PPSSPP WAV dump; no PSP hardware run yet | #5 |
 | Battery mode/EEPROM | Read-only telemetry implemented; serial/mode return `"-"` and mode/EEPROM calls return `0` without hardware access | #33 |
 | Power off | PSPSDK exposes no user-mode software shutdown; `power.off()` requests standby, and a full power-off needs the hardware switch | #34 |
+| OS password/CFW | `os.password()` returns `""` because PSPSDK has no public password API; `os.cfw()` returns `"UNK"` because no reliable CFW detector exists | #35 |
+| OS dialogs/PRX | `os.message`/`messagebox`/`initprx`/`stopprx`/`requiere` are predictable no-side-effect stubs; no utility dialog or PRX is loaded | #35 |
+| OS restart | `os.restart()` is explicit and PSP-only via `sceKernelLoadExec`; host calls are no-ops and the demo/tests never call it | #35 |

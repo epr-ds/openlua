@@ -18,7 +18,7 @@ engine/core/main.c ── register_api() ─────────────
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
     ├── data/    JSON + PSMF header parsing          (json)         │
-    ├── sys/     saves + battery + power        (data, batt, power) │
+    ├── sys/     saves + battery + power + os   (data, batt, power, os) │
     ├── maps/    tile grid renderer                  (map)          │
     └── video/   PMF playback via sceMpeg            (pmf)          │
                                                                    │
@@ -190,6 +190,42 @@ or powers down the emulator. PPSSPP 1.20.4 does not implement
 `scePowerLock`/`scePowerUnlock`, so the demo shows those two calls as failures
 with an `HLE N/A` note; `plugged` and `tick` work in the emulator.
 
+## OS compatibility
+
+`engine/sys/os.c` extends the stock Lua `os` table; `os.time`, `os.date` and
+`os.exit` are not replaced. The OneLua additions map to public PSPSDK calls:
+
+| Lua | PSPSDK / implementation |
+|---|---|
+| `os.delay(ms)` | `sceKernelDelayThread(ms * 1000)` |
+| `os.getdate()` | `sceRtcGetCurrentClockLocalTime()` |
+| `os.nick()` | `sceUtilityGetSystemParamString(PSP_SYSTEMPARAM_ID_STRING_NICKNAME, ...)` |
+| `os.mac()` | `sceWlanGetEtherAddr()` |
+| `os.language()` | `sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_LANGUAGE, ...)` |
+| `os.ram()` | `sceKernelTotalFreeMemSize()` |
+| `os.totalram()` | `sceKernelTotalFreeMemSize()` cached at module registration |
+| `os.cpu([mhz])` | `scePowerGetCpuClockFrequency()` / `scePowerSetCpuClockFrequency()` |
+| `os.bus()` | `scePowerGetBusClockFrequency()` |
+| `os.infoms0()` / `os.infoef0()` | `statvfs()` on `ms0:/` and `ef0:/` |
+| `os.cfw()` | `"UNK"`: no reliable public CFW detector |
+| `os.versiontxt()` | `flash0:/etc/version.txt`, trimmed |
+| `os.restart()` | `sceKernelLoadExec(cwd/EBOOT.PBP)`, explicit and PSP-only |
+
+The filesystem helpers return `{ max, free, used }` in bytes. A zero-capacity
+or failed `statvfs()` becomes `nil`, which is how PPSSPP and hosts without the
+volume are reported. `os.password()` returns `""`; the public user-mode PSPSDK
+has no parental-password query.
+
+`os.message`, `os.messagebox`, `os.initprx`, `os.stopprx` and `os.requiere`
+are deliberate stubs in this pass. They validate the OneLua argument shape and
+return the documented failure/no-selection values without opening a utility
+dialog, loading a PRX or changing module state.
+
+Host builds substitute fixed system-parameter, MAC, memory and clock mocks so
+the Lua surface can be exercised without touching the test machine. The
+`os.lua` demo calls only read-only queries; `os.exit()`, `os.restart()`, the
+dialog calls and the PRX helpers are never invoked by the demo or host tests.
+
 ## Memory and limits
 
 - `PSP_HEAP_SIZE_KB(20000)` — roughly 20 MB.
@@ -203,11 +239,11 @@ with an `HLE N/A` note; `plugged` and `tick` work in the emulator.
 
 The PSP headers keep most graphics/input code out of host builds. The storage
 layer, timers, OneLua math helpers, battery formatting and host mocks, power
-bindings and stubs, transform math, map geometry, sound parsing and channel
-bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and run on the
-host. `test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry,
-sound, battery formatting, and Lua-level
-files/INI/savedata/timers/math/battery/power/sound tests.
+bindings and stubs, OS formatting and host mocks, transform math, map geometry,
+sound parsing and channel bookkeeping, `engine/core/olreg.c`, and the Lua
+sources compile and run on the host. `test/host/run.sh` covers OLFS paths/cwd,
+transforms, map geometry, sound, battery/OS formatting, and Lua-level
+files/INI/savedata/timers/math/battery/power/os/sound tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -224,7 +260,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
-| `engine/sys` | save slots, battery telemetry, power management | `data.*` / `savedata.*`, `batt.*`, `power.*` |
+| `engine/sys` | save slots, battery telemetry, power management, OS queries | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*` |
 | `engine/maps` | tilemaps | `map.*` |
 | `engine/video` | PMF playback through `sceMpeg` | `pmf.*` |
 | `third_party` | Lua 5.1.5, stb_image/stb_image_write | — |

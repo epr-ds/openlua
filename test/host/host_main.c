@@ -15,6 +15,7 @@
 #include "engine/sys/savedata.h"
 #include "engine/sys/battery.h"
 #include "engine/sys/power.h"
+#include "engine/sys/os.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
 
@@ -35,6 +36,7 @@ int main(int argc, char **argv)
     savedata_api_register(L);
     battery_api_register(L);
     power_api_register(L);
+    os_api_register(L);
     sound_api_register(L);
     timers_api_register(L);
     olmath_api_register(L);

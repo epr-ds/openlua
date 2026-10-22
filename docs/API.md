@@ -127,7 +127,9 @@ any handle works with `font.*`, `sfont.*` and `screen.print`.
 
 Glyphs start at space (`0x20`) and advance in ASCII order, left to right and
 then down the rows. Newlines move to the next line; tabs advance four cells.
-Keep sheets at most 512 px wide and tall: that is the PSP GE texture limit.
+Sheets can be wider or taller than 512 px (the PSP GE texture limit): the
+cells are then repacked into an atlas at most 512 px wide when first drawn.
+`font.new` returns nil if the cells cannot fit in a 512x512 atlas.
 
 ### sfont (OneLua SFont strips)
 

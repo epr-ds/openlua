@@ -8,6 +8,9 @@
  * (lazily, on first draw). Drawing uses pixel-unit UV coords so a
  * glyph blit is simply: gfx_blit(sheet, x, y, col*cellW, row*cellH,
  *                            cellW, cellH, ...).
+ * Sheets wider or taller than the GE limit (512 px) are repacked cell by
+ * cell into an atlas at most 512 px wide; col/row then come from the
+ * atlas width instead of the source sheet's.
  *
  * SFont strips (sfont.load) reuse the same slots and blit path: row 0
  * holds magenta markers, each glyph is a non-magenta run between two
@@ -32,7 +35,7 @@
 #define FONT_MAX 8
 
 #define SFONT_MAGENTA 0x00FF00FFu   /* R=FF G=00 B=FF in ABGR, alpha ignored */
-#define SFONT_ATLAS_MAX 512         /* GE texture size limit */
+#define SFONT_ATLAS_MAX 512         /* GE texture size limit (all fonts) */
 
 static struct {
     int        used;
@@ -47,6 +50,7 @@ static struct {
     SFontGlyph glyphs[SFONT_MAX_GLYPHS];
     unsigned short ax[SFONT_MAX_GLYPHS], ay[SFONT_MAX_GLYPHS]; /* atlas pos */
     int        atlasW, atlasH;
+    int        repack;        /* grid: cells remapped into an atlas */
 } g_fonts[FONT_MAX];
 
 static int             g_defaultFont = 0;             /* for screen.print */
@@ -83,12 +87,29 @@ int font_alloc(const char *path, int cellW, int cellH)
     if (nChars <= 0)
         return 0;
 
+    /* Too big for the GE: lay the cells out row-major in an atlas at most
+     * SFONT_ATLAS_MAX wide (cellW <= 256, so at least two columns). */
+    int repack = w > SFONT_ATLAS_MAX || h > SFONT_ATLAS_MAX;
+    int aw = 0, ah = 0;
+    if (repack) {
+        int cols = SFONT_ATLAS_MAX / cellW;
+        if (cols > nChars)
+            cols = nChars;
+        aw = cols * cellW;
+        ah = (nChars + cols - 1) / cols * cellH;
+        if (ah > SFONT_ATLAS_MAX)
+            return 0;
+    }
+
     int i = slot_claim(path);
     if (i < 0)
         return 0;
     g_fonts[i].cellW  = cellW;
     g_fonts[i].cellH  = cellH;
     g_fonts[i].nChars = nChars;
+    g_fonts[i].repack = repack;
+    g_fonts[i].atlasW = aw;
+    g_fonts[i].atlasH = ah;
     return i + 1;                           /* 1-based handle */
 }
 
@@ -260,6 +281,22 @@ static int ensure_sheet(int h)
                 }
             }
         }
+    } else if (g_fonts[i].repack) {
+        /* Copy each cell from its sheet slot to its atlas slot. */
+        int cw = g_fonts[i].cellW, ch = g_fonts[i].cellH;
+        int srcCols = w / cw;
+        int dstCols = g_fonts[i].atlasW / cw;
+        s = (srcCols * (hh / ch) >= g_fonts[i].nChars)
+            ? gfx_surface_new(g_fonts[i].atlasW, g_fonts[i].atlasH) : 0;
+        for (int g = 0; s && g < g_fonts[i].nChars; g++) {
+            const unsigned int *from = src
+                + (size_t)(g / srcCols) * ch * w + (size_t)(g % srcCols) * cw;
+            unsigned int *to = s->pixels
+                + (size_t)(g / dstCols) * ch * s->realW + (size_t)(g % dstCols) * cw;
+            for (int y = 0; y < ch; y++)
+                memcpy(to + (size_t)y * s->realW, from + (size_t)y * w,
+                       (size_t)cw * 4);
+        }
     } else {
         /* gfx_surface_new zeroes the power-of-two padding. */
         s = gfx_surface_new(w, hh);
@@ -320,7 +357,8 @@ void font_draw_glyph(int h, int dx, int dy, char c, unsigned int tint)
     int cellH = g_fonts[i].cellH;
 
     /* Grid math (same rule as image.c blitsprite/frame_rect): the
-     * column count comes from the sheet's hardware-aligned width. */
+     * column count comes from the sheet's hardware-aligned width. For a
+     * repacked sheet that is the atlas width, which remaps col/row. */
     int sheetCols = g_fonts[i].sheet->w / cellW;
     if (sheetCols < 1) sheetCols = 1;
     int col = idx % sheetCols;

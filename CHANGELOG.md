@@ -6,6 +6,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- Grid fonts (`font.new`) larger than 512 px in either dimension are
+  repacked cell by cell into an atlas at most 512 px wide, so they sample
+  correctly on the GE; `font.new` returns nil when the cells cannot fit.
+  Adds 16 host C checks.
 - OneLua `sfont` compatibility: `sfont.load`, `print`, `letters` and `width`
   read classic SFont strips (magenta markers on the top row, proportional
   glyphs from `!`, bottom-left colour key). SFont handles share the `font`

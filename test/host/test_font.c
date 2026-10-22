@@ -229,6 +229,82 @@ static void test_wide_asset(const char *assets)
     font_free(h);
 }
 
+/* Grid sheet wider than the GE limit: 96 cells of 8x16 in one 768 px row,
+ * glyph g marked by pixel value 0xFF000000 | g at its cell's top-left. */
+static void test_wide_grid(const char *dir)
+{
+    enum { CW = 8, CH = 16, N = 96, W = CW * N, H = CH };
+    static unsigned int px[W * H];
+    memset(px, 0, sizeof(px));
+    for (int g = 0; g < N; g++)
+        px[g * CW] = 0xFF000000u | (unsigned)g;
+    px[(H - 1) * W + W - 1] = WHT;    /* bottom-right of the last cell */
+    char path[512];
+    snprintf(path, sizeof(path), "%s/grid_wide.png", dir);
+    check(stbi_write_png(path, W, H, 4, px, W * 4) != 0, "write wide grid");
+
+    int h = font_alloc(path, CW, CH);
+    check(h > 0 && font_nchars(h) == N, "wide grid nchars");
+
+    g_nblit = 0;
+    font_draw_text(h, 0, 0, " ~", WHT);   /* glyphs 0, 94, 95 */
+    OL_Surface *s = g_fonts[h - 1].sheet;
+    check(s && s->realW <= SFONT_ATLAS_MAX && s->realH <= SFONT_ATLAS_MAX,
+          "wide grid packed within GE texture limit");
+    check(s && s->w == 512 && s->h == 2 * CH, "wide grid atlas: 64 cols x 2 rows");
+    check(g_nblit == 3, "wide grid draws three glyphs");
+    check(g_blit[0].sx == 0 && g_blit[0].sy == 0 &&
+          g_blit[0].sw == CW && g_blit[0].sh == CH, "wide grid glyph 0 rect");
+    check(g_blit[1].sx == 30 * CW && g_blit[1].sy == CH,
+          "wide grid glyph 94 on second atlas row");
+    check(g_blit[2].sx == 31 * CW && g_blit[2].sy == CH,
+          "wide grid glyph 95 rect");
+    for (int g = 0; s && g < N; g++) {
+        unsigned int p = s->pixels[(g / 64) * CH * s->realW + (g % 64) * CW];
+        if (p != (0xFF000000u | (unsigned)g)) {
+            check(0, "wide grid cell copied to its atlas slot");
+            break;
+        }
+    }
+    check(s && s->pixels[(2 * CH - 1) * s->realW + 32 * CW - 1] == WHT,
+          "wide grid last cell's bottom-right pixel copied");
+    font_free(h);
+
+    /* 1024 px tall single column of 64 8x16 cells -> one 512 px atlas row. */
+    static unsigned int tall[CW * 1024];
+    memset(tall, 0, sizeof(tall));
+    snprintf(path, sizeof(path), "%s/grid_tall.png", dir);
+    stbi_write_png(path, CW, 1024, 4, tall, CW * 4);
+    h = font_alloc(path, CW, CH);
+    check(h > 0 && font_nchars(h) == 64, "tall grid nchars");
+    g_nblit = 0;
+    font_draw_glyph(h, 0, 0, (char)(' ' + 63), WHT);
+    s = g_fonts[h - 1].sheet;
+    check(s && s->w == 512 && s->h == CH, "tall grid atlas is one row");
+    check(g_nblit == 1 && g_blit[0].sx == 63 * CW && g_blit[0].sy == 0,
+          "tall grid last glyph rect");
+    font_free(h);
+
+    /* 64x64 cells in one row: 8 per atlas row, so 64 cells (4096 px) fill
+     * the 512x512 atlas exactly and 65 cells (4160 px) need a ninth row. */
+    unsigned int *big = (unsigned int *)calloc((size_t)4160 * 64, 4);
+    snprintf(path, sizeof(path), "%s/grid_fit.png", dir);
+    stbi_write_png(path, 4096, 64, 4, big, 4096 * 4);
+    h = font_alloc(path, 64, 64);
+    check(h > 0 && font_nchars(h) == 64, "64 cells of 64x64 fill the atlas");
+    g_nblit = 0;
+    font_draw_glyph(h, 0, 0, (char)(' ' + 63), WHT);
+    s = g_fonts[h - 1].sheet;
+    check(s && s->realW == 512 && s->realH == 512, "full atlas is 512x512");
+    check(g_nblit == 1 && g_blit[0].sx == 7 * 64 && g_blit[0].sy == 7 * 64,
+          "last cell in the atlas corner");
+    font_free(h);
+    snprintf(path, sizeof(path), "%s/grid_over.png", dir);
+    stbi_write_png(path, 4160, 64, 4, big, 4160 * 4);
+    check(font_alloc(path, 64, 64) == 0, "grid too big for the atlas");
+    free(big);
+}
+
 /* blits() -> count, last x, last y, last sw */
 static int l_blits(lua_State *L)
 {
@@ -249,6 +325,7 @@ int main(int argc, char **argv)
     test_pack();
     test_sfont(".");
     test_grid(".");
+    test_wide_grid(".");
     test_wide_asset(assets);
 
     printf("\nRESULT: %d passed, %d failed (font C tests)\n", checks, fails);

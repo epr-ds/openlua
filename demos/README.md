@@ -24,7 +24,8 @@ file itself.
 |---|---|---|
 | `smoke.lua` | Minimal boot check: clear, fill, outline, line | none |
 | `flip.lua` | `image.fliph` / `image.flipv`, sprite frames, source rects | `assets/test_sheet.png` |
-| `font.lua` | SFont loading, `screen.print`, tint, text width | `assets/font.png` |
+| `font.lua` | Grid font loading, `screen.print`, tint, text width | `assets/font.png` |
+| `sfont.lua` | OneLua `sfont.load/print/letters/width` with proportional glyphs, underlined measured widths and a grid-font comparison | `assets/sfont.png`, `assets/font.png` |
 | `math.lua` | `math.minmax` clamping and `bitand`/`bitor`/`bitnot` bit patterns | none (built-in 5x7 font) |
 | `battery.lua` | Read-only `batt.*` telemetry: level, time, temperature, voltage, capacity | none (built-in 5x7 font) |
 | `power.lua` | `power.*`: AC status, switch lock/unlock and tick; suspend/off shown but not invoked | none (built-in 5x7 font) |
@@ -37,7 +38,8 @@ file itself.
 
 | File | Size | Regenerate with |
 |---|---|---|
-| `assets/font.png` | ASCII 0x20..0x7E, 8x16 cells | `python3 tools/gen_font.py` |
+| `assets/font.png` | ASCII 0x20..0x7E, 8x16 cells, 48 per row | `python3 tools/gen_font.py` |
+| `assets/sfont.png` | SFont strip, `!`..`~`, 18 px tall, proportional | `python3 tools/gen_sfont.py` |
 | `assets/beep.wav` | 2 s, 440 Hz mono tone | `python3 tools/gen_tone.py` |
 | `assets/test_sheet.png` | 4-frame 64x64 sprite sheet | checked in |
 

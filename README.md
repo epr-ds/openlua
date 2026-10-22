@@ -79,7 +79,8 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 |---|---|
 | Lua host, `color`, `screen`, `draw` | Implemented |
 | Images and sprite frames | Implemented |
-| SFont / `screen.print` | Implemented |
+| Grid fonts / `screen.print` | Implemented |
+| OneLua `sfont` | Implemented; host-tested ([#37]) |
 | Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
@@ -106,7 +107,7 @@ engine/
   core/   boot, Lua registration, stb implementation
   gfx/    GE surfaces, blits, draw primitives
   img/    image loader and Lua bindings
-  font/   SFont loader and renderer
+  font/   grid and SFont loaders, shared renderer
   snd/    WAV/VMA decoder and PSP audio
   input/  controller polling
   util/   timers, OneLua math helpers
@@ -169,7 +170,7 @@ for a local toolchain build, host tests and debugging.
 | `power` | `plugged`, `suspend`, `lock`, `unlock`, `tick`, `off` | Implemented; `off` requests standby because PSPSDK lacks software shutdown; PPSSPP 1.20.4 lacks lock/unlock HLE; host-tested ([#34]) |
 | `os` | `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`, `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt`, `restart`, dialogs/PRX | Extends stock Lua `os`; host-tested and PPSSPP-verified; password/CFW and dialog/PRX limits documented ([#35]) |
 | `hw` | `getmodel`, `firmware`, `region`, `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`, `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`, `mute`, `headphone`, `audioout`, `led` | Host-tested and PPSSPP-verified; ID/fuse/NAND/LED values need kernel mode and return documented fallbacks; volume/mute use the sound registry with a session fallback; audio routing uses `sceAudioRouting` ([#36]) |
-| `font` / `sfont` | `font.new`/`font.load`, `print`, `textwidth` | SFont PNG sheets; `sfont` alias and PGF loading are tracked in [#37]/[#38] |
+| `font` / `sfont` | `font.new`/`font.load`, `print`, `textwidth`; `sfont.load`, `print`, `letters`, `width` | Grid PNG sheets and proportional SFont strips share handles and `screen.print`; host-tested ([#37]); PGF loading tracked in [#38] |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |

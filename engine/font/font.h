@@ -1,7 +1,12 @@
 /* OpenLua - bitmap font system (public API)
  *
- * Load a spritesheet-style font image where each glyph occupies a fixed-size
- * cell. Characters map sequentially from char 0x20 (space).
+ * Two sheet layouts share one handle table and renderer:
+ *
+ *  - grid fonts (font.new): each glyph occupies a fixed-size cell and
+ *    characters map sequentially from char 0x20 (space);
+ *  - SFont fonts (sfont.load): a proportional strip whose top pixel row
+ *    marks glyph boundaries with magenta (255,0,255) pixels. Glyphs are the
+ *    non-magenta runs between markers and map sequentially from '!' (0x21).
  *
  * Fonts are handled by numeric (1-based) font handles, OneLua-style:
  *
@@ -25,10 +30,28 @@
  *  The sheet texture is uploaded to VRAM lazily on first draw. */
 int font_alloc(const char *path, int cellW, int cellH);
 
+/** Load a classic SFont strip (see top of file). Returns a 1-based handle
+ *  in the same table as font_alloc, or 0 on error / no glyphs. */
+int sfont_alloc(const char *path);
+
+/** SFont glyph run on the marker row: source x and width in pixels. */
+typedef struct {
+    unsigned short x, w;
+} SFontGlyph;
+
+#define SFONT_FIRST      33                    /* '!' */
+#define SFONT_MAX_GLYPHS (256 - SFONT_FIRST)
+
+/** Pure SFont marker scan over one ABGR pixel row of width w.
+ *  Fills up to max glyph runs and returns how many were found. */
+int sfont_parse_markers(const unsigned int *row, int w,
+                        SFontGlyph *out, int max);
+
 /** Number of glyphs in the font (0 = invalid handle). */
 int font_nchars(int h);
 
-/** Glyph cell width/height in pixels. */
+/** Glyph cell width/height in pixels. For SFont handles: widest glyph
+ *  and glyph height (sheet height minus the marker row). */
 int font_cellw(int h);
 int font_cellh(int h);
 
@@ -42,7 +65,8 @@ void font_draw_glyph(int h, int dx, int dy, char c, unsigned int tint);
  *  Returns the final X cursor position. */
 int font_draw_text(int h, int x0, int y0, const char *text, unsigned int tint);
 
-/** Pixel width of a string (each cell advances by cellW). */
+/** Pixel width of a string (each cell advances by cellW; SFont glyphs
+ *  advance by their own width, space and unknown chars by the '!' width). */
 int font_textwidth(const char *text, int h);
 
 /** Release a font handle and free its VRAM sheet. */
@@ -56,7 +80,7 @@ unsigned int font_tint(void);
 
 /* ---- Lua bindings ---- */
 
-/** Registers the `font` global table and hooks `screen.print` /
+/** Registers the `font` and `sfont` global tables and hooks `screen.print` /
  *  `screen.font` / `screen.textwidth` onto the existing `screen` table.
  *  Call after the `screen` table has been created in core init. */
 void font_api_register(lua_State *L);

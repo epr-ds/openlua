@@ -65,6 +65,13 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "${OBJS[@]}" -lm -o "$BUILD/hardware_test"
 "$BUILD/hardware_test"
 
+run gcc -O2 -I"$ROOT/third_party/stb" -c "$ROOT/engine/core/stb_impl.c" \
+    -o "$BUILD/stb_impl.o"
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
+    "$ROOT/test/host/test_font.c" "$ROOT/engine/core/olreg.c" \
+    "$BUILD/stb_impl.o" "${OBJS[@]}" -lm -o "$BUILD/font_test"
+(cd "$BUILD" && ./font_test "$ROOT/test/host/test_sfont.lua" "$ROOT/assets")
+
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/test_maps.c" "$ROOT/engine/core/olreg.c" \
     "${OBJS[@]}" -lm -o "$BUILD/maps_test"

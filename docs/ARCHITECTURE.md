@@ -12,7 +12,7 @@ engine/core/main.c ── register_api() ─────────────
     │                                                              │
     ├── gfx/     GE pipeline, surfaces, primitives  (screen, draw) │
     ├── img/     PNG/JPEG/BMP decode via stb_image   (image)        │
-    ├── font/    SFont tilemap renderer              (font, screen) │
+    ├── font/    grid + SFont font renderer   (font, sfont, screen) │
     ├── snd/     WAV/VMA decode + PSP audio          (sound)        │
     ├── input/   sceCtrl polling                     (buttons)      │
     ├── util/    timers + OneLua math helpers         (timers, math) │
@@ -277,7 +277,7 @@ and host mocks, transform math, map geometry, sound parsing and channel
 bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and run on the
 host. `test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry,
 sound, battery/OS/hardware formatting, and Lua-level
-files/INI/savedata/timers/math/battery/power/os/hardware/sound tests.
+files/INI/savedata/timers/math/battery/power/os/hardware/sound/sfont tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -288,7 +288,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/core` | boot, Lua registration | `color`, `screen.clear/flip` |
 | `engine/gfx` | surfaces, GE, primitives | `draw.*` |
 | `engine/img` | image decode, blits, transforms | `image.*` |
-| `engine/font` | SFont loader/renderer | `font.*`, `screen.print` |
+| `engine/font` | grid and SFont loaders, glyph atlas, shared renderer | `font.*`, `sfont.*`, `screen.print` |
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |

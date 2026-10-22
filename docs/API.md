@@ -110,16 +110,49 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 
 | Function | Description |
 |---|---|
-| `font.new(path, cellW, cellH)` | Load an SFont PNG sheet. Returns a handle or nil. `font.load` is an alias. |
+Both tables share one handle table (8 fonts at a time) and one renderer, so
+any handle works with `font.*`, `sfont.*` and `screen.print`.
+
+### font (fixed-cell grid sheets)
+
+| Function | Description |
+|---|---|
+| `font.new(path, cellW, cellH)` | Load a grid PNG sheet. Returns a handle or nil. `font.load` is an alias. |
 | `font.nchars(handle)` | Number of glyphs in the sheet. |
-| `font.cell(handle)` | Returns `cellW, cellH`. |
+| `font.cell(handle)` | Returns `cellW, cellH` (for an SFont handle: widest glyph, glyph height). |
 | `font.draw(handle, x, y, code [, tint])` | Draw one ASCII code. |
 | `font.print(handle, x, y, text [, tint])` | Draw a string; returns final cursor X. |
 | `font.textwidth(handle, text)` or `font.textwidth(text, handle)` | Measure a string. |
-| `font.free(handle)` | Release the handle and its surface. |
+| `font.free(handle)` | Release the handle and its surface (also for `sfont` handles). |
 
-Glyphs start at space (`0x20`) and advance in ASCII order. Newlines move to the
-next line; tabs advance four cells.
+Glyphs start at space (`0x20`) and advance in ASCII order, left to right and
+then down the rows. Newlines move to the next line; tabs advance four cells.
+Keep sheets at most 512 px wide and tall: that is the PSP GE texture limit.
+
+### sfont (OneLua SFont strips)
+
+| Function | Description |
+|---|---|
+| `sfont.load(path)` | Load an SFont PNG strip. Returns a handle, or nil if the file is missing, has no markers or does not fit the glyph atlas. |
+| `sfont.print(handle, x, y, text [, tint])` | Draw a string in the strip's own colours; returns the final cursor X. |
+| `sfont.letters(handle)` | Number of glyphs found in the strip (0 for a freed handle). |
+| `sfont.width(handle, text)` | Text width in pixels. |
+
+An SFont strip is one row of glyphs. Its top pixel row marks glyph boundaries
+with magenta (`255,0,255`) pixels: each glyph is the run of non-magenta
+columns between two markers and is drawn from rows `1..h-1`. Glyphs map
+from `!` (`0x21`) in ASCII order. Space and any character the strip does not
+cover advance by the width of `!`; `\n` returns to `x` and moves down by the
+glyph height; `\t` advances four spaces; `sfont.width` ignores `\n`/`\t`.
+When the bottom-left pixel is opaque, that colour is treated as transparent
+(classic SFont colour key). Strips can be wider than 512 px: glyphs are
+repacked into a 512 px atlas when first drawn.
+
+```lua
+local sf = sfont.load("assets/sfont.png")
+local x  = sfont.print(sf, 20, 40, "Hello PSP!")   -- x = 20 + width
+print(sfont.letters(sf), sfont.width(sf, "Hello PSP!"))
+```
 
 ## buttons
 

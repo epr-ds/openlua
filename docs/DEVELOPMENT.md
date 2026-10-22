@@ -85,8 +85,10 @@ is tracked.
 
 The script builds all host targets with `-Wall -Wextra -Werror` and runs the C
 tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_batt.c`,
-`test_os.c`, `test_maps.c`, `test_sound.c`) plus the Lua suites for
-files/INI/JSON/savedata/timers/math/battery/power/os/sound in `out/`. Compiler
+`test_os.c`, `test_hardware.c`, `test_font.c`, `test_maps.c`, `test_sound.c`)
+plus the Lua suites for
+files/INI/JSON/savedata/timers/math/battery/power/os/hardware/sfont/sound in
+`out/`. Compiler
 output is captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
@@ -96,7 +98,7 @@ engine/
   core/   main.c, olreg.c/h, stb_impl.c
   gfx/    gfx.c/h (surface + GE), draw.c/h (primitives)
   img/    image.c/h (Lua image module, stb decode)
-  font/   font.c/h (SFont)
+  font/   font.c/h (grid fonts + OneLua sfont)
   snd/    sound.c/h (WAV/VMA + PSP audio)
   input/  buttons.c/h
   util/   timers.c/h, olmath.c/h (OneLua math helpers)

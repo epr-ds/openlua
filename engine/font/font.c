@@ -9,6 +9,12 @@
  * glyph blit is simply: gfx_blit(sheet, x, y, col*cellW, row*cellH,
  *                            cellW, cellH, ...).
  *
+ * SFont strips (sfont.load) reuse the same slots and blit path: row 0
+ * holds magenta markers, each glyph is a non-magenta run between two
+ * markers, and glyphs are drawn from rows 1..h-1 at their own width.
+ * Space and characters the strip does not cover advance by the width of
+ * the first glyph ('!'), as in the original SFont library.
+ *
  * Pixel format matches image.c: stbi RGBA bytes read as uint32 LE,
  * i.e. pixel value = (A<<24)|(B<<16)|(G<<8)|R.
  */
@@ -25,12 +31,22 @@
 
 #define FONT_MAX 8
 
+#define SFONT_MAGENTA 0x00FF00FFu   /* R=FF G=00 B=FF in ABGR, alpha ignored */
+#define SFONT_ATLAS_MAX 512         /* GE texture size limit */
+
 static struct {
     int        used;
     char       path[256];
-    int        cellW, cellH;
+    int        cellW, cellH;  /* SFont: widest glyph, glyph height */
     int        nChars;
     OL_Surface *sheet;        /* VRAM texture (lazy upload) */
+    int        sfont;         /* 1 = proportional SFont strip */
+    int        spaceW;        /* SFont: advance for space/unknown chars */
+    int        keyed;         /* SFont: colour key active */
+    unsigned int key;         /* SFont: bottom-left colour made transparent */
+    SFontGlyph glyphs[SFONT_MAX_GLYPHS];
+    unsigned short ax[SFONT_MAX_GLYPHS], ay[SFONT_MAX_GLYPHS]; /* atlas pos */
+    int        atlasW, atlasH;
 } g_fonts[FONT_MAX];
 
 static int             g_defaultFont = 0;             /* for screen.print */
@@ -39,6 +55,19 @@ static unsigned int    g_defaultTint = 0xFFFFFFFFu;   /* ABGR, FFFFFF = none */
 /* =====================================================================
  * Allocation
  * ===================================================================*/
+
+static int slot_claim(const char *path)
+{
+    for (int i = 0; i < FONT_MAX; i++) {
+        if (!g_fonts[i].used) {
+            memset(&g_fonts[i], 0, sizeof(g_fonts[i]));
+            g_fonts[i].used = 1;
+            strncpy(g_fonts[i].path, path, sizeof(g_fonts[i].path) - 1);
+            return i;
+        }
+    }
+    return -1;                              /* all slots full */
+}
 
 int font_alloc(const char *path, int cellW, int cellH)
 {
@@ -54,19 +83,112 @@ int font_alloc(const char *path, int cellW, int cellH)
     if (nChars <= 0)
         return 0;
 
-    for (int i = 0; i < FONT_MAX; i++) {
-        if (!g_fonts[i].used) {
-            g_fonts[i].used   = 1;
-            strncpy(g_fonts[i].path, path, sizeof(g_fonts[i].path) - 1);
-            g_fonts[i].path[sizeof(g_fonts[i].path) - 1] = '\0';
-            g_fonts[i].cellW  = cellW;
-            g_fonts[i].cellH  = cellH;
-            g_fonts[i].nChars = nChars;
-            g_fonts[i].sheet  = 0;
-            return i + 1;                    /* 1-based handle */
-        }
+    int i = slot_claim(path);
+    if (i < 0)
+        return 0;
+    g_fonts[i].cellW  = cellW;
+    g_fonts[i].cellH  = cellH;
+    g_fonts[i].nChars = nChars;
+    return i + 1;                           /* 1-based handle */
+}
+
+int sfont_parse_markers(const unsigned int *row, int w,
+                        SFontGlyph *out, int max)
+{
+    int n = 0, x = 0;
+
+    /* Anything left of the first marker is not a glyph. */
+    while (x < w && (row[x] & 0x00FFFFFFu) != SFONT_MAGENTA)
+        x++;
+    while (x < w && n < max) {
+        while (x < w && (row[x] & 0x00FFFFFFu) == SFONT_MAGENTA)
+            x++;
+        int start = x;
+        while (x < w && (row[x] & 0x00FFFFFFu) != SFONT_MAGENTA)
+            x++;
+        if (x >= w)
+            break;                          /* run not closed by a marker */
+        out[n].x = (unsigned short)start;
+        out[n].w = (unsigned short)(x - start);
+        n++;
     }
-    return 0;                               /* all slots full */
+    return n;
+}
+
+/* Shelf-pack n glyphs of height gh into an atlas at most maxW wide, since
+ * SFont strips are usually far wider than the GE can sample. Writes each
+ * glyph's atlas origin and the atlas size; returns 0 if it cannot fit. */
+static int sfont_pack(const SFontGlyph *g, int n, int gh, int maxW,
+                      unsigned short *ax, unsigned short *ay,
+                      int *outW, int *outH)
+{
+    int x = 0, y = 0, w = 0;
+    for (int i = 0; i < n; i++) {
+        if (g[i].w > maxW)
+            return 0;
+        if (x + g[i].w > maxW) {
+            x = 0;
+            y += gh;
+        }
+        ax[i] = (unsigned short)x;
+        ay[i] = (unsigned short)y;
+        x += g[i].w;
+        if (x > w)
+            w = x;
+    }
+    if (y + gh > maxW)
+        return 0;
+    *outW = w > 0 ? w : 1;
+    *outH = y + gh;
+    return 1;
+}
+
+int sfont_alloc(const char *path)
+{
+    int w = 0, h = 0, comp = 0;
+    unsigned char *rgba = stbi_load(path, &w, &h, &comp, 4);
+    if (!rgba)
+        return 0;
+    if (h < 2 || w > 0xFFFF) {
+        stbi_image_free(rgba);
+        return 0;
+    }
+
+    SFontGlyph glyphs[SFONT_MAX_GLYPHS];
+    const unsigned int *px = (const unsigned int *)rgba;
+    int n = sfont_parse_markers(px, w, glyphs, SFONT_MAX_GLYPHS);
+    unsigned int key = px[(size_t)(h - 1) * w];
+    stbi_image_free(rgba);
+    if (n <= 0)
+        return 0;
+
+    unsigned short ax[SFONT_MAX_GLYPHS], ay[SFONT_MAX_GLYPHS];
+    int aw = 0, ah = 0;
+    if (!sfont_pack(glyphs, n, h - 1, SFONT_ATLAS_MAX, ax, ay, &aw, &ah))
+        return 0;
+
+    int i = slot_claim(path);
+    if (i < 0)
+        return 0;
+    int widest = 1;
+    for (int g = 0; g < n; g++)
+        if (glyphs[g].w > widest)
+            widest = glyphs[g].w;
+    memcpy(g_fonts[i].glyphs, glyphs, sizeof(glyphs[0]) * (size_t)n);
+    memcpy(g_fonts[i].ax, ax, sizeof(ax[0]) * (size_t)n);
+    memcpy(g_fonts[i].ay, ay, sizeof(ay[0]) * (size_t)n);
+    g_fonts[i].sfont  = 1;
+    g_fonts[i].atlasW = aw;
+    g_fonts[i].atlasH = ah;
+    g_fonts[i].nChars = n;
+    g_fonts[i].cellW  = widest;
+    g_fonts[i].cellH  = h - 1;
+    g_fonts[i].spaceW = glyphs[0].w;
+    /* SFont's transparent colour is the bottom-left pixel; PNGs that
+     * already carry alpha there need no key. */
+    g_fonts[i].keyed  = (key >> 24) == 0xFF;
+    g_fonts[i].key    = key;
+    return i + 1;
 }
 
 int font_nchars(int h)
@@ -109,34 +231,46 @@ static int ensure_sheet(int h)
     if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
         return 0;
 
-    {
-        int i = h - 1;
-        if (g_fonts[i].sheet)
-            return 1;
+    int i = h - 1;
+    if (g_fonts[i].sheet)
+        return 1;
 
-        int w = 0, hh = 0, comp = 0;
-        unsigned char *rgba = stbi_load(g_fonts[i].path, &w, &hh, &comp, 4);
-        if (!rgba)
-            return 0;
+    int w = 0, hh = 0, comp = 0;
+    unsigned char *rgba = stbi_load(g_fonts[i].path, &w, &hh, &comp, 4);
+    if (!rgba)
+        return 0;
+    const unsigned int *src = (const unsigned int *)rgba;
 
-        OL_Surface *s = gfx_surface_new(w, hh);
-        if (!s) {
-            stbi_image_free(rgba);
-            return 0;
+    OL_Surface *s;
+    if (g_fonts[i].sfont) {
+        /* Copy each glyph (rows 1..h-1) to its packed atlas position. */
+        int gh = g_fonts[i].cellH;
+        s = (hh == gh + 1)
+            ? gfx_surface_new(g_fonts[i].atlasW, g_fonts[i].atlasH) : 0;
+        for (int g = 0; s && g < g_fonts[i].nChars; g++) {
+            const SFontGlyph *gl = &g_fonts[i].glyphs[g];
+            for (int y = 0; y < gh; y++) {
+                const unsigned int *row = src + (size_t)(y + 1) * w + gl->x;
+                unsigned int *dst = s->pixels
+                    + (size_t)(g_fonts[i].ay[g] + y) * s->realW
+                    + g_fonts[i].ax[g];
+                for (int x = 0; x < gl->w; x++) {
+                    unsigned int p = row[x];
+                    dst[x] = (g_fonts[i].keyed && p == g_fonts[i].key) ? 0 : p;
+                }
+            }
         }
-
-        for (int y = 0; y < hh; y++) {
-            const unsigned int *row = (const unsigned int *)(rgba + (size_t)y * w * 4);
-            for (int x = 0; x < w; x++)
-                s->pixels[y * s->realW + x] = row[x];
-        }
-        /* Zero the power-of-two padding strip outside the logical size. */
-        for (int i2 = w * hh; i2 < s->realW * s->realH; i2++)
-            s->pixels[i2] = 0;
-
-        g_fonts[i].sheet = s;
-        stbi_image_free(rgba);
+    } else {
+        /* gfx_surface_new zeroes the power-of-two padding. */
+        s = gfx_surface_new(w, hh);
+        for (int y = 0; s && y < hh; y++)
+            memcpy(s->pixels + (size_t)y * s->realW, src + (size_t)y * w,
+                   (size_t)w * 4);
     }
+    stbi_image_free(rgba);
+    if (!s)
+        return 0;
+    g_fonts[i].sheet = s;
     return 1;
 }
 
@@ -144,16 +278,44 @@ static int ensure_sheet(int h)
  * Drawing (goes directly into the GE scene list, like image.blit)
  * ===================================================================*/
 
+/* Glyph index for byte ch, or -1 when the font has no glyph for it. */
+static int glyph_index(int i, unsigned char ch)
+{
+    int first = g_fonts[i].sfont ? SFONT_FIRST : ' ';
+    if (ch < first || ch - first >= g_fonts[i].nChars)
+        return -1;
+    return ch - first;
+}
+
+/* Cursor advance for byte ch ('\n' and '\t' are handled by callers). */
+static int glyph_advance(int i, unsigned char ch)
+{
+    int idx = glyph_index(i, ch);
+    if (!g_fonts[i].sfont)
+        return idx < 0 ? 0 : g_fonts[i].cellW;
+    if (idx >= 0)
+        return g_fonts[i].glyphs[idx].w;
+    return ch >= ' ' ? g_fonts[i].spaceW : 0;
+}
+
 void font_draw_glyph(int h, int dx, int dy, char c, unsigned int tint)
 {
     if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
         return;
-    if ((unsigned int)(c - ' ') >= (unsigned int)g_fonts[h - 1].nChars)
+    int idx = glyph_index(h - 1, (unsigned char)c);
+    if (idx < 0)
         return;
     if (!ensure_sheet(h))
         return;
 
     int i     = h - 1;
+    if (g_fonts[i].sfont) {
+        const SFontGlyph *g = &g_fonts[i].glyphs[idx];
+        gfx_blit(g_fonts[i].sheet, dx, dy, g_fonts[i].ax[idx], g_fonts[i].ay[idx],
+                 g->w, g_fonts[i].cellH, 255, 0, 0, 0.0f, 1.0f, 1.0f, 0, tint);
+        return;
+    }
+
     int cellW = g_fonts[i].cellW;
     int cellH = g_fonts[i].cellH;
 
@@ -161,7 +323,6 @@ void font_draw_glyph(int h, int dx, int dy, char c, unsigned int tint)
      * column count comes from the sheet's hardware-aligned width. */
     int sheetCols = g_fonts[i].sheet->w / cellW;
     if (sheetCols < 1) sheetCols = 1;
-    int idx = (int)(unsigned char)(c - ' ');
     int col = idx % sheetCols;
     int row = idx / sheetCols;
 
@@ -182,20 +343,21 @@ int font_draw_text(int h, int x0, int y0, const char *text, unsigned int tint)
     if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used || !text)
         return x0;
 
-    int cellW = g_fonts[h - 1].cellW;
-    int cellH = g_fonts[h - 1].cellH;
+    int f     = h - 1;
+    int cellH = g_fonts[f].cellH;
+    int tabW  = 4 * (g_fonts[f].sfont ? g_fonts[f].spaceW : g_fonts[f].cellW);
     int x = x0, y = y0;
 
     for (size_t i = 0; text[i]; i++) {
         unsigned char ch = (unsigned char)text[i];
-        if (ch >= 32 && (unsigned int)(ch - 32) < (unsigned int)g_fonts[h - 1].nChars) {
-            font_draw_glyph(h, x, y, (char)ch, tint);
-            x += cellW;
-        } else if (ch == '\n') {
+        if (ch == '\n') {
             y += cellH;
             x = x0;
         } else if (ch == '\t') {
-            x += cellW * 4;
+            x += tabW;
+        } else {
+            font_draw_glyph(h, x, y, (char)ch, tint);
+            x += glyph_advance(f, ch);
         }
     }
     return x;
@@ -210,9 +372,7 @@ int font_textwidth(const char *text, int h)
         unsigned char ch = (unsigned char)text[i];
         if (ch == '\n' || ch == '\t')
             continue;
-        if (ch < 32 || (unsigned int)(ch - 32) >= (unsigned int)g_fonts[h - 1].nChars)
-            continue;
-        w += g_fonts[h - 1].cellW;
+        w += glyph_advance(h - 1, ch);
     }
     return w;
 }
@@ -236,6 +396,12 @@ unsigned int font_tint(void)          { return g_defaultTint; }
  *   font.textwidth(h or text, ...)      -> width in px
  *   font.free(h)                        -> release handle
  *
+ * OneLua SFont API (global table `sfont`, same handles as `font`):
+ *   sfont.load(path)                    -> handle (int) or nil
+ *   sfont.print(h, x, y, text [, tint]) -> final cursor X
+ *   sfont.letters(h)                    -> number of glyphs in the strip
+ *   sfont.width(h, text)                -> width in px
+ *
  * Screen hooks (added to global `screen` table):
  *   screen.font([h])                    -> set/get default font
  *   screen.setcolor([ABGR])             -> set/get text tint
@@ -254,6 +420,16 @@ static int l_font_new(lua_State *L)
     } else {
         lua_pushinteger(L, h);
     }
+    return 1;
+}
+
+static int l_sfont_load(lua_State *L)
+{
+    int h = sfont_alloc(luaL_checkstring(L, 1));
+    if (h <= 0)
+        lua_pushnil(L);
+    else
+        lua_pushinteger(L, h);
     return 1;
 }
 
@@ -381,6 +557,14 @@ static const luaL_Reg font_funcs[] = {
     { NULL,           NULL }
 };
 
+static const luaL_Reg sfont_funcs[] = {
+    { "load",         l_sfont_load },
+    { "print",        l_font_print },
+    { "letters",      l_font_nchars },
+    { "width",        l_font_textwidth },
+    { NULL,           NULL }
+};
+
 static const luaL_Reg screen_font_funcs[] = {
     { "font",         l_screen_font },
     { "setcolor",     l_screen_setcolor },
@@ -395,6 +579,10 @@ void font_api_register(lua_State *L)
     lua_newtable(L);
     ol_setfuncs(L, font_funcs);
     lua_setglobal(L, "font");
+
+    lua_newtable(L);
+    ol_setfuncs(L, sfont_funcs);
+    lua_setglobal(L, "sfont");
 
     /* ---- hooks onto existing `screen` table ---- */
     lua_getglobal(L, "screen");

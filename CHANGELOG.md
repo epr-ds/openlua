@@ -6,6 +6,13 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `sfont` compatibility: `sfont.load`, `print`, `letters` and `width`
+  read classic SFont strips (magenta markers on the top row, proportional
+  glyphs from `!`, bottom-left colour key). SFont handles share the `font`
+  handle table and renderer, so `screen.print`, `font.textwidth` and
+  `font.free` accept them. Wide strips are repacked into a 512 px atlas for
+  the GE. Adds `tools/gen_sfont.py`/`assets/sfont.png`, `demos/sfont.lua`, 55
+  host C checks and 37 Lua assertions (#37).
 - OneLua `hw` hardware compatibility: `getmodel`, `firmware`, `region`,
   `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`,
   `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`,
@@ -74,6 +81,12 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   networking) to the project board.
 
 ### Fixed
+- `assets/font.png` was an undecodable PNG because `tools/gen_font.py` left
+  out the per-row filter bytes, so `font.new` on it returned nil. The
+  generator now writes valid PNGs, and the sheet is two rows of 48 glyphs
+  (384x32) to stay within the GE's 512 px texture limit.
+- Font sheet upload no longer clears real rows when the image width is not a
+  power of two; the stray padding loop is gone because surfaces start zeroed.
 - Sound playback now reserves explicit channels through `sceAudioChReserve`,
   releases them on stop/free/natural end, rejects invalid channel arguments,
   rejects files shorter than the RIFF signature without over-reading, bounds

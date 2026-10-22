@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Generate font.png — a readable 8x16 bitmap font sheet (one row of 96 glyphs).
+"""Generate font.png — a readable 8x16 bitmap font sheet (95 glyphs, 2 rows).
 
-Glyphs map ASCII 0x20 (space) .. 0x7F, left to right, one row each.
+Glyphs map ASCII 0x20 (space) .. 0x7E, left to right, 48 per row, so the
+sheet stays within the PSP GE's 512-pixel texture limit.
 Each cell is 8x16; the 5x7 glyph is placed at (x=1, y=2) inside the cell.
 White pixels on transparent background, RGBA 8-bit.
 """
@@ -9,8 +10,9 @@ import os, struct, zlib
 
 CELL_W, CELL_H = 8, 16
 FIRST, LAST = 32, 126
-W = CELL_W * (LAST - FIRST + 1)   # 95 * 8 = 760 px
-H = CELL_H                        # 16 px
+COLS = 48
+W = CELL_W * COLS                                   # 384 px
+H = CELL_H * -(-(LAST - FIRST + 1) // COLS)         # 2 rows = 32 px
 
 # 5 wide x 7 tall ASCII art; '.'=off  '#'=on.  Seven rows, top to bottom.
 A = {}
@@ -103,15 +105,18 @@ def make(path):
     img = bytearray(W * H * 4)        # transparent
     for i in range(LAST - FIRST + 1):
         code = FIRST + i
-        ox, oy = i * CELL_W + 1, 2
+        ox, oy = (i % COLS) * CELL_W + 1, (i // COLS) * CELL_H + 2
         for ry, row in enumerate(A[code]):
             for rx in range(5):
                 if row[rx] == '#':
                     o = ((oy + ry) * W + (ox + rx)) * 4
                     img[o:o+4] = b'\xff\xff\xff\xff'
+    # Every scanline starts with a filter-type byte (0 = none).
+    raw = b''.join(b'\x00' + bytes(img[y * W * 4:(y + 1) * W * 4])
+                   for y in range(H))
     out = (b'\x89PNG\r\n\x1a\n'
            + _chunk(b'IHDR', struct.pack(">IIBBBBB", W, H, 8, 6, 0, 0, 0))
-           + _chunk(b'IDAT', zlib.compress(bytes(img), 9))
+           + _chunk(b'IDAT', zlib.compress(raw, 9))
            + _chunk(b'IEND', b''))
     open(path, "wb").write(out)
     print(f"{path}: {W}x{H} px, {len(out)} bytes, glyphs 0x20..0x7E, cell {CELL_W}x{CELL_H}")

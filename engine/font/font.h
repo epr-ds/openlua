@@ -1,15 +1,16 @@
-/* OpenLua - bitmap font system (public API)
+/* OpenLua - font system (public API)
  *
- * Load a spritesheet-style font image where each glyph occupies a fixed-size
- * cell. Characters map sequentially from char 0x20 (space). The `sfont` table
- * additionally accepts classic variable-width SFont sheets.
+ * `font.load(path)` / `font.setdefault(path)` load a PSP PGF system font
+ * through sceLibFont. `font.new(path, cellW, cellH)` loads the fixed-cell
+ * PNG extension; `sfont.load(path)` loads classic variable-width SFonts.
  *
  * Fonts are handled by numeric (1-based) font handles, OneLua-style:
  *
- *   local f = font.new("assets/font.png", 8, 16)   -- handle
- *   screen.print(10, 20, "Hello PSP", f)    -- draw text with that font
- *   screen.print(10, 40, "default font")    -- uses screen.font(f) default
- *   font.textwidth(f, "Hello")              -- measure string width
+ *   local f = font.load("flash0:/font/ltn0.pgf")   -- PGF handle
+ *   font.setdefault(f)                              -- screen.print uses f
+ *   local g = font.new("assets/font.png", 8, 16)    -- fixed-cell PNG
+ *   screen.print(10, 20, "Hello PSP", g)            -- or pass a handle
+ *   font.textwidth(f, "Hello")                      -- measure string width
  */
 
 #ifndef OL_FONT_H
@@ -26,6 +27,10 @@
  *  The sheet is repacked into a <=512px texture atlas and uploaded lazily
  *  on first draw. */
 int font_alloc(const char *path, int cellW, int cellH);
+
+/** Load a PSP PGF system font through sceLibFont. Printable ASCII is rendered
+ *  once into a <=512px RGBA atlas. Returns a 1-based handle, or 0 on error. */
+int font_alloc_pgf(const char *path);
 
 /** Load a OneLua-style SFONT image without explicit cell dimensions.
  *  Classic SFonts use magenta separators on the top row and start at '!';

@@ -46,6 +46,7 @@ OBJS = engine/core/main.o \
 	engine/util/olmath.o \
 	engine/util/timers.o \
 	engine/font/font.o \
+	engine/font/pgf.o \
 	engine/snd/sound.o \
 	engine/fs/olfs.o \
 	engine/fs/files.o \
@@ -70,7 +71,7 @@ LDFLAGS = -L.
 # Pull libcglue's sceUtility stub in with libpsputility so psp-fixup-imports
 # sees all sceUtility stubs as one block instead of splitting the import table.
 LIBS = -lpspgu -lpspaudio -lpspmpeg -lpsppower -lpsprtc -lpspwlan \
-       -lpsputility -lpspreg -lpsphprm \
+       -lpsputility -lpspreg -lpsphprm -lpspfont \
        -Wl,--undefined=sceUtilityGetSystemParamInt
 
 EXTRA_TARGETS = EBOOT.PBP

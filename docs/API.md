@@ -108,11 +108,42 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 
 ## font / sfont
 
-### Fixed-cell fonts (`font`)
+### PGF system fonts (`font`)
+
+`font.load(path)` is the OneLua PGF loader. It opens the PGF through the PSP
+system library `sceLibFont`, rasterizes printable ASCII (`0x20`..`0x7E`) once
+into a cached RGBA atlas, and returns a 1-based handle. No PGF file is bundled
+with OpenLua; use a system font such as `flash0:/font/ltn0.pgf`. A failed load
+returns `nil` rather than raising a Lua error.
 
 | Function | Description |
 |---|---|
-| `font.new(path, cellW, cellH)` | Load a fixed-cell PNG sheet. Returns a handle or nil. `font.load` is an alias. |
+| `font.load(path)` | Load a PGF system font. Returns a handle or nil. |
+| `font.setdefault(handle)` | Select an already-loaded font for `screen.print`. |
+| `font.setdefault(path)` | Load a PGF and select it. Returns nothing. |
+| `font.setdefault()` | Return the current default handle, or nil. This getter is an OpenLua extension; in OneLua the no-argument form refers to its built-in default font. |
+| `font.nchars(handle)` | Number of cached glyphs: 95 for printable ASCII. |
+| `font.cell(handle)` | Returns the widest advance and the line height in pixels. |
+| `font.draw(handle, x, y, code [, tint])` | Draw one ASCII code. Unsupported codes are skipped. |
+| `font.print(handle, x, y, text [, tint])` | Draw a string; returns the final cursor X. |
+| `font.textwidth(handle, text)` or `font.textwidth(text, handle)` | Measure a string in pixels. |
+| `font.free(handle)` | Release the PGF library handles and atlas. |
+
+Newlines advance by one line height; tabs advance by four space advances.
+PGF advances and bearings are taken from the font metrics, so text is
+proportionally spaced. `screen.print` and `screen.textwidth` use the default
+selected by `font.setdefault` unless a handle is passed explicitly.
+
+### Fixed-cell PNG fonts (`font.new`)
+
+The fixed-cell loader remains available for existing OpenLua projects. It
+loads a PNG sheet with `cellW` x `cellH` cells, glyphs starting at space
+(`0x20`) in ASCII order, and returns a handle or nil.
+
+| Function | Description |
+|---|---|
+| `font.new(path, cellW, cellH)` | Load a fixed-cell PNG sheet. Returns a handle or nil. |
+| `font.load(path, cellW, cellH)` | Legacy alias for `font.new`; the one-argument form is PGF. |
 | `font.nchars(handle)` | Number of glyphs in the sheet. |
 | `font.cell(handle)` | Returns `cellW, cellH`. |
 | `font.draw(handle, x, y, code [, tint])` | Draw one ASCII code. |
@@ -120,8 +151,10 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 | `font.textwidth(handle, text)` or `font.textwidth(text, handle)` | Measure a string. |
 | `font.free(handle)` | Release the handle and its surface. |
 
-Glyphs start at space (`0x20`) and advance in ASCII order. Newlines move to the
-next line; tabs advance four cells.
+For new code, prefer `font.load("flash0:/font/ltn0.pgf")` with the PSP system
+font, or keep `font.new(path, cellW, cellH)` for a bundled PNG. Existing code
+that calls `font.load(path, cellW, cellH)` keeps working unchanged. A
+one-argument `font.load` now means PGF; it does not auto-detect PNG files.
 
 ### Classic variable-width SFont (`sfont`)
 
@@ -138,12 +171,13 @@ separators when its width is divisible by 95.
 | `sfont.letters(handle)` | Glyph count (94 for classic `!`..`~`, 95 for a fixed sheet). |
 | `sfont.width(handle, text)` | Measure a string in pixels. |
 
-Both font families keep the PNG's public cell/glyph metrics. On first draw the
-sheet is repacked into a texture atlas no wider than 512 px, the PSP GE texture
-limit; this is internal and does not change handles, glyph counts or advances.
-Sheet assets for this repository: `assets/font.png` (fixed 8x16 cells) and
-`assets/sfont.png` (classic separators). Regenerate both with
-`python3 tools/gen_font.py`.
+All three loaders share one handle table and the same drawing path. PNG and
+SFont sheets are repacked into a texture atlas no wider than 512 px (the PSP GE
+texture limit) on first draw; PGF is rasterized into the same kind of atlas
+when it is loaded. This is internal and does not change handles, glyph counts
+or advances. Sheet assets for this repository: `assets/font.png` (fixed 8x16
+cells) and `assets/sfont.png` (classic separators). Regenerate both with
+`python3 tools/gen_font.py`; PGF fonts come from the PSP firmware.
 
 ## buttons
 

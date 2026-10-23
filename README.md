@@ -15,7 +15,8 @@ modules on top of the hardware:
 
 - Lua 5.1 interpreter (vendored, unmodified).
 - GE sprite renderer: PNG loading, frames, flips, scale, rotation, tint.
-- Fixed-cell and classic variable-width SFont text with `font`/`sfont` and
+- OneLua PGF system fonts with `font.load`/`font.setdefault`, plus fixed-cell
+  PNG and classic variable-width SFont text with `font`/`sfont` and
   `screen.print`.
 - Native WAV/VMA audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
@@ -42,7 +43,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 375 C checks + 463 Lua assertions
+bash test/host/run.sh              # 392 C checks + 483 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -80,7 +81,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 |---|---|
 | Lua host, `color`, `screen`, `draw` | Implemented |
 | Images and sprite frames | Implemented |
-| SFont / `sfont` / `screen.print` | Implemented; host-tested and PPSSPP-verified ([#37]) |
+| PGF / SFont / `sfont` / `screen.print` | Implemented; host-tested and PPSSPP-verified ([#37], [#38]) |
 | Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
@@ -107,7 +108,7 @@ engine/
   core/   boot, Lua registration, stb implementation
   gfx/    GE surfaces, blits, draw primitives
   img/    image loader and Lua bindings
-  font/   SFont loader and renderer
+  font/   PGF, fixed-cell and SFont loader/renderer
   snd/    WAV/VMA decoder and PSP audio
   input/  controller polling
   util/   timers, OneLua math helpers
@@ -170,7 +171,7 @@ for a local toolchain build, host tests and debugging.
 | `power` | `plugged`, `suspend`, `lock`, `unlock`, `tick`, `off` | Implemented; `off` requests standby because PSPSDK lacks software shutdown; PPSSPP 1.20.4 lacks lock/unlock HLE; host-tested ([#34]) |
 | `os` | `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`, `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt`, `restart`, dialogs/PRX | Extends stock Lua `os`; host-tested and PPSSPP-verified; password/CFW and dialog/PRX limits documented ([#35]) |
 | `hw` | `getmodel`, `firmware`, `region`, `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`, `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`, `mute`, `headphone`, `audioout`, `led` | Host-tested and PPSSPP-verified; ID/fuse/NAND/LED values need kernel mode and return documented fallbacks; volume/mute use the sound registry with a session fallback; audio routing uses `sceAudioRouting` ([#36]) |
-| `font` / `sfont` | `font.new`/`font.load`, `font.print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | Fixed-cell and classic variable-width sheets; sheets are repacked to <=512px GE atlases; PGF loading is tracked in [#38] ([#37]) |
+| `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF system fonts through `sceLibFont` with printable-ASCII atlases; fixed-cell PNG and classic variable-width sheets still supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |

@@ -6,13 +6,21 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua PGF font support: `font.load(path)` opens a PSP PGF through
+  `sceLibFont`, rasterizes printable ASCII (`0x20`..`0x7E`) into a cached
+  <=512 px RGBA atlas, and returns a proportional font handle;
+  `font.setdefault(handle_or_path)` selects it for `screen.print`. Fixed-cell
+  `font.new` and the three-argument `font.load(path, cellW, cellH)` alias keep
+  working, and `sfont` is unchanged. Includes 17 C checks, 20 Lua assertions,
+  `demos/pgf.lua` and a PPSSPP capture of `flash0:/font/ltn0.pgf` (#38).
 - OneLua `sfont` compatibility: `sfont.load`, `sfont.print`, `sfont.letters`
   and `sfont.width` for classic variable-width SFont sheets (magenta top-row
-  separators, glyphs from `!`) and fixed 95-cell fallbacks. Existing
-  `font.new`/`font.load`, `font.print` and `font.textwidth` handles and
-  metrics are unchanged. Font sheets are repacked into atlases no wider than
-  512 px for the PSP GE; the generated fixed and classic assets now both load
-  correctly. Includes `assets/sfont.png`, 20 C checks, 19 Lua assertions and
+  separators, glyphs from `!`) and fixed 95-cell fallbacks. Existing fixed-cell
+  `font.new` and `font.load(path, cellW, cellH)` handles, `font.print` and
+  `font.textwidth` metrics are unchanged. Font sheets are repacked into atlases
+  no wider than 512 px for the PSP GE; the generated fixed and classic assets
+  now both load correctly. Includes `assets/sfont.png`, 20 C checks, 19 Lua
+  assertions and
   the graphical `demos/sfont.lua` demo (#37).
 - OneLua `hw` hardware compatibility: `getmodel`, `firmware`, `region`,
   `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`,

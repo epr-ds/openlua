@@ -35,6 +35,11 @@ int main(int argc, char **argv)
     files_api_register(L);
     ini_api_register(L);
     json_api_register(L);
+
+    /* The PSP core creates `screen` before the font hooks are installed.
+     * Mirror that here so screen.print / screen.textwidth are testable. */
+    lua_newtable(L);
+    lua_setglobal(L, "screen");
     font_api_register(L);
     savedata_api_register(L);
     battery_api_register(L);

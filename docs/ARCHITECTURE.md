@@ -12,7 +12,7 @@ engine/core/main.c ── register_api() ─────────────
     │                                                              │
     ├── gfx/     GE pipeline, surfaces, primitives  (screen, draw) │
     ├── img/     PNG/JPEG/BMP decode via stb_image   (image)        │
-    ├── font/    SFont atlas renderer                (font, sfont)  │
+    ├── font/    PGF + SFont atlas renderer          (font, sfont)  │
     ├── snd/     WAV/VMA decode + PSP audio          (sound)        │
     ├── input/   sceCtrl polling                     (buttons)      │
     ├── util/    timers + OneLua math helpers         (timers, math) │
@@ -87,17 +87,26 @@ as a field. Handles are 1-based integers into fixed-size global arrays
 
 ### Fonts
 
-`engine/font/font.c` keeps up to eight font handles. `font.new` describes a
-fixed cell grid; `sfont.load` accepts a classic SFont strip with magenta
-top-row separators and variable advances, or a fixed 95-cell sheet as a
-fallback. Both APIs share the same renderer and handle table.
+`engine/font/font.c` keeps up to eight font handles and dispatches three
+loaders. `font.load(path)` opens a PGF through `sceLibFont` (`pgf.c`),
+`font.new(path, cellW, cellH)` describes a fixed cell grid from a PNG, and
+`sfont.load` accepts a classic SFont strip with magenta top-row separators and
+variable advances (or a fixed 95-cell sheet as a fallback). All three share the
+same handle table, print/textwidth path and `gfx_blit` renderer.
 
-The first draw decodes the source PNG and repacks its glyphs into a texture
-atlas no wider than 512 px. The PSP GE cannot address textures wider than
-512 px, so the 760x16 fixed sheet and the ~782x8 classic strip cannot be
-uploaded as-is. Repacking is internal: glyph counts, cell metrics, advances,
-handles and Lua-visible results are unchanged. Fixed grids use a <=512 px
-multi-row atlas; SFont glyphs are packed variable-width row by row.
+PGF loading asks the system library for printable ASCII (`0x20`..`0x7E`)
+glyph metrics and 4-bit coverage bitmaps, packs those bitmaps into a <=512 px
+atlas, and expands them to white ABGR with alpha. Advances and bearings remain
+26.6 fixed-point internally, so PGF text is proportionally spaced. No PGF file
+is bundled: the demo uses `flash0:/font/ltn0.pgf`.
+
+The PNG and SFont loaders decode the source image and repack its glyphs into a
+texture atlas no wider than 512 px on first draw. The PSP GE cannot address
+textures wider than 512 px, so the 760x16 fixed sheet and the ~782x8 classic
+strip cannot be uploaded as-is. Repacking is internal: glyph counts, cell
+metrics, advances, handles and Lua-visible results are unchanged. Fixed grids
+use a <=512 px multi-row atlas; SFont glyphs are packed variable-width row by
+row. PGF atlases use the same width limit and a single generated height.
 
 ### Frame lifecycle
 
@@ -303,7 +312,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/core` | boot, Lua registration | `color`, `screen.clear/flip` |
 | `engine/gfx` | surfaces, GE, primitives | `draw.*` |
 | `engine/img` | image decode, blits, transforms | `image.*` |
-| `engine/font` | SFont loader/renderer and atlas packer | `font.*`, `sfont.*`, `screen.print` |
+| `engine/font` | PGF via `sceLibFont`, PNG/SFont loaders, atlas packer | `font.*`, `sfont.*`, `screen.print` |
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |

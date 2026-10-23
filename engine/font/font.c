@@ -14,6 +14,7 @@
  */
 
 #include "engine/font/font.h"
+#include "engine/font/pgf.h"
 #include "engine/gfx/gfx.h"
 #include "engine/core/olreg.h"
 
@@ -29,7 +30,8 @@
 
 enum {
     FONT_KIND_FIXED = 0,
-    FONT_KIND_SFONT = 1
+    FONT_KIND_SFONT = 1,
+    FONT_KIND_PGF   = 2
 };
 
 static struct {
@@ -46,6 +48,7 @@ static struct {
     int        glyphAtlasY[FONT_MAX_CHARS];  /* packed atlas y            */
     int        atlasCols;                    /* fixed-grid atlas columns  */
     OL_Surface *sheet;        /* packed texture (lazy upload) */
+    OL_PgfFont *pgf;          /* PGF system font (owned)       */
 } g_fonts[FONT_MAX];
 
 static int             g_defaultFont = 0;             /* for screen.print */
@@ -91,6 +94,27 @@ int font_alloc(const char *path, int cellW, int cellH)
     g_fonts[handle - 1].cellW  = cellW;
     g_fonts[handle - 1].cellH  = cellH;
     g_fonts[handle - 1].nChars = nChars;
+    return handle;
+}
+
+int font_alloc_pgf(const char *path)
+{
+    OL_PgfFont *pgf = pgf_load(path);
+    if (!pgf)
+        return 0;
+
+    int handle = font_claim(path);
+    if (handle <= 0) {
+        pgf_free(pgf);
+        return 0;
+    }
+
+    int i = handle - 1;
+    g_fonts[i].kind   = FONT_KIND_PGF;
+    g_fonts[i].cellW  = pgf_cellw(pgf);
+    g_fonts[i].cellH  = pgf_cellh(pgf);
+    g_fonts[i].nChars = pgf_nchars(pgf);
+    g_fonts[i].pgf    = pgf;
     return handle;
 }
 
@@ -223,8 +247,11 @@ void font_free(int h)
 {
     if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
         return;
-    if (g_fonts[h - 1].sheet)
+    if (g_fonts[h - 1].kind == FONT_KIND_PGF) {
+        pgf_free(g_fonts[h - 1].pgf);
+    } else if (g_fonts[h - 1].sheet) {
         gfx_surface_free(g_fonts[h - 1].sheet);
+    }
     memset(&g_fonts[h - 1], 0, sizeof(g_fonts[h - 1]));
     if (g_defaultFont == h)
         g_defaultFont = 0;
@@ -364,6 +391,10 @@ void font_draw_glyph(int h, int dx, int dy, char c, unsigned int tint)
         return;
 
     int i = h - 1;
+    if (g_fonts[i].kind == FONT_KIND_PGF) {
+        pgf_draw_glyph(g_fonts[i].pgf, dx, dy, (unsigned char)c, tint);
+        return;
+    }
     if (g_fonts[i].kind == FONT_KIND_SFONT) {
         int idx = (int)(unsigned char)c - 33;
         if (idx < 0 || idx >= g_fonts[i].nChars)
@@ -411,6 +442,9 @@ int font_draw_text(int h, int x0, int y0, const char *text, unsigned int tint)
     if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used || !text)
         return x0;
 
+    if (g_fonts[h - 1].kind == FONT_KIND_PGF)
+        return pgf_draw_text(g_fonts[h - 1].pgf, x0, y0, text, tint);
+
     int cellW = g_fonts[h - 1].cellW;
     int cellH = g_fonts[h - 1].cellH;
     int x = x0, y = y0;
@@ -455,6 +489,9 @@ int font_textwidth(const char *text, int h)
     if (!text || h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
         return 0;
 
+    if (g_fonts[h - 1].kind == FONT_KIND_PGF)
+        return pgf_textwidth(g_fonts[h - 1].pgf, text);
+
     int w = 0;
     if (g_fonts[h - 1].kind == FONT_KIND_SFONT) {
         for (size_t i = 0; text[i]; i++) {
@@ -494,7 +531,11 @@ unsigned int font_tint(void)          { return g_defaultTint; }
  * Lua bindings
  *
  * Font API (global table `font`):
- *   font.new(path, cellW, cellH)        -> handle (int) or nil
+ *   font.load(path)                      -> PGF handle (int) or nil
+ *   font.load(path, cellW, cellH)       -> fixed-cell PNG handle (legacy)
+ *   font.new(path, cellW, cellH)        -> fixed-cell PNG handle
+ *   font.setdefault(handle_or_path)     -> select screen.print font
+ *   font.setdefault()                   -> current default handle (or nil)
  *   font.nchars(h)                      -> number of glyphs
  *   font.cellw(h) / font.cellh(h)       -> glyph pixel size
  *   font.draw(h, x, y, code, [tint])    -> draw single glyph
@@ -521,6 +562,49 @@ static int l_font_new(lua_State *L)
         lua_pushinteger(L, h);
     }
     return 1;
+}
+
+static int l_font_load(lua_State *L)
+{
+    const char *path = luaL_checkstring(L, 1);
+    int h;
+    if (lua_gettop(L) >= 3) {
+        /* Backwards-compatible alias for the old fixed-cell loader. */
+        int cw = (int)luaL_checkinteger(L, 2);
+        int ch = (int)luaL_checkinteger(L, 3);
+        h = font_alloc(path, cw, ch);
+    } else {
+        h = font_alloc_pgf(path);
+    }
+    if (h <= 0)
+        lua_pushnil(L);
+    else
+        lua_pushinteger(L, h);
+    return 1;
+}
+
+static int l_font_setdefault(lua_State *L)
+{
+    if (lua_isnoneornil(L, 1)) {
+        if (g_defaultFont > 0)
+            lua_pushinteger(L, g_defaultFont);
+        else
+            lua_pushnil(L);
+        return 1;
+    }
+
+    if (lua_isnumber(L, 1)) {
+        int h = (int)luaL_checkinteger(L, 1);
+        if (h >= 1 && h <= FONT_MAX && g_fonts[h - 1].used)
+            font_set_default(h);
+        return 0;
+    }
+
+    const char *path = luaL_checkstring(L, 1);
+    int h = font_alloc_pgf(path);
+    if (h > 0)
+        font_set_default(h);
+    return 0;
 }
 
 static int l_font_nchars(lua_State *L)
@@ -674,7 +758,8 @@ static int l_screen_textwidth(lua_State *L)
 
 static const luaL_Reg font_funcs[] = {
     { "new",          l_font_new },
-    { "load",         l_font_new },
+    { "load",         l_font_load },
+    { "setdefault",   l_font_setdefault },
     { "nchars",       l_font_nchars },
     { "cell",         l_font_cell },
     { "draw",         l_font_draw },

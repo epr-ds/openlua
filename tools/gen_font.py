@@ -100,14 +100,15 @@ def _chunk(tag, data):
 
 def make(path):
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    img = bytearray(W * H * 4)        # transparent
+    stride = W * 4 + 1                 # PNG filter byte + RGBA row
+    img = bytearray(stride * H)        # transparent, filter type 0
     for i in range(LAST - FIRST + 1):
         code = FIRST + i
         ox, oy = i * CELL_W + 1, 2
         for ry, row in enumerate(A[code]):
             for rx in range(5):
                 if row[rx] == '#':
-                    o = ((oy + ry) * W + (ox + rx)) * 4
+                    o = (oy + ry) * stride + 1 + (ox + rx) * 4
                     img[o:o+4] = b'\xff\xff\xff\xff'
     out = (b'\x89PNG\r\n\x1a\n'
            + _chunk(b'IHDR', struct.pack(">IIBBBBB", W, H, 8, 6, 0, 0, 0))
@@ -116,5 +117,64 @@ def make(path):
     open(path, "wb").write(out)
     print(f"{path}: {W}x{H} px, {len(out)} bytes, glyphs 0x20..0x7E, cell {CELL_W}x{CELL_H}")
 
+SFONT_H = 8          # 1 px separator row + 7 px glyph rows
+SFONT_SEP = 2        # width of each magenta separator run
+
+def make_sfont(path):
+    """Generate a classic SFont PNG with variable-width glyphs.
+
+    The top row contains magenta separator runs. Characters start at ASCII
+    '!' (33); the glyph area follows each separator. Ink is trimmed and
+    padded by one transparent column on each side, so glyph advances vary
+    with the character (for example 'W' is wider than 'I').
+    """
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    glyphs = []
+    for code in range(33, 127):
+        rows = A[code]
+        ink_left, ink_right = 5, -1
+        for row in rows:
+            for x, ch in enumerate(row):
+                if ch == '#':
+                    ink_left = min(ink_left, x)
+                    ink_right = max(ink_right, x)
+        if ink_right < 0:
+            left, width = 0, 3
+        else:
+            left = ink_left - 1
+            width = (ink_right - ink_left + 1) + 2
+        glyphs.append((rows, left, width))
+
+    total_w = SFONT_SEP + sum(width + SFONT_SEP for _, _, width in glyphs)
+    stride = total_w * 4 + 1                     # PNG filter byte + RGBA row
+    img = bytearray(stride * SFONT_H)            # transparent, filter type 0
+
+    def put(x, y, rgba):
+        o = y * stride + 1 + x * 4
+        img[o:o+4] = rgba
+
+    x = 0
+    for rows, left, width in glyphs:
+        for sx in range(SFONT_SEP):
+            put(x + sx, 0, b'\xff\x00\xff\xff')  # magenta separator
+        x += SFONT_SEP
+        for ry, row in enumerate(rows):
+            for rx in range(width):
+                src = left + rx
+                if 0 <= src < len(row) and row[src] == '#':
+                    put(x + rx, 1 + ry, b'\xff\xff\xff\xff')
+        x += width
+    for sx in range(SFONT_SEP):
+        put(x + sx, 0, b'\xff\x00\xff\xff')
+
+    out = (b'\x89PNG\r\n\x1a\n'
+           + _chunk(b'IHDR', struct.pack(">IIBBBBB", total_w, SFONT_H, 8, 6, 0, 0, 0))
+           + _chunk(b'IDAT', zlib.compress(bytes(img), 9))
+           + _chunk(b'IEND', b''))
+    open(path, "wb").write(out)
+    print(f"{path}: {total_w}x{SFONT_H} px, {len(out)} bytes, "
+          f"classic SFont glyphs 0x21..0x7E")
+
 if __name__ == "__main__":
     make("assets/font.png")
+    make_sfont("assets/sfont.png")

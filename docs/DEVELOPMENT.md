@@ -54,7 +54,7 @@ make clean
 ## Host tests
 
 Host-testable pieces (VFS, timers, OneLua math/battery/OS/hardware helpers,
-power/OS/hardware bindings, transform math, Lua modules):
+power/OS/hardware bindings, transform math, font atlas packing, Lua modules):
 
 ```bash
 bash test/host/run.sh
@@ -64,15 +64,17 @@ Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
 `psmf: 20 checks, 0 failed`, `battery: 16 checks, 0 failed`,
 `RESULT: 10 passed, 0 failed` for the OS C helpers,
 `RESULT: 54 passed, 0 failed` for the hardware helpers,
-`maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed` (355 C checks
-total), then `RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for
-timers, `RESULT: 23 passed, 0 failed` for math, `RESULT: 24 passed, 0 failed`
-for INI, `RESULT: 89 passed, 0 failed` for JSON, `RESULT: 64 passed, 0 failed`
-for savedata, `RESULT: 22 passed, 0 failed` for battery,
-`RESULT: 14 passed, 0 failed` for power, `RESULT: 61 passed, 0 failed` for
-the OS Lua surface, `RESULT: 67 passed, 0 failed` for hardware, and
-`RESULT: 13 passed, 0 failed` for sound (444 Lua assertions total). Build
-output is kept in `out/build.log`; the script prints it only when a build fails.
+`maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed`, and
+`sfont C: 20 checks, 0 failure(s)` (375 C checks total), then
+`RESULT: 46 passed, 0 failed`, `RESULT: 21 passed, 0 failed` for timers,
+`RESULT: 23 passed, 0 failed` for math, `RESULT: 24 passed, 0 failed` for INI,
+`RESULT: 89 passed, 0 failed` for JSON, `RESULT: 64 passed, 0 failed` for
+savedata, `RESULT: 22 passed, 0 failed` for battery,
+`RESULT: 14 passed, 0 failed` for power, `RESULT: 61 passed, 0 failed` for the OS Lua surface,
+`RESULT: 67 passed, 0 failed` for hardware, `RESULT: 13 passed, 0 failed` for
+sound, and `sfont Lua: 19 assertions, 0 failure(s)` (463 Lua assertions total).
+Build output is kept in `out/build.log`; the script prints it only when a
+build fails.
 
 Repository hygiene check:
 

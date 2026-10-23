@@ -1,7 +1,8 @@
 /* OpenLua - bitmap font system (public API)
  *
  * Load a spritesheet-style font image where each glyph occupies a fixed-size
- * cell. Characters map sequentially from char 0x20 (space).
+ * cell. Characters map sequentially from char 0x20 (space). The `sfont` table
+ * additionally accepts classic variable-width SFont sheets.
  *
  * Fonts are handled by numeric (1-based) font handles, OneLua-style:
  *
@@ -22,8 +23,15 @@
 
 /** Load a PNG spritesheet font. cellW x cellH = pixel size of each glyph.
  *  Returns a 1-based font handle, or 0 on error.
- *  The sheet texture is uploaded to VRAM lazily on first draw. */
+ *  The sheet is repacked into a <=512px texture atlas and uploaded lazily
+ *  on first draw. */
 int font_alloc(const char *path, int cellW, int cellH);
+
+/** Load a OneLua-style SFONT image without explicit cell dimensions.
+ *  Classic SFonts use magenta separators on the top row and start at '!';
+ *  fixed-grid sheets with 95 cells are accepted as a compatibility fallback.
+ *  Returns a 1-based handle, or 0 on error. */
+int font_alloc_sfont(const char *path);
 
 /** Number of glyphs in the font (0 = invalid handle). */
 int font_nchars(int h);
@@ -56,7 +64,7 @@ unsigned int font_tint(void);
 
 /* ---- Lua bindings ---- */
 
-/** Registers the `font` global table and hooks `screen.print` /
+/** Registers the `font` and `sfont` global tables and hooks `screen.print` /
  *  `screen.font` / `screen.textwidth` onto the existing `screen` table.
  *  Call after the `screen` table has been created in core init. */
 void font_api_register(lua_State *L);

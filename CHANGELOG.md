@@ -6,6 +6,14 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `sfont` compatibility: `sfont.load`, `sfont.print`, `sfont.letters`
+  and `sfont.width` for classic variable-width SFont sheets (magenta top-row
+  separators, glyphs from `!`) and fixed 95-cell fallbacks. Existing
+  `font.new`/`font.load`, `font.print` and `font.textwidth` handles and
+  metrics are unchanged. Font sheets are repacked into atlases no wider than
+  512 px for the PSP GE; the generated fixed and classic assets now both load
+  correctly. Includes `assets/sfont.png`, 20 C checks, 19 Lua assertions and
+  the graphical `demos/sfont.lua` demo (#37).
 - OneLua `hw` hardware compatibility: `getmodel`, `firmware`, `region`,
   `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`,
   `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`,

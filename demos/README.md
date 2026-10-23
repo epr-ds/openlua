@@ -24,7 +24,8 @@ file itself.
 |---|---|---|
 | `smoke.lua` | Minimal boot check: clear, fill, outline, line | none |
 | `flip.lua` | `image.fliph` / `image.flipv`, sprite frames, source rects | `assets/test_sheet.png` |
-| `font.lua` | SFont loading, `screen.print`, tint, text width | `assets/font.png` |
+| `font.lua` | Fixed-cell font loading, `screen.print`, tint, text width | `assets/font.png` |
+| `sfont.lua` | Classic variable-width SFont: `sfont.load`, `print`, `width`, `letters`; fixed-font header | `assets/sfont.png`, `assets/font.png` |
 | `math.lua` | `math.minmax` clamping and `bitand`/`bitor`/`bitnot` bit patterns | none (built-in 5x7 font) |
 | `battery.lua` | Read-only `batt.*` telemetry: level, time, temperature, voltage, capacity | none (built-in 5x7 font) |
 | `power.lua` | `power.*`: AC status, switch lock/unlock and tick; suspend/off shown but not invoked | none (built-in 5x7 font) |
@@ -38,6 +39,7 @@ file itself.
 | File | Size | Regenerate with |
 |---|---|---|
 | `assets/font.png` | ASCII 0x20..0x7E, 8x16 cells | `python3 tools/gen_font.py` |
+| `assets/sfont.png` | Classic SFont, magenta top-row separators, glyphs 0x21..0x7E | `python3 tools/gen_font.py` |
 | `assets/beep.wav` | 2 s, 440 Hz mono tone | `python3 tools/gen_tone.py` |
 | `assets/test_sheet.png` | 4-frame 64x64 sprite sheet | checked in |
 
@@ -49,7 +51,10 @@ file itself.
 - Frame lifecycle, scaled blits and transform composition were reworked in
   #19/#20; visual confirmation on PSP/PPSSPP is still pending.
 - `screen.print` requires a font; load one with `font.new` and select it with
-  `screen.font`.
+  `screen.font`. Classic variable-width sheets use `sfont.load` and the
+  `sfont.*` functions instead.
+- Font sheets wider than 512 px are repacked into a GE-safe atlas internally;
+  the generated 8x16 sheet maps lowercase glyphs to uppercase shapes.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

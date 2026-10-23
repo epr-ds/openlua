@@ -108,9 +108,11 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 
 ## font / sfont
 
+### Fixed-cell fonts (`font`)
+
 | Function | Description |
 |---|---|
-| `font.new(path, cellW, cellH)` | Load an SFont PNG sheet. Returns a handle or nil. `font.load` is an alias. |
+| `font.new(path, cellW, cellH)` | Load a fixed-cell PNG sheet. Returns a handle or nil. `font.load` is an alias. |
 | `font.nchars(handle)` | Number of glyphs in the sheet. |
 | `font.cell(handle)` | Returns `cellW, cellH`. |
 | `font.draw(handle, x, y, code [, tint])` | Draw one ASCII code. |
@@ -120,6 +122,28 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 
 Glyphs start at space (`0x20`) and advance in ASCII order. Newlines move to the
 next line; tabs advance four cells.
+
+### Classic variable-width SFont (`sfont`)
+
+`sfont` is the OneLua-compatible variable-width font API. A classic SFont
+sheet has magenta separator runs on its top row and one glyph per gap, starting
+at ASCII `!` (`0x21`); advances come from the clear gap between separator runs.
+A fixed 95-cell ASCII sheet (space through `~`) can also be loaded without
+separators when its width is divisible by 95.
+
+| Function | Description |
+|---|---|
+| `sfont.load(path)` | Load a classic SFont or fixed 95-cell sheet. Returns a handle or nil. |
+| `sfont.print(handle, x, y, text)` | Draw a string with a white tint; returns the final cursor X. |
+| `sfont.letters(handle)` | Glyph count (94 for classic `!`..`~`, 95 for a fixed sheet). |
+| `sfont.width(handle, text)` | Measure a string in pixels. |
+
+Both font families keep the PNG's public cell/glyph metrics. On first draw the
+sheet is repacked into a texture atlas no wider than 512 px, the PSP GE texture
+limit; this is internal and does not change handles, glyph counts or advances.
+Sheet assets for this repository: `assets/font.png` (fixed 8x16 cells) and
+`assets/sfont.png` (classic separators). Regenerate both with
+`python3 tools/gen_font.py`.
 
 ## buttons
 

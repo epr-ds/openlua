@@ -77,12 +77,23 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     -lm -o "$BUILD/sound_test"
 "$BUILD/sound_test"
 
-run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
+    -I"$ROOT/third_party/stb" \
+    "$ROOT/test/host/test_sfont.c" "$ROOT/test/host/font_stub.c" \
+    "$ROOT/engine/font/font.c" "$ROOT/engine/core/stb_impl.c" \
+    "$ROOT/engine/core/olreg.c" "${OBJS[@]}" \
+    -lm -o "$BUILD/sfont_test"
+"$BUILD/sfont_test" "$ROOT/assets"
+
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
+    -I"$ROOT/third_party/stb" \
     "$ROOT/test/host/host_main.c" \
     "$ROOT/engine/core/olreg.c" "$ROOT/engine/fs/olfs.c" \
     "$ROOT/engine/fs/files.c" \
     "$ROOT/engine/fs/ini.c" \
     "$ROOT/engine/data/json.c" \
+    "$ROOT/engine/font/font.c" "$ROOT/engine/core/stb_impl.c" \
+    "$ROOT/test/host/font_stub.c" \
     "$ROOT/engine/snd/sound.c" \
     "$ROOT/engine/sys/savedata.c" \
     "$ROOT/engine/sys/battery.c" \
@@ -107,3 +118,4 @@ cd "$BUILD"
 ./host_test "$ROOT/test/host/test_os.lua"
 ./host_test "$ROOT/test/host/test_hardware.lua"
 ./host_test "$ROOT/test/host/test_sound.lua"
+./host_test "$ROOT/test/host/test_sfont.lua"

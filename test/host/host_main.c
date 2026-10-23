@@ -11,6 +11,7 @@
 #include "engine/fs/files.h"
 #include "engine/fs/ini.h"
 #include "engine/data/json.h"
+#include "engine/font/font.h"
 #include "engine/snd/sound.h"
 #include "engine/sys/savedata.h"
 #include "engine/sys/battery.h"
@@ -34,6 +35,7 @@ int main(int argc, char **argv)
     files_api_register(L);
     ini_api_register(L);
     json_api_register(L);
+    font_api_register(L);
     savedata_api_register(L);
     battery_api_register(L);
     power_api_register(L);

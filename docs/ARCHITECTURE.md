@@ -12,7 +12,7 @@ engine/core/main.c ── register_api() ─────────────
     │                                                              │
     ├── gfx/     GE pipeline, surfaces, primitives  (screen, draw) │
     ├── img/     PNG/JPEG/BMP decode via stb_image   (image)        │
-    ├── font/    SFont tilemap renderer              (font, screen) │
+    ├── font/    SFont atlas renderer                (font, sfont)  │
     ├── snd/     WAV/VMA decode + PSP audio          (sound)        │
     ├── input/   sceCtrl polling                     (buttons)      │
     ├── util/    timers + OneLua math helpers         (timers, math) │
@@ -84,6 +84,20 @@ as a field. Handles are 1-based integers into fixed-size global arrays
   tint are all applied to that single quad.
 - `draw.c` submits primitives with `GU_DIRECT` and flat shading.
 - `screen.flip()` calls `sound_pump()` and then `gfx_flip_scene()`.
+
+### Fonts
+
+`engine/font/font.c` keeps up to eight font handles. `font.new` describes a
+fixed cell grid; `sfont.load` accepts a classic SFont strip with magenta
+top-row separators and variable advances, or a fixed 95-cell sheet as a
+fallback. Both APIs share the same renderer and handle table.
+
+The first draw decodes the source PNG and repacks its glyphs into a texture
+atlas no wider than 512 px. The PSP GE cannot address textures wider than
+512 px, so the 760x16 fixed sheet and the ~782x8 classic strip cannot be
+uploaded as-is. Repacking is internal: glyph counts, cell metrics, advances,
+handles and Lua-visible results are unchanged. Fixed grids use a <=512 px
+multi-row atlas; SFont glyphs are packed variable-width row by row.
 
 ### Frame lifecycle
 
@@ -263,7 +277,8 @@ covered by `test/host/test_hardware.lua`.
 
 - `PSP_HEAP_SIZE_KB(20000)` — roughly 20 MB.
 - Images are capped at 1024x1024 and padded to power-of-two dimensions.
-- Fonts: 8 slots, cells up to 256x256.
+- Fonts: 8 slots, cells up to 256x256. Decoded sheets are repacked into
+  atlases no wider than 512 px, the PSP GE texture limit.
 - Sounds: 8 slots, 8 MB source file cap.
 - Maps: 8 slots, tileset anchored via the Lua registry until `map.free`.
 - INI: 512-byte parse lines, 256 KB file cap.
@@ -288,7 +303,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/core` | boot, Lua registration | `color`, `screen.clear/flip` |
 | `engine/gfx` | surfaces, GE, primitives | `draw.*` |
 | `engine/img` | image decode, blits, transforms | `image.*` |
-| `engine/font` | SFont loader/renderer | `font.*`, `screen.print` |
+| `engine/font` | SFont loader/renderer and atlas packer | `font.*`, `sfont.*`, `screen.print` |
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |

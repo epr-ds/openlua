@@ -20,6 +20,9 @@ engine/core/main.c ── register_api() ─────────────
     ├── data/    JSON + PSMF header parsing          (json)         │
     ├── sys/     saves + battery + power + os + hw                  │
     ├── maps/    tile grid renderer                  (map)          │
+    ├── 3d/      OBJ/MTL parser, camera, 3D textures  (amg, cam3d,   │
+    │            and model state                      texture3d,    │
+    │                                                 model3d)      │
     └── video/   PMF playback via sceMpeg            (pmf)          │
                                                                    │
                                                             Lua globals
@@ -119,6 +122,35 @@ draws into one list is still a possible optimisation.
 Textures written by the CPU are made visible to the GE with
 `sceKernelDcacheWritebackAll()`. The current code flushes very frequently;
 targeted `sceKernelDcacheWritebackRange` is the intended optimisation.
+
+### 3D pipeline
+
+`engine/3d/` keeps the portable data and `engine/gfx/gfx3d.c` owns all GE
+state:
+
+- `obj.c` is an original OBJ/MTL parser. It loads positions, `vt` UVs,
+  `usemtl`/`Kd`/`d`, and resolves `map_Kd` relative to the MTL file. Convex
+  faces are fan-triangulated; objects come from `o`/`g` groups.
+- `model3d.c` converts each object into batches grouped by material, loads
+  material textures through `texture3d`, and stores per-object
+  position/rotation/scale. `render` walks the batches and submits them.
+- `texture3d.c` wraps an `OL_Surface` (ABGR 8888) in a 1-based handle. PNG
+  loading uses the same stb_image and surface allocator as `image.*`.
+- `cam3d.c` stores position, look-at target, up vector and scene rotation;
+  `cam3d.set` copies the state into `gfx3d.c`.
+- `amg.c` owns scene lifetime, perspective, render style, fog and the 2D/3D
+  switch. `amg.begin` starts a 3D depth-tested scene, `amg.mode2d(1)` restores
+  depth-disabled 2D state, and `amg.update` swaps buffers and clears the next
+  frame.
+
+`gfx3d.c` uses `sceGumPerspective`/`sceGumLookAt`/`sceGumTranslate` etc. for
+matrices, then submits `GU_TRIANGLES` with `GU_TEXTURE_32BITF |
+GU_COLOR_8888 | GU_VERTEX_32BITF | GU_TRANSFORM_3D`. Vertex data is repacked
+into the GE's texture/colour/position order before `sceGuDrawArray`; the
+public `OL_3DVertex` stays in a readable position/UV/colour order. 3D texture
+coordinates are normalised (0..1), unlike the texel-space UVs used by the 2D
+blitter. Depth tests use `GU_LEQUAL` with a far-plane clear; culling is off
+because the importers do not guarantee winding.
 
 ## Audio pipeline
 
@@ -297,11 +329,11 @@ covered by `test/host/test_hardware.lua`.
 The PSP headers keep most graphics/input code out of host builds. The storage
 layer, timers, OneLua math helpers, battery formatting and host mocks, power
 bindings and stubs, OS formatting and host mocks, hardware formatting/clamping
-and host mocks, transform math, map geometry, sound parsing and channel
-bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and run on the
-host. `test/host/run.sh` covers OLFS paths/cwd, transforms, map geometry,
-sound, battery/OS/hardware formatting, and Lua-level
-files/INI/savedata/timers/math/battery/power/os/hardware/sound tests.
+and host mocks, transform math, OBJ/MTL parsing, map geometry, sound parsing
+and channel bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and
+run on the host. `test/host/run.sh` covers OLFS paths/cwd, transforms, OBJ/MTL
+parsing, map geometry, sound, battery/OS/hardware formatting, and Lua-level
+files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -320,5 +352,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
 | `engine/sys` | save slots, battery, power, OS queries, hardware info/audio | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*` |
 | `engine/maps` | tilemaps | `map.*` |
+| `engine/3d` | OBJ/MTL parser, camera/model/texture state, 3D scene control | `amg.*`, `cam3d.*`, `texture3d.*`, `model3d.*` |
+| `engine/gfx/gfx3d.c` | GE 3D state and textured triangle submission | shared by the 3D modules |
 | `engine/video` | PMF playback through `sceMpeg` | `pmf.*` |
 | `third_party` | Lua 5.1.5, stb_image/stb_image_write | — |

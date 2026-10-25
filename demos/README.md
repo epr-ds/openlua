@@ -34,6 +34,7 @@ file itself.
 | `hardware.lua` | `hw.*` identity, firmware, volume/mute, headphone and audio route; kernel-only ID/LED fields marked as fallbacks, setters not run | none (built-in 5x7 font) |
 | `sound.lua` | WAV load/loop/volume, audio pumped by `screen.flip` | `assets/beep.wav` |
 | `transforms.lua` | Rotation, scale, tint, pivot | `assets/test_sheet.png` |
+| `3d.lua` | Textured rotating OBJ cube: `amg` scene, `cam3d` camera, `model3d` OBJ/MTL load, `texture3d` PNG, 3D→2D HUD switch | `assets/3d/cube.obj`, `assets/3d/cube.mtl`, `assets/3d/checker.png` |
 
 ## Assets
 
@@ -43,6 +44,9 @@ file itself.
 | `assets/sfont.png` | Classic SFont, magenta top-row separators, glyphs 0x21..0x7E | `python3 tools/gen_font.py` |
 | `assets/beep.wav` | 2 s, 440 Hz mono tone | `python3 tools/gen_tone.py` |
 | `assets/test_sheet.png` | 4-frame 64x64 sprite sheet | checked in |
+| `assets/3d/cube.obj` | Original 8-vertex textured cube | `python3 tools/gen_3d_assets.py` |
+| `assets/3d/cube.mtl` | Cube material (`Kd`, `map_Kd`) | `python3 tools/gen_3d_assets.py` |
+| `assets/3d/checker.png` | Original 128x128 checker texture | `python3 tools/gen_3d_assets.py` |
 
 ## Known caveats
 
@@ -60,6 +64,12 @@ file itself.
   the generated 8x16 sheet maps lowercase glyphs to uppercase shapes. PGF
   uses printable ASCII (`0x20`..`0x7E`) and system metrics; the demo does not
   redistribute a Sony PGF file.
+- 3D demos must keep scene state explicit: `amg.begin()` for 3D,
+  `amg.mode2d(1)` before any `screen.print`/`draw.*`/`image.*`, then
+  `amg.update()` instead of `screen.flip()`. 3D texture UVs are normalised;
+  `texture3d` quality/location are stored for parity but pixels stay ABGR 8888
+  in RAM. Lighting, animation and transparent face sorting are not implemented
+  yet; see [../docs/API.md](../docs/API.md) and #39.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

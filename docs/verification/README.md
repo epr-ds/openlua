@@ -21,13 +21,24 @@ from the 960x544 PPSSPP window to the native 480x272 PSP resolution. The
 | ![hardware](hardware.png) | `hw` demo: EMULATOR, firmware 6.60, region `--`, session volume 27/mute OFF, no headphone; board/gen/NAND and LED show documented kernel-only fallbacks; audio route reports mode 0 because of PPSSPP's `GetMode` HLE | `demos/hardware.lua` |
 | ![sfont](sfont.png) | `sfont` demo: fixed-font header, classic SFont print with final X marker, variable-width measurement, 94-letter count and `sfont.load` summary | `demos/sfont.lua` |
 | ![pgf](pgf.png) | PGF demo: `flash0:/font/ltn0.pgf` loaded through `font.load`, selected with `font.setdefault`, proportional text and measured width/line-height | `demos/pgf.lua` |
+| ![3d](3d.png) | Textured rotating OBJ cube through `amg`/`cam3d`/`model3d`/`texture3d`, with the 2D HUD drawn after `amg.mode2d(1)` | `demos/3d.lua` |
+| ![3d-2d-regression](3d-2d-regression.png) | 2D regression after the 3D work: classic SFont text, variable widths, markers and lines still render normally | `demos/sfont.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was
 garbage. See the issue comments for [#19] and [#20].
+
+The 3D capture was taken with `demos/3d.lua` and the original generated
+`assets/3d/` cube, MTL and checker texture. PPSSPP's OSD messages were disabled
+in the emulator config for this capture. The rotating cube is textured and
+depth-tested; the 3D→2D switch is explicit (`amg.mode2d(1)`), and the HUD uses
+the normal 2D blitter. `demos/sfont.lua` was rerun afterwards as a 2D
+regression check. No PSP hardware was available, so 3D remains
+PPSSPP-verified only.
 
 [#19]: https://github.com/epr-ds/openlua/issues/19
 [#20]: https://github.com/epr-ds/openlua/issues/20
 [#36]: https://github.com/epr-ds/openlua/issues/36
 [#37]: https://github.com/epr-ds/openlua/issues/37
 [#38]: https://github.com/epr-ds/openlua/issues/38
+[#39]: https://github.com/epr-ds/openlua/issues/39

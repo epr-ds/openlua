@@ -6,6 +6,17 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua 3D module family: `amg` scene control, `cam3d` cameras,
+  `texture3d` textures and `model3d` models on top of a new original OBJ/MTL
+  parser and a PSP GE 3D renderer. `amg.begin`/`mode2d`/`update` make the
+  2D↔3D state switch explicit; models are lit by material `Kd`/`d`, textured
+  through `map_Kd`, batched per material and depth-tested; `amg.fog`,
+  `amg.perspective` and points/lines/triangles render styles are supported.
+  Includes 26 C parser checks, 33 Lua assertions, the generated
+  `assets/3d/` cube/MTL/checker, a rotating `demos/3d.lua` PPSSPP capture and a
+  2D `sfont` regression capture. Lighting, animation, transparent face sorting
+  and real-hardware verification remain out of scope and are documented in
+  `docs/API.md` (#39).
 - OneLua PGF font support: `font.load(path)` opens a PSP PGF through
   `sceLibFont`, rasterizes printable ASCII (`0x20`..`0x7E`) into a cached
   <=512 px RGBA atlas, and returns a proportional font handle;

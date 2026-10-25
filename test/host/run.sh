@@ -36,6 +36,12 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     -o "$BUILD/psmf_test"
 "$BUILD/psmf_test"
 
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
+    "$ROOT/engine/3d/obj.c" \
+    "$ROOT/test/host/test_obj.c" \
+    -o "$BUILD/obj_test"
+(cd "$BUILD" && ./obj_test)
+
 CORE="lapi lcode ldebug ldo ldump lfunc lgc llex lmem lobject
       lopcodes loslib lparser lstate lstring ltable ltm lvm lzio
       lauxlib lbaselib ldblib liolib lmathlib lstrlib ltablib
@@ -115,10 +121,15 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/sys/hardware.c" \
     "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
+    "$ROOT/engine/3d/obj.c" \
+    "$ROOT/engine/3d/amg.c" \
+    "$ROOT/engine/3d/cam3d.c" \
+    "$ROOT/engine/3d/texture3d.c" \
+    "$ROOT/engine/3d/model3d.c" \
     "${OBJS[@]}" \
     -lm -o "$BUILD/host_test"
 
-rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork "$BUILD"/jsonwork "$BUILD"/data
+rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork "$BUILD"/jsonwork "$BUILD"/data "$BUILD"/objwork
 cd "$BUILD"
 ./host_test "$ROOT/test/host/test_phase3.lua"
 ./host_test "$ROOT/test/host/test_timers.lua"
@@ -133,3 +144,4 @@ cd "$BUILD"
 ./host_test "$ROOT/test/host/test_sound.lua"
 ./host_test "$ROOT/test/host/test_sfont.lua"
 ./host_test "$ROOT/test/host/test_pgf.lua"
+OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_3d.lua"

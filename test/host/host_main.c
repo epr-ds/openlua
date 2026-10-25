@@ -20,6 +20,10 @@
 #include "engine/sys/hardware.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
+#include "engine/3d/amg.h"
+#include "engine/3d/cam3d.h"
+#include "engine/3d/model3d.h"
+#include "engine/3d/texture3d.h"
 
 int main(int argc, char **argv)
 {
@@ -49,6 +53,11 @@ int main(int argc, char **argv)
     sound_api_register(L);
     timers_api_register(L);
     olmath_api_register(L);
+
+    amg_api_register(L);
+    cam3d_api_register(L);
+    texture3d_api_register(L);
+    model3d_api_register(L);
 
     if (luaL_dofile(L, argv[1]) != 0)
     {

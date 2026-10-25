@@ -39,6 +39,7 @@ OBJS = engine/core/main.o \
 	engine/core/olreg.o \
 	engine/core/stb_impl.o \
 	engine/gfx/gfx.o \
+	engine/gfx/gfx3d.o \
 	engine/gfx/transform.o \
 	engine/gfx/draw.o \
 	engine/img/image.o \
@@ -60,6 +61,11 @@ OBJS = engine/core/main.o \
 	engine/sys/hardware.o \
 	engine/video/pmf.o \
 	engine/maps/maps.o \
+	engine/3d/amg.o \
+	engine/3d/cam3d.o \
+	engine/3d/obj.o \
+	engine/3d/texture3d.o \
+	engine/3d/model3d.o \
 	$(LUAOBJS)
 
 INCDIR = . $(LUADIR) $(STBDIR)
@@ -70,7 +76,7 @@ LDFLAGS = -L.
 
 # Pull libcglue's sceUtility stub in with libpsputility so psp-fixup-imports
 # sees all sceUtility stubs as one block instead of splitting the import table.
-LIBS = -lpspgu -lpspaudio -lpspmpeg -lpsppower -lpsprtc -lpspwlan \
+LIBS = -lpspgu -lpspgum -lpspaudio -lpspmpeg -lpsppower -lpsprtc -lpspwlan \
        -lpsputility -lpspreg -lpsphprm -lpspfont \
        -Wl,--undefined=sceUtilityGetSystemParamInt
 

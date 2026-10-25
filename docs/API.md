@@ -574,6 +574,152 @@ pmf.run("assets/splash.pmf")
 The callback runs from inside `pmf.run`; avoid long work there because it delays
 video and audio. MP4 containers are not supported; only PSMF/PMF files are.
 
+## 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`)
+
+The 3D subset is original code: a small OBJ/MTL parser (`engine/3d/obj.c`),
+portable camera/model/texture state, and a PSP GE renderer
+(`engine/gfx/gfx3d.c`). Models are drawn with depth testing through the GE;
+`amg` also owns the 2D/3D state switch.
+
+### Scene control: `amg`
+
+```lua
+amg.init()
+amg.begin()
+amg.mode2d(0)                 -- back to 3D state
+amg.mode2d(1)                 -- disable depth, restore 2D state
+amg.update()                  -- present the 3D frame and pump audio
+amg.finish()                  -- restore the 2D defaults
+amg.perspective(fov)          -- 10..170 degrees
+amg.renderstyle(__TRIANGLES)
+amg.fog(near, far, color)     -- ABGR colour
+amg.fog()                     -- disable fog
+amg.quality(q)                -- stored; no visual effect yet
+```
+
+Typical frame:
+
+```lua
+screen.clear(color.new(8, 10, 24))
+amg.begin()
+model3d.render(model, __ALL)
+amg.mode2d(1)                 -- required before screen.print / draw / image
+screen.print(8, 8, "HUD")
+amg.update()
+```
+
+`amg.begin()` enables depth testing, clamps depth to the far plane, clears the
+depth buffer and applies the current camera. Colour is cleared by the frame
+flip, so `screen.clear` still selects the next background colour. `amg.update`
+is the 3D equivalent of `screen.flip()`; do not call both for the same frame.
+
+Constants registered globally:
+
+| Constant | Value | Constant | Value |
+|---|---|---|---|
+| `__8888` | 0 | `__NEAR` | 0 |
+| `__4444` | 1 | `__LINEAR` | 1 |
+| `__5551` | 2 | `__ENV` | 0 |
+| `__5650` | 3 | `__COORDS` | 1 |
+| `__RAM` | 0 | `__DIRECTIONAL` | 0 |
+| `__VRAM` | 1 | `__POINT` | 1 |
+| `__POINTS` | 0 | `__SPOT` | 2 |
+| `__LINES` | 1 | `__BOX` | 0 |
+| `__TRIANGLES` | 2 | `__SPHERE` | 1 |
+| `__FRONT` | 0 | `__CONE` | 2 |
+| `__TRANS` | 1 | `__CYLINDER` | 3 |
+| `__ALL` | 2 | `__CONVEX` | 4 |
+
+Lighting, raytracing, collision and screenshot constants exist for source
+compatibility but the corresponding functions are not registered.
+
+### Camera: `cam3d`
+
+```lua
+local cam = cam3d.new()       -- position (0, 0, 6), eye (0, 0, 0), up (0, 1, 0)
+cam3d.position(cam, {x, y, z})
+cam3d.eye(cam, {x, y, z})     -- look-at target
+cam3d.up(cam, {x, y, z})
+cam3d.rotation(cam, {x, y, z})-- scene rotation in degrees
+cam3d.set(cam)                -- copy the camera into the GE renderer
+cam3d.free(cam)
+```
+
+Vectors accept `{x, y, z}` arrays or `{x=..., y=..., z=...}` tables. `set` must
+be called before rendering; later edits do not apply until the next `set`.
+Cameras are plain 1-based integer handles (up to 16).
+
+### Textures: `texture3d`
+
+```lua
+local tex = texture3d.load("assets/3d/checker.png" [, location])
+local tex = texture3d.new(width, height [, location])
+texture3d.setcustom(model, object, slot, tex)
+texture3d.filter(model [, object], __NEAR)
+texture3d.quality(tex, __8888)      -- stored; pixels stay 8888
+texture3d.position(tex, x, y)
+texture3d.scaling(tex, sx, sy)
+texture3d.trans(tex, u, v)          -- stored; not applied by draw() yet
+texture3d.setframes(tex, frames)
+texture3d.frame(tex, index)
+texture3d.draw(tex)                 -- 2D blit; call in mode2d(1)
+texture3d.free(tex)
+texture3d.finish()                  -- free every 3D texture
+```
+
+PNG textures are decoded to ABGR `OL_Surface` buffers and must be 512x512 or
+smaller (power-of-two dimensions are not required). `location`/`quality` are
+recorded for OneLua parity; both RAM and VRAM requests are uploaded from the
+same RAM surface. `setcustom` replaces the material texture for the whole
+object; the `slot` argument is accepted but ignored. `filter` is the same
+operation as `model3d`'s internal filter setting (`__NEAR` or `__LINEAR`).
+`draw` uses `position`, `scaling` and the current frame row; it is a normal 2D
+sprite and is subject to the usual 2D state.
+
+### Models: `model3d`
+
+```lua
+local m = model3d.load(path [, css])
+model3d.countobj(m)
+model3d.render(m, draw_type [, object])
+model3d.rotation(m, object, {x, y, z})
+model3d.getrotation(m, object)
+model3d.position(m, object, {x, y, z})
+model3d.getposition(m, object)
+model3d.scaling(m, object, {x, y, z})
+model3d.getscaling(m, object)
+model3d.free(m)
+```
+
+`load` parses Wavefront OBJ and its `mtllib` MTL. Polygons are triangulated as
+fans; positions, `vt` texture coordinates, `usemtl`, `Kd`, `d` and `map_Kd`
+are supported. `map_Kd` is resolved relative to the MTL file and loaded as a
+`texture3d` texture. Faces are batched per material, and objects come from the
+OBJ `o`/`g` grouping (a single implicit object is created when absent).
+
+`render` submits every batch with depth testing. `draw_type` accepts
+`__FRONT`, `__TRANS` and `__ALL`; this pass draws all three identically (no
+separate transparent pass or back-face sorting). `object` is 0-based: a
+non-negative value renders only that object, a negative value (`-1`, `-2`, ...)
+skips that object, and `nil` renders all. Rotations are in degrees and applied
+X, then Y, then Z before scaling; positions are in world units. Each model
+animate (`css`) argument is accepted but ignored; OBJ/MTL animation is not
+implemented yet.
+
+### Not implemented
+
+| OneLua/AMGLib area | Status |
+|---|---|
+| Lighting (`amg.light`, materials/lights) | Not registered |
+| Raytracing, collision tests, culling helpers | Not registered |
+| Model animation (`css`), skinning, morph targets | Argument ignored |
+| Transparent face sorting and `__FRONT`/`__TRANS` passes | All faces use one depth-tested pass |
+| Texture `__4444`/`__5551`/`__5650` storage | Quality is stored; pixels remain ABGR 8888 |
+| VRAM placement | Accepted; textures stay in RAM |
+| Texture `trans` scrolling | Stored; not applied by `texture3d.draw` |
+| OBJ normals, multiple UV sets, smoothing groups | Parsed as needed for geometry; normals/smoothing unused |
+| Real PSP hardware verification | Only PPSSPP was available; see `docs/verification/README.md` |
+
 ## Planned modules
 
 | Module | Status |
@@ -584,6 +730,8 @@ video and audio. MP4 containers are not supported; only PSMF/PMF files are.
 
 | Area | Current behaviour | Tracking |
 |---|---|---|
+| 3D modules | `amg`/`cam3d`/`texture3d`/`model3d` support the documented subset (textured static OBJ models, camera, fog, points/lines/triangles); lighting, animation and transparent passes are not implemented | #39 |
+| 3D verification | Textured rotating cube and the 2D sfont regression were checked in PPSSPP only; no PSP hardware was available | #39 |
 | Transforms | Implemented and PPSSPP-verified; PSP hardware pending | #19, #20 |
 | PMF audio | ATRAC3+ path implemented and verified through a PPSSPP WAV dump; no PSP hardware run yet | #5 |
 | Battery mode/EEPROM | Read-only telemetry implemented; serial/mode return `"-"` and mode/EEPROM calls return `0` without hardware access | #33 |

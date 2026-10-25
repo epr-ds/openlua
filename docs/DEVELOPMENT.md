@@ -57,30 +57,35 @@ make clean
 ## Host tests
 
 Host-testable pieces (VFS, timers, OneLua math/battery/OS/hardware helpers,
-power/OS/hardware bindings, transform math, PGF/SFont atlas packing, Lua modules):
+power/OS/hardware bindings, transform math, OBJ/MTL parsing, PGF/SFont atlas
+packing, Lua modules):
 
 ```bash
 bash test/host/run.sh
 ```
 
 Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
-`psmf: 20 checks, 0 failed`, `battery: 16 checks, 0 failed`,
+`psmf: 20 checks, 0 failed`, `obj: 26 checks, 0 failed`,
+`battery: 16 checks, 0 failed`,
 `RESULT: 10 passed, 0 failed` for the OS C helpers,
 `RESULT: 54 passed, 0 failed` for the hardware helpers,
 `maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed`,
 `sfont C: 20 checks, 0 failure(s)` and `pgf C: 17 checks, 0 failure(s)`
-(392 C checks total), then `RESULT: 46 passed, 0 failed`,
+(418 C checks total), then `RESULT: 46 passed, 0 failed`,
 `RESULT: 21 passed, 0 failed` for timers, `RESULT: 23 passed, 0 failed` for
 math, `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for
 JSON, `RESULT: 64 passed, 0 failed` for savedata,
 `RESULT: 22 passed, 0 failed` for battery, `RESULT: 14 passed, 0 failed` for
 power, `RESULT: 61 passed, 0 failed` for the OS Lua surface,
 `RESULT: 67 passed, 0 failed` for hardware, `RESULT: 13 passed, 0 failed` for
-sound, `sfont Lua: 19 assertions, 0 failure(s)` and
-`pgf Lua: 20 assertions, 0 failure(s)` (483 Lua assertions total). The PGF
+sound, `sfont Lua: 19 assertions, 0 failure(s)`,
+`pgf Lua: 20 assertions, 0 failure(s)` and `RESULT: 33 passed, 0 failed` for
+the 3D handle/API surface (516 Lua assertions total). The PGF
 tests use `test/host/pspfont_stub.c` in place of the PSP system library; real
-PGF rendering is checked separately in PPSSPP. Build output is kept in
-`out/build.log`; the script prints it only when a build fails.
+PGF rendering is checked separately in PPSSPP. The 3D host test exercises
+parse/load/transform/render bookkeeping only; GE output is checked in PPSSPP.
+Build output is kept in `out/build.log`; the script prints it only when a build
+fails.
 
 Repository hygiene check:
 
@@ -92,10 +97,11 @@ This fails if `*.o`, `*.elf`, `*.pbp`, `EBOOT.PBP`, `PARAM.SFO` or an AppImage
 is tracked.
 
 The script builds all host targets with `-Wall -Wextra -Werror` and runs the C
-tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_batt.c`,
-`test_os.c`, `test_maps.c`, `test_sound.c`, `test_sfont.c`, `test_pgf.c`) plus
+tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_obj.c`,
+`test_batt.c`, `test_os.c`, `test_maps.c`, `test_sound.c`, `test_sfont.c`,
+`test_pgf.c`) plus
 the Lua suites for files/INI/JSON/savedata/timers/math/battery/power/os/
-hardware/font/sfont/pgf in `out/`. Compiler
+hardware/font/sfont/pgf/3D in `out/`. Compiler
 output is captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
@@ -103,7 +109,7 @@ output is captured in `out/build.log` and shown only if a build fails.
 ```text
 engine/
   core/   main.c, olreg.c/h, stb_impl.c
-  gfx/    gfx.c/h (surface + GE), draw.c/h (primitives)
+  gfx/    gfx.c/h (surface + GE), draw.c/h (primitives), gfx3d.c/h (3D GE)
   img/    image.c/h (Lua image module, stb decode)
   font/   font.c/h (handles + fixed-cell/SFont), pgf.c/h (sceLibFont PGF)
   snd/    sound.c/h (WAV/VMA + PSP audio)
@@ -113,14 +119,15 @@ engine/
   data/   json.c/h
   sys/    savedata.c/h, battery.c/h, power.c/h, os.c/h
   maps/   maps.c/h
+  3d/     obj.c/h (OBJ/MTL), amg.c/h, cam3d.c/h, texture3d.c/h, model3d.c/h
 third_party/
   lua/src Lua 5.1.5
   stb/    stb_image.h, stb_image_write.h
-assets/   demo/test assets
+assets/   demo/test assets (including assets/3d/)
 demos/    runnable Lua demos
 docs/     architecture, API, roadmap, reference
 test/     host and on-device tests
-tools/    asset generators and local PPSSPP
+tools/    asset generators (gen_font.py, gen_3d_assets.py, ...) and local PPSSPP
 ```
 
 ## Adding a Lua module

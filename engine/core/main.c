@@ -29,6 +29,10 @@
 #include "engine/sys/hardware.h"
 #include "engine/maps/maps.h"
 #include "engine/video/pmf.h"
+#include "engine/3d/amg.h"
+#include "engine/3d/cam3d.h"
+#include "engine/3d/model3d.h"
+#include "engine/3d/texture3d.h"
 #include "engine/core/olreg.h"
 PSP_MODULE_INFO("OpenLua", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
@@ -154,6 +158,14 @@ static void register_api(lua_State *L)
     hardware_api_register(L); /* hw.*       (identity/volume/route/LED)      */
     maps_api_register(L);     /* map.*      (new/blit/sizex/sizey/set)       */
     pmf_api_register(L);      /* pmf.*      (run/play/pause/stop)            */
+
+    /* OneLua 3D module family.  texture3d owns global texture handles and
+     * must be registered before model3d is used; module registration order
+     * itself is not significant. */
+    amg_api_register(L);       /* amg.*      (init/begin/mode2d/update)       */
+    cam3d_api_register(L);     /* cam3d.*    (new/position/eye/up/set)        */
+    texture3d_api_register(L); /* texture3d.* (load/new/quality/draw/...)     */
+    model3d_api_register(L);   /* model3d.*  (load/countobj/render/...)       */
 }
 
 static void chdir_to_appdir(const char *argv0)

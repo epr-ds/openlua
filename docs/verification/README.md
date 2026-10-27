@@ -6,8 +6,9 @@ emulator verification only.
 
 The EBOOT was built with `bash docker/build.sh` and the test script was copied
 next to it as `script.lua` (with `assets/` alongside). Each image is downscaled
-from the 960x544 PPSSPP window to the native 480x272 PSP resolution. The
-`Log to file` banner is PPSSPP's own OSD; it is not part of the game.
+from the 960x544 PPSSPP window to the native 480x272 PSP resolution. Some
+earlier captures include PPSSPP's `Log to file` banner; it is part of the
+emulator OSD, not the game. The splash runs were taken with logging disabled.
 
 | Capture | What it shows | Source |
 |---|---|---|
@@ -23,6 +24,10 @@ from the 960x544 PPSSPP window to the native 480x272 PSP resolution. The
 | ![pgf](pgf.png) | PGF demo: `flash0:/font/ltn0.pgf` loaded through `font.load`, selected with `font.setdefault`, proportional text and measured width/line-height | `demos/pgf.lua` |
 | ![3d](3d.png) | Textured rotating OBJ cube through `amg`/`cam3d`/`model3d`/`texture3d`, with the 2D HUD drawn after `amg.mode2d(1)` | `demos/3d.lua` |
 | ![3d-2d-regression](3d-2d-regression.png) | 2D regression after the 3D work: classic SFont text, variable widths, markers and lines still render normally | `demos/sfont.lua` |
+| ![splash](splash.png) | Current splash: generated `assets/splash.png`, centred and scaled to the screen with a fade | `demos/splash.lua` |
+| ![splash-old](splash-old.png) | `splash.old()` showing the generated retro `assets/splash_old.png` | `demos/splash.lua` |
+| ![splash-oldschool](splash-oldschool.png) | `splash.oldschool()` showing the original OSLib-style tribute (not historical OSLib artwork) | `demos/splash.lua` |
+| ![splash-2d](splash-2d.png) | Normal 2D frame loop after four splash slideshows, proving the GE state and clear colour were restored | `demos/splash.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was
@@ -36,9 +41,20 @@ the normal 2D blitter. `demos/sfont.lua` was rerun afterwards as a 2D
 regression check. No PSP hardware was available, so 3D remains
 PPSSPP-verified only.
 
+The four splash captures come from `demos/splash.lua` and the generated
+`assets/splash*.png` images. The first three were taken at roughly 1 s, 3 s and
+5 s into the demo's slideshows; the last one was taken after the 10 s sequence,
+where the script continues with a normal `screen.clear`/`screen.print`/
+`screen.flip` loop. Logging was disabled for these runs, so the earlier
+`Log to file` banner does not appear. The timed/skip loop and input edge
+detection are PSP-only; the host test covers argument handling, image loading,
+slide skipping and the no-asset fallback. No PSP hardware was available, so
+splash is also PPSSPP-verified only.
+
 [#19]: https://github.com/epr-ds/openlua/issues/19
 [#20]: https://github.com/epr-ds/openlua/issues/20
 [#36]: https://github.com/epr-ds/openlua/issues/36
 [#37]: https://github.com/epr-ds/openlua/issues/37
 [#38]: https://github.com/epr-ds/openlua/issues/38
 [#39]: https://github.com/epr-ds/openlua/issues/39
+[#41]: https://github.com/epr-ds/openlua/issues/41

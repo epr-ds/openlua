@@ -58,7 +58,7 @@ make clean
 
 Host-testable pieces (VFS, timers, OneLua math/battery/OS/hardware helpers,
 power/OS/hardware bindings, transform math, OBJ/MTL parsing, PGF/SFont atlas
-packing, Lua modules):
+packing, splash image loading, Lua modules):
 
 ```bash
 bash test/host/run.sh
@@ -79,11 +79,14 @@ JSON, `RESULT: 64 passed, 0 failed` for savedata,
 power, `RESULT: 61 passed, 0 failed` for the OS Lua surface,
 `RESULT: 67 passed, 0 failed` for hardware, `RESULT: 13 passed, 0 failed` for
 sound, `sfont Lua: 19 assertions, 0 failure(s)`,
-`pgf Lua: 20 assertions, 0 failure(s)` and `RESULT: 33 passed, 0 failed` for
-the 3D handle/API surface (516 Lua assertions total). The PGF
+`pgf Lua: 20 assertions, 0 failure(s)`, `RESULT: 33 passed, 0 failed` for
+the 3D handle/API surface and `splash Lua: 20 assertions, 0 failure(s)`
+(536 Lua assertions total). The PGF
 tests use `test/host/pspfont_stub.c` in place of the PSP system library; real
 PGF rendering is checked separately in PPSSPP. The 3D host test exercises
 parse/load/transform/render bookkeeping only; GE output is checked in PPSSPP.
+The splash test loads and validates the generated PNGs but skips the timed
+display loop, which is PPSSPP-verified.
 Build output is kept in `out/build.log`; the script prints it only when a build
 fails.
 
@@ -101,7 +104,7 @@ tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_obj.c`,
 `test_batt.c`, `test_os.c`, `test_maps.c`, `test_sound.c`, `test_sfont.c`,
 `test_pgf.c`) plus
 the Lua suites for files/INI/JSON/savedata/timers/math/battery/power/os/
-hardware/font/sfont/pgf/3D in `out/`. Compiler
+hardware/font/sfont/pgf/3D/splash in `out/`. Compiler
 output is captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
@@ -109,7 +112,8 @@ output is captured in `out/build.log` and shown only if a build fails.
 ```text
 engine/
   core/   main.c, olreg.c/h, stb_impl.c
-  gfx/    gfx.c/h (surface + GE), draw.c/h (primitives), gfx3d.c/h (3D GE)
+  gfx/    gfx.c/h (surface + GE), draw.c/h (primitives), gfx3d.c/h (3D GE),
+          splash.c/h (splash screens)
   img/    image.c/h (Lua image module, stb decode)
   font/   font.c/h (handles + fixed-cell/SFont), pgf.c/h (sceLibFont PGF)
   snd/    sound.c/h (WAV/VMA + PSP audio)
@@ -123,11 +127,12 @@ engine/
 third_party/
   lua/src Lua 5.1.5
   stb/    stb_image.h, stb_image_write.h
-assets/   demo/test assets (including assets/3d/)
+assets/   demo/test assets (including assets/3d/ and the splash PNGs)
 demos/    runnable Lua demos
 docs/     architecture, API, roadmap, reference
 test/     host and on-device tests
-tools/    asset generators (gen_font.py, gen_3d_assets.py, ...) and local PPSSPP
+tools/    asset generators (gen_font.py, gen_3d_assets.py, gen_splash.py, ...)
+          and local PPSSPP
 ```
 
 ## Adding a Lua module

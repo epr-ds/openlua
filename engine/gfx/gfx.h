@@ -31,6 +31,8 @@ typedef struct OL_Surface {
 
 void gfx_init(void);
 void gfx_set_clear_color(unsigned int c);
+unsigned int gfx_clear_color(void);
+void gfx_clear_scene(void);
 void gfx_flip_scene(void);
 int gfx_gu_started(void);
 void *gfx_list(void);

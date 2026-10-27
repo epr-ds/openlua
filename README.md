@@ -18,6 +18,11 @@ modules on top of the hardware:
 - OneLua PGF system fonts with `font.load`/`font.setdefault`, plus fixed-cell
   PNG and classic variable-width SFont text with `font`/`sfont` and
   `screen.print`.
+- OneLua 3D subset: `amg` scene control, `cam3d` cameras, `texture3d` textures
+  and `model3d` OBJ/MTL models rendered through the GE.
+- Start-up splash screens with `splash.show`, `splash.old` and
+  `splash.oldschool`, including slideshows and a built-in missing-asset
+  fallback.
 - Native WAV/VMA audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
 - Read-only battery telemetry through the OneLua `batt` table.
@@ -43,7 +48,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 392 C checks + 483 Lua assertions
+bash test/host/run.sh              # 418 C checks + 536 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -82,6 +87,8 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Lua host, `color`, `screen`, `draw` | Implemented |
 | Images and sprite frames | Implemented |
 | PGF / SFont / `sfont` / `screen.print` | Implemented; host-tested and PPSSPP-verified ([#37], [#38]) |
+| 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`) | Implemented; host-tested and PPSSPP-verified; lighting, animation and transparent passes documented as unsupported ([#39]) |
+| Splash screens (`splash`) | Implemented; host-tested and PPSSPP-verified ([#41]) |
 | Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
@@ -106,7 +113,7 @@ of truth for remaining work.
 ```text
 engine/
   core/   boot, Lua registration, stb implementation
-  gfx/    GE surfaces, blits, draw primitives
+  gfx/    GE surfaces, blits, draw primitives, splash screens
   img/    image loader and Lua bindings
   font/   PGF, fixed-cell and SFont loader/renderer
   snd/    WAV/VMA decoder and PSP audio
@@ -116,6 +123,7 @@ engine/
   data/   JSON parser/serializer, PSMF header parser
   sys/    save slots, battery, power, OS queries, hardware info/audio
   maps/   tilemap renderer
+  3d/     OBJ/MTL parser, camera/model/texture state, 3D scene control
   video/  PMF playback through sceMpeg
 third_party/
   lua/    Lua 5.1.5
@@ -172,6 +180,8 @@ for a local toolchain build, host tests and debugging.
 | `os` | `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`, `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt`, `restart`, dialogs/PRX | Extends stock Lua `os`; host-tested and PPSSPP-verified; password/CFW and dialog/PRX limits documented ([#35]) |
 | `hw` | `getmodel`, `firmware`, `region`, `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`, `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`, `mute`, `headphone`, `audioout`, `led` | Host-tested and PPSSPP-verified; ID/fuse/NAND/LED values need kernel mode and return documented fallbacks; volume/mute use the sound registry with a session fallback; audio routing uses `sceAudioRouting` ([#36]) |
 | `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF system fonts through `sceLibFont` with printable-ASCII atlases; fixed-cell PNG and classic variable-width sheets still supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
+| `amg` / `cam3d` / `texture3d` / `model3d` | Scene control, camera, textures, OBJ/MTL models | Static textured models with depth testing; lighting, animation and transparent passes are not implemented ([#39]) |
+| `splash` | `show`, `old`, `oldschool` | Single images or slideshows, timing and skip input, built-in missing-asset fallback ([#41]) |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |
@@ -204,3 +214,5 @@ used or modified.
 [#36]: https://github.com/epr-ds/openlua/issues/36
 [#37]: https://github.com/epr-ds/openlua/issues/37
 [#38]: https://github.com/epr-ds/openlua/issues/38
+[#39]: https://github.com/epr-ds/openlua/issues/39
+[#41]: https://github.com/epr-ds/openlua/issues/41

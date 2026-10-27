@@ -574,6 +574,38 @@ pmf.run("assets/splash.pmf")
 The callback runs from inside `pmf.run`; avoid long work there because it delays
 video and audio. MP4 containers are not supported; only PSMF/PMF files are.
 
+## splash
+
+```lua
+splash.show([path|table])     -- default: assets/splash.png
+splash.old([path|table])      -- default: assets/splash_old.png
+splash.oldschool()            -- default: assets/splash_oldschool.png
+```
+
+`show` and `old` accept a single PNG path or a table of paths. Each image is
+shown for about two seconds as a slideshow; a fresh Cross, Circle or Start
+press advances to the next one. Images are centred on black and downscaled
+(never upscaled) to fit 480x272 while preserving their aspect ratio. Each side
+must be 512 pixels or less, the GE texture limit used by the other image
+modules.
+
+Missing, unreadable and oversized images are skipped rather than raising. If
+none of the requested images can be loaded, a built-in geometric fallback is
+drawn, so a bad asset path never leaves the screen blank or breaks the GE.
+Tables are limited to 32 entries. Argument type errors, non-string table
+entries, too many entries and overlong paths raise a `splash` error.
+
+The calls are blocking and are intended for start-up, before the main loop.
+They pump audio, restore the 2D GE state (`gfx3d_finish`) before drawing, and
+restore the previous clear colour afterwards, so normal `screen.*`/`draw.*`
+calls work immediately after the splash. If the caller wants 3D again, call
+`amg.begin()` as usual. `splash.oldschool()` is an original OpenLua tribute
+screen, not the original OldSchool Library artwork.
+
+On the host build the images are decoded and validated but no window or timing
+loop runs; `test/host/test_splash.lua` covers the paths and fallback logic.
+PPSSPP verification covers the actual rendering.
+
 ## 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`)
 
 The 3D subset is original code: a small OBJ/MTL parser (`engine/3d/obj.c`),
@@ -730,6 +762,8 @@ implemented yet.
 
 | Area | Current behaviour | Tracking |
 |---|---|---|
+| Splash assets | `splash.show`/`old` share the same renderer and differ only in their default asset; `oldschool` is an original tribute rather than the historical OSLib artwork | #41 |
+| Splash timing | Fixed at about 2 s per image with a 250 ms fade-in and 300 ms fade-out; skip advances one image at a time | #41 |
 | 3D modules | `amg`/`cam3d`/`texture3d`/`model3d` support the documented subset (textured static OBJ models, camera, fog, points/lines/triangles); lighting, animation and transparent passes are not implemented | #39 |
 | 3D verification | Textured rotating cube and the 2D sfont regression were checked in PPSSPP only; no PSP hardware was available | #39 |
 | Transforms | Implemented and PPSSPP-verified; PSP hardware pending | #19, #20 |

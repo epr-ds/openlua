@@ -12,6 +12,7 @@
 #include "engine/fs/ini.h"
 #include "engine/data/json.h"
 #include "engine/font/font.h"
+#include "engine/gfx/splash.h"
 #include "engine/snd/sound.h"
 #include "engine/sys/savedata.h"
 #include "engine/sys/battery.h"
@@ -53,6 +54,7 @@ int main(int argc, char **argv)
     sound_api_register(L);
     timers_api_register(L);
     olmath_api_register(L);
+    splash_api_register(L);
 
     amg_api_register(L);
     cam3d_api_register(L);

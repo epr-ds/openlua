@@ -111,6 +111,22 @@ void gfx_set_clear_color(unsigned int c)
     clear_color = c;
 }
 
+unsigned int gfx_clear_color(void)
+{
+    return clear_color;
+}
+
+void gfx_clear_scene(void)
+{
+    if (!gu_started)
+        return;
+    sceGuStart(GU_DIRECT, gu_list);
+    sceGuClearColor(clear_color);
+    sceGuClear(GU_COLOR_BUFFER_BIT | GU_DEPTH_BUFFER_BIT);
+    sceGuFinish();
+    sceGuSync(0, 0);
+}
+
 void gfx_flip_scene(void)
 {
     if (!gu_started) return;

@@ -111,6 +111,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/fs/ini.c" \
     "$ROOT/engine/data/json.c" \
     "$ROOT/engine/font/font.c" "$ROOT/engine/font/pgf.c" \
+    "$ROOT/engine/gfx/splash.c" \
     "$ROOT/engine/core/stb_impl.c" \
     "$ROOT/test/host/font_stub.c" "$ROOT/test/host/pspfont_stub.c" \
     "$ROOT/engine/snd/sound.c" \
@@ -145,3 +146,5 @@ cd "$BUILD"
 ./host_test "$ROOT/test/host/test_sfont.lua"
 ./host_test "$ROOT/test/host/test_pgf.lua"
 OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_3d.lua"
+# Splash defaults are relative to the working directory, like script.lua paths.
+(cd "$ROOT" && OPENLUA_ROOT="$ROOT" "$BUILD/host_test" "$ROOT/test/host/test_splash.lua")

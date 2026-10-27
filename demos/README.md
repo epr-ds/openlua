@@ -35,6 +35,7 @@ file itself.
 | `sound.lua` | WAV load/loop/volume, audio pumped by `screen.flip` | `assets/beep.wav` |
 | `transforms.lua` | Rotation, scale, tint, pivot | `assets/test_sheet.png` |
 | `3d.lua` | Textured rotating OBJ cube: `amg` scene, `cam3d` camera, `model3d` OBJ/MTL load, `texture3d` PNG, 3D→2D HUD switch | `assets/3d/cube.obj`, `assets/3d/cube.mtl`, `assets/3d/checker.png` |
+| `splash.lua` | `splash.show`/`old`/`oldschool`, single images and a slideshow, then the normal 2D frame loop | `assets/splash.png`, `assets/splash_old.png`, `assets/splash_oldschool.png` |
 
 ## Assets
 
@@ -47,6 +48,9 @@ file itself.
 | `assets/3d/cube.obj` | Original 8-vertex textured cube | `python3 tools/gen_3d_assets.py` |
 | `assets/3d/cube.mtl` | Cube material (`Kd`, `map_Kd`) | `python3 tools/gen_3d_assets.py` |
 | `assets/3d/checker.png` | Original 128x128 checker texture | `python3 tools/gen_3d_assets.py` |
+| `assets/splash.png` | Current OpenLua introduction, 480x272 | `python3 tools/gen_splash.py` |
+| `assets/splash_old.png` | Retro old-splash variant, 480x272 | `python3 tools/gen_splash.py` |
+| `assets/splash_oldschool.png` | Original OSLib-style tribute, 480x272 | `python3 tools/gen_splash.py` |
 
 ## Known caveats
 
@@ -70,6 +74,13 @@ file itself.
   `texture3d` quality/location are stored for parity but pixels stay ABGR 8888
   in RAM. Lighting, animation and transparent face sorting are not implemented
   yet; see [../docs/API.md](../docs/API.md) and #39.
+- `splash.*` is blocking: each image is shown for about 2 s and a fresh
+  Cross/Circle/Start press advances the slideshow. Missing assets are skipped;
+  if nothing loads, an original geometric fallback is drawn. Splash restores
+  the 2D GE state and the previous clear colour, so the frame loop works
+  normally afterwards. `splash.oldschool()` uses an original tribute screen,
+  not the historical OSLib artwork; see [../docs/API.md](../docs/API.md) and
+  #41.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

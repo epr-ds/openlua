@@ -13,6 +13,7 @@
 #include "engine/snd/sound.h"
 #include "engine/img/image.h"
 #include "engine/gfx/draw.h"
+#include "engine/gfx/splash.h"
 #include "engine/input/buttons.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
@@ -158,6 +159,7 @@ static void register_api(lua_State *L)
     hardware_api_register(L); /* hw.*       (identity/volume/route/LED)      */
     maps_api_register(L);     /* map.*      (new/blit/sizex/sizey/set)       */
     pmf_api_register(L);      /* pmf.*      (run/play/pause/stop)            */
+    splash_api_register(L);   /* splash.*   (show/old/oldschool)             */
 
     /* OneLua 3D module family.  texture3d owns global texture handles and
      * must be registered before model3d is used; module registration order

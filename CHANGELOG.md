@@ -6,6 +6,15 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua splash module: `splash.show`, `splash.old` and `splash.oldschool`
+  display a single PNG or a slideshow of up to 32 images for about two seconds
+  each, with a short fade, centred 480x272 scaling, fresh Cross/Circle/Start
+  skip input and black letterboxing. Missing, unreadable and oversized images
+  are skipped; if nothing loads an original geometric fallback is drawn.
+  Splash restores the 2D GE state and previous clear colour, so normal drawing
+  continues afterwards. Includes 20 host assertions, the generated
+  `assets/splash*.png` trio (reproducible with `tools/gen_splash.py`),
+  `demos/splash.lua`, PPSSPP captures and API/demo documentation (#41).
 - OneLua 3D module family: `amg` scene control, `cam3d` cameras,
   `texture3d` textures and `model3d` models on top of a new original OBJ/MTL
   parser and a PSP GE 3D renderer. `amg.begin`/`mode2d`/`update` make the
@@ -101,6 +110,11 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   networking) to the project board.
 
 ### Fixed
+- The generated 5x7 font sheet now draws `N` with a left-to-right diagonal
+  instead of a mirrored glyph, so `OPENLUA` and other generated text read
+  correctly at every scale. `assets/font.png`, `assets/sfont.png` and the
+  splash images were regenerated; the 3D and SFont verification captures were
+  refreshed.
 - Sound playback now reserves explicit channels through `sceAudioChReserve`,
   releases them on stop/free/natural end, rejects invalid channel arguments,
   rejects files shorter than the RIFF signature without over-reading, bounds

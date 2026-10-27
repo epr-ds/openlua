@@ -10,7 +10,8 @@ script.lua
     ▼
 engine/core/main.c ── register_api() ──────────────────────────────┐
     │                                                              │
-    ├── gfx/     GE pipeline, surfaces, primitives  (screen, draw) │
+    ├── gfx/     GE pipeline, surfaces, primitives  (screen, draw,   │
+    │            splash)                                             │
     ├── img/     PNG/JPEG/BMP decode via stb_image   (image)        │
     ├── font/    PGF + SFont atlas renderer          (font, sfont)  │
     ├── snd/     WAV/VMA decode + PSP audio          (sound)        │
@@ -151,6 +152,25 @@ public `OL_3DVertex` stays in a readable position/UV/colour order. 3D texture
 coordinates are normalised (0..1), unlike the texel-space UVs used by the 2D
 blitter. Depth tests use `GU_LEQUAL` with a far-plane clear; culling is off
 because the importers do not guarantee winding.
+
+### Splash screens
+
+`engine/gfx/splash.c` reuses the 2D blitter rather than adding another render
+path. `show`/`old` collect one path or a table of paths, decode PNGs into
+`OL_Surface` buffers with stb_image, and present each one for about two
+seconds with a short fade. The image is centred on black and uniformly
+downscaled if it is larger than 480x272 (each side must stay within the 512 px
+GE texture limit). Missing images are skipped; a built-in geometric fallback
+is drawn when nothing loads.
+
+Before the first frame the module calls `gfx3d_finish()` so a preceding 3D
+scene is left in the documented 2D state, clears the current draw buffer with
+`gfx_clear_scene()`, and saves the clear colour so it can be restored when the
+last image has been shown. Frames are presented through `gfx_flip_scene()`,
+which also keeps audio fed via `sound_pump()`. Input uses the same `sceCtrl`
+edge detection as `buttons.read`: a fresh Cross/Circle/Start press advances
+one image. The host build decodes and validates the files but does not enter
+the timing loop, so the logic is covered by `test/host/test_splash.lua`.
 
 ## Audio pipeline
 
@@ -333,7 +353,8 @@ and host mocks, transform math, OBJ/MTL parsing, map geometry, sound parsing
 and channel bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and
 run on the host. `test/host/run.sh` covers OLFS paths/cwd, transforms, OBJ/MTL
 parsing, map geometry, sound, battery/OS/hardware formatting, and Lua-level
-files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D tests.
+files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D/splash
+tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -342,7 +363,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | Directory | Responsibility | Public API |
 |---|---|---|
 | `engine/core` | boot, Lua registration | `color`, `screen.clear/flip` |
-| `engine/gfx` | surfaces, GE, primitives | `draw.*` |
+| `engine/gfx` | surfaces, GE, primitives, splash screens | `draw.*`, `splash.*` |
 | `engine/img` | image decode, blits, transforms | `image.*` |
 | `engine/font` | PGF via `sceLibFont`, PNG/SFont loaders, atlas packer | `font.*`, `sfont.*`, `screen.print` |
 | `engine/snd` | audio decode and output | `sound.*` |

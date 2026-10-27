@@ -40,6 +40,7 @@ OBJS = engine/core/main.o \
 	engine/core/stb_impl.o \
 	engine/gfx/gfx.o \
 	engine/gfx/gfx3d.o \
+	engine/gfx/splash.o \
 	engine/gfx/transform.o \
 	engine/gfx/draw.o \
 	engine/img/image.o \

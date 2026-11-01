@@ -6,6 +6,16 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua on-screen keyboard module: `osk.init(desc, text [, type [, textmax
+  [, lines [, mode]]]])` opens the PSP system keyboard, supports normal and
+  numeric modes, clamps length (`1..512`), lines (`1..8`) and language
+  (`-1..10`), and returns the edited UTF-8 string, `""` for an empty field or
+  `nil` on cancel/start failure. The module restores the 2D GE state, clear
+  colour and both display buffers so the frame loop can resume immediately.
+  Chinese modes use the firmware language because PSPSDK lacks a Chinese enum.
+  Includes 54 host assertions, `demos/osk.lua`, PPSSPP open/edit captures and
+  API/verification documentation; PPSSPP has no OSK cancel control, so the
+  `nil` branch is host-tested and PSP-only (#42).
 - OneLua splash module: `splash.show`, `splash.old` and `splash.oldschool`
   display a single PNG or a slideshow of up to 32 images for about two seconds
   each, with a short fade, centred 480x272 scaling, fresh Cross/Circle/Start

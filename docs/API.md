@@ -606,6 +606,47 @@ On the host build the images are decoded and validated but no window or timing
 loop runs; `test/host/test_splash.lua` covers the paths and fallback logic.
 PPSSPP verification covers the actual rendering.
 
+## osk
+
+```lua
+local text = osk.init(desc, text [, type [, textmax [, lines [, mode]]]])
+```
+
+Opens the PSP system keyboard and blocks until the user confirms or cancels.
+`desc` is the description shown by the dialog and `text` is the initial UTF-8
+string. Confirming returns the edited string, including `""` when the field is
+empty. Cancelling, or a failure to start/update the dialog, returns `nil`.
+
+Optional arguments follow the OneLua defaults and limits:
+
+| Argument | Meaning | Default | Range |
+|---|---|---|---|
+| `type` | `1` normal keyboard, `2` numeric keypad | `1` | non-`2` values use normal |
+| `textmax` | maximum characters | `128` | clamped to `1..512` |
+| `lines` | visible input lines | `1` | clamped to `1..8` |
+| `mode` | keyboard language (see below) | `-1` (firmware) | clamped to `-1..10` |
+
+`mode` uses the OneLua language list: `0` Japanese, `1` English, `2` Spanish,
+`3` German, `4` Italian, `5` Dutch, `6` Portuguese, `7` Russian, `8` Korean,
+`9` Traditional Chinese, `10` Simplified Chinese and `-1` for the firmware
+language. PSPSDK has no Chinese enum, so modes `9` and `10` fall back to the
+firmware default; other out-of-range values also use the firmware default.
+The normal keyboard uses `PSP_UTILITY_OSK_INPUTTYPE_ALL`; numeric mode uses
+`PSP_UTILITY_OSK_INPUTTYPE_LATIN_DIGIT`.
+
+Invalid argument types raise an `osk` error. The dialog is presented through
+the normal GE/display path. Before returning, the module restores the previous
+clear colour, finishes any 3D scene, clears both display buffers and leaves
+the documented 2D GE state, so a normal `screen.*`/`draw.*` loop can resume
+immediately. The call must not be made from inside a render pass.
+
+On the host build there is no dialog: `osk.init` validates and echoes the
+(truncated) text, and `osk._last()` exposes the resolved fields for tests. The
+host hook is not part of the public PSP API. PPSSPP verification covers the
+actual open, edit and confirm path; its utility HLE always reports
+`PSP_UTILITY_OSK_RESULT_CHANGED` and has no cancel button, so the `nil`
+(cancel) branch is covered by host tests and the PSP implementation only.
+
 ## 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`)
 
 The 3D subset is original code: a small OBJ/MTL parser (`engine/3d/obj.c`),
@@ -764,6 +805,8 @@ implemented yet.
 |---|---|---|
 | Splash assets | `splash.show`/`old` share the same renderer and differ only in their default asset; `oldschool` is an original tribute rather than the historical OSLib artwork | #41 |
 | Splash timing | Fixed at about 2 s per image with a 250 ms fade-in and 300 ms fade-out; skip advances one image at a time | #41 |
+| OSK cancel verification | PPSSPP 1.20.4 has no OSK cancel control and its HLE always returns `RESULT_CHANGED`; confirm/edit is PPSSPP-verified, the `nil` cancel branch is host-tested and PSP-only | #42 |
+| OSK Chinese modes | PSPSDK has no Chinese input-language value, so OneLua modes `9`/`10` use the firmware default | #42 |
 | 3D modules | `amg`/`cam3d`/`texture3d`/`model3d` support the documented subset (textured static OBJ models, camera, fog, points/lines/triangles); lighting, animation and transparent passes are not implemented | #39 |
 | 3D verification | Textured rotating cube and the 2D sfont regression were checked in PPSSPP only; no PSP hardware was available | #39 |
 | Transforms | Implemented and PPSSPP-verified; PSP hardware pending | #19, #20 |

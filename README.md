@@ -23,6 +23,8 @@ modules on top of the hardware:
 - Start-up splash screens with `splash.show`, `splash.old` and
   `splash.oldschool`, including slideshows and a built-in missing-asset
   fallback.
+- On-screen keyboard input through `osk.init`, with normal/numeric modes,
+  length/line limits and the OneLua language list.
 - Native WAV/VMA audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
 - Read-only battery telemetry through the OneLua `batt` table.
@@ -89,6 +91,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | PGF / SFont / `sfont` / `screen.print` | Implemented; host-tested and PPSSPP-verified ([#37], [#38]) |
 | 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`) | Implemented; host-tested and PPSSPP-verified; lighting, animation and transparent passes documented as unsupported ([#39]) |
 | Splash screens (`splash`) | Implemented; host-tested and PPSSPP-verified ([#41]) |
+| On-screen keyboard (`osk`) | Implemented; host-tested; edit/confirm PPSSPP-verified, cancel is PSP-only ([#42]) |
 | Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
@@ -182,6 +185,7 @@ for a local toolchain build, host tests and debugging.
 | `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF system fonts through `sceLibFont` with printable-ASCII atlases; fixed-cell PNG and classic variable-width sheets still supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
 | `amg` / `cam3d` / `texture3d` / `model3d` | Scene control, camera, textures, OBJ/MTL models | Static textured models with depth testing; lighting, animation and transparent passes are not implemented ([#39]) |
 | `splash` | `show`, `old`, `oldschool` | Single images or slideshows, timing and skip input, built-in missing-asset fallback ([#41]) |
+| `osk` | `init` | Normal/numeric keyboard, length/line/language options, blocking edit/confirm and `nil` cancel; restores GE/display state ([#42]) |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |
@@ -216,3 +220,4 @@ used or modified.
 [#38]: https://github.com/epr-ds/openlua/issues/38
 [#39]: https://github.com/epr-ds/openlua/issues/39
 [#41]: https://github.com/epr-ds/openlua/issues/41
+[#42]: https://github.com/epr-ds/openlua/issues/42

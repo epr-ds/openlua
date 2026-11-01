@@ -60,6 +60,7 @@ OBJS = engine/core/main.o \
 	engine/sys/power.o \
 	engine/sys/os.o \
 	engine/sys/hardware.o \
+	engine/sys/osk.o \
 	engine/video/pmf.o \
 	engine/maps/maps.o \
 	engine/3d/amg.o \

@@ -14,7 +14,7 @@ This document explains the phases and maps the remaining work to issues.
 | **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
 | **S6: Testing + Polish** | Boot/verify, renderer, tests, docs | **Current focus** |
 | **3.5: Data + Platform** | JSON module, PSP Go support | JSON host-tested (#30); PSP Go paths implemented, verification pending (#31) |
-| **OneLua API parity** | Missing module families from the OneLua index | Math (#32), battery (#33), power (#34), OS (#35), hardware (#36), `sfont` (#37), PGF fonts (#38), the 3D modules (#39) and `splash` (#41) complete; peripheral and networking work tracked in #40–#45 |
+| **OneLua API parity** | Missing module families from the OneLua index | Math (#32), battery (#33), power (#34), OS (#35), hardware (#36), `sfont` (#37), PGF fonts (#38), the 3D modules (#39), `splash` (#41) and the OSK (#42) complete; peripheral and networking work tracked in #40–#45 |
 
 “Implemented” means the API exists and basic smoke testing passes. It does not
 mean every edge case is correct; the linked issues are the source of truth.
@@ -52,10 +52,10 @@ correctly, host tests cover the milestone regressions, and CI is green.
 The OneLua module index was audited in October 2026. Gaps now have scoped
 issues and project-board items; `math` (#32), `battery` (#33), `power` (#34),
 `os` (#35), `hardware` (#36), `sfont` (#37), PGF `font` (#38), the 3D
-modules (#39) and `splash` (#41) are complete.
+modules (#39), `splash` (#41) and `osk` (#42) are complete.
 
 - **Font and graphics:** none remaining
-- **Applications:** #40 `game`, #42 `osk`, #43 `cam`
+- **Applications:** #40 `game`, #43 `cam`
 - **Peripherals:** #44 `umd`, `usb`, `sio`, `ir`
 - **Networking:** #45 `wlan`, `socket`, `http`, `ftp`, `adhoc`
 

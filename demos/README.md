@@ -36,6 +36,7 @@ file itself.
 | `transforms.lua` | Rotation, scale, tint, pivot | `assets/test_sheet.png` |
 | `3d.lua` | Textured rotating OBJ cube: `amg` scene, `cam3d` camera, `model3d` OBJ/MTL load, `texture3d` PNG, 3D→2D HUD switch | `assets/3d/cube.obj`, `assets/3d/cube.mtl`, `assets/3d/checker.png` |
 | `splash.lua` | `splash.show`/`old`/`oldschool`, single images and a slideshow, then the normal 2D frame loop | `assets/splash.png`, `assets/splash_old.png`, `assets/splash_oldschool.png` |
+| `osk.lua` | `osk.init` with the normal keyboard, a 20-character limit and English mode; shows the returned string or the `nil` cancel branch | `assets/font.png` |
 
 ## Assets
 
@@ -81,6 +82,13 @@ file itself.
   normally afterwards. `splash.oldschool()` uses an original tribute screen,
   not the historical OSLib artwork; see [../docs/API.md](../docs/API.md) and
   #41.
+- `osk.init` is blocking and uses the PSP system keyboard. Confirm returns the
+  edited string (possibly `""`); cancel returns `nil`. Arguments are clamped
+  as documented; `mode` follows the OneLua language list, and Chinese modes
+  fall back to the firmware default because PSPSDK has no Chinese enum. PPSSPP
+  1.20.4 has no cancel control (Circle deletes) and always reports
+  `RESULT_CHANGED`, so the `nil` branch is host-tested and PSP-only; see
+  [../docs/API.md](../docs/API.md) and #42.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

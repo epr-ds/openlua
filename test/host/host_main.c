@@ -19,6 +19,7 @@
 #include "engine/sys/power.h"
 #include "engine/sys/os.h"
 #include "engine/sys/hardware.h"
+#include "engine/sys/osk.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
 #include "engine/3d/amg.h"
@@ -55,6 +56,7 @@ int main(int argc, char **argv)
     timers_api_register(L);
     olmath_api_register(L);
     splash_api_register(L);
+    osk_api_register(L);
 
     amg_api_register(L);
     cam3d_api_register(L);

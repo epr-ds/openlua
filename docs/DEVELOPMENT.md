@@ -58,7 +58,7 @@ make clean
 
 Host-testable pieces (VFS, timers, OneLua math/battery/OS/hardware helpers,
 power/OS/hardware bindings, transform math, OBJ/MTL parsing, PGF/SFont atlas
-packing, splash image loading, Lua modules):
+packing, splash image loading, OSK argument handling, Lua modules):
 
 ```bash
 bash test/host/run.sh
@@ -80,13 +80,15 @@ power, `RESULT: 61 passed, 0 failed` for the OS Lua surface,
 `RESULT: 67 passed, 0 failed` for hardware, `RESULT: 13 passed, 0 failed` for
 sound, `sfont Lua: 19 assertions, 0 failure(s)`,
 `pgf Lua: 20 assertions, 0 failure(s)`, `RESULT: 33 passed, 0 failed` for
-the 3D handle/API surface and `splash Lua: 20 assertions, 0 failure(s)`
-(536 Lua assertions total). The PGF
+the 3D handle/API surface, `splash Lua: 20 assertions, 0 failure(s)` and
+`osk Lua: 54 assertions, 0 failure(s)` (590 Lua assertions total). The PGF
 tests use `test/host/pspfont_stub.c` in place of the PSP system library; real
 PGF rendering is checked separately in PPSSPP. The 3D host test exercises
 parse/load/transform/render bookkeeping only; GE output is checked in PPSSPP.
 The splash test loads and validates the generated PNGs but skips the timed
-display loop, which is PPSSPP-verified.
+display loop, which is PPSSPP-verified. The OSK host test validates defaults,
+clamping, UTF-8 round trips, empty input and error paths; the system dialog is
+PPSSPP-verified.
 Build output is kept in `out/build.log`; the script prints it only when a build
 fails.
 
@@ -104,7 +106,7 @@ tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_obj.c`,
 `test_batt.c`, `test_os.c`, `test_maps.c`, `test_sound.c`, `test_sfont.c`,
 `test_pgf.c`) plus
 the Lua suites for files/INI/JSON/savedata/timers/math/battery/power/os/
-hardware/font/sfont/pgf/3D/splash in `out/`. Compiler
+hardware/font/sfont/pgf/3D/splash/osk in `out/`. Compiler
 output is captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
@@ -121,7 +123,7 @@ engine/
   util/   timers.c/h, olmath.c/h (OneLua math helpers)
   fs/     olfs.c/h (platform VFS), files.c/h, ini.c/h
   data/   json.c/h
-  sys/    savedata.c/h, battery.c/h, power.c/h, os.c/h
+  sys/    savedata.c/h, battery.c/h, power.c/h, os.c/h, osk.c/h
   maps/   maps.c/h
   3d/     obj.c/h (OBJ/MTL), amg.c/h, cam3d.c/h, texture3d.c/h, model3d.c/h
 third_party/

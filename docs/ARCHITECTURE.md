@@ -19,7 +19,7 @@ engine/core/main.c ── register_api() ─────────────
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
     ├── data/    JSON + PSMF header parsing          (json)         │
-    ├── sys/     saves + battery + power + os + hw                  │
+    ├── sys/     saves + battery + power + os + hw + osk            │
     ├── maps/    tile grid renderer                  (map)          │
     ├── 3d/      OBJ/MTL parser, camera, 3D textures  (amg, cam3d,   │
     │            and model state                      texture3d,    │
@@ -171,6 +171,31 @@ which also keeps audio fed via `sound_pump()`. Input uses the same `sceCtrl`
 edge detection as `buttons.read`: a fresh Cross/Circle/Start press advances
 one image. The host build decodes and validates the files but does not enter
 the timing loop, so the logic is covered by `test/host/test_splash.lua`.
+
+### On-screen keyboard
+
+`engine/sys/osk.c` exposes `osk.init(desc, text [, type [, textmax [, lines
+[, mode]]]])`. Argument handling (required strings, defaults and clamping) is
+portable. The PSP build converts UTF-8 to the dialog's UTF-16 buffers, builds a
+`SceUtilityOskParams` with the system language/button-swap settings and runs
+the `sceUtilityOsk` state machine:
+
+```text
+clear frame -> status -> INIT/VISIBLE/QUIT/FINISHED/NONE -> vblank -> swap
+```
+
+`PSP_UTILITY_DIALOG_VISIBLE` pumps `sceUtilityOskUpdate`, `QUIT` starts
+shutdown and `NONE` ends the loop. The module calls `gfx3d_finish()` before
+starting, saves the clear colour, and on every exit path restores the colour,
+clears the presented buffers and leaves the 2D GE state. Text is converted
+back from UTF-16 with surrogate clamping. The result is the edited UTF-8
+string, `""` for an empty field, or `nil` on cancel/start/status failure.
+
+The host build validates and echoes the truncated text instead of opening a
+dialog; `test/host/test_osk.lua` checks defaults, clamping, UTF-8 round trips,
+empty input and the error paths. The actual dialog is PPSSPP-verified.
+PPSSPP 1.20.4's OSK HLE has no cancel control and always reports
+`RESULT_CHANGED`, so the cancel/`nil` branch is host-tested and PSP-only.
 
 ## Audio pipeline
 
@@ -353,7 +378,7 @@ and host mocks, transform math, OBJ/MTL parsing, map geometry, sound parsing
 and channel bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and
 run on the host. `test/host/run.sh` covers OLFS paths/cwd, transforms, OBJ/MTL
 parsing, map geometry, sound, battery/OS/hardware formatting, and Lua-level
-files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D/splash
+files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D/splash/osk
 tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
@@ -371,7 +396,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
-| `engine/sys` | save slots, battery, power, OS queries, hardware info/audio | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*` |
+| `engine/sys` | save slots, battery, power, OS queries, hardware info/audio, OSK | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*`, `osk.*` |
 | `engine/maps` | tilemaps | `map.*` |
 | `engine/3d` | OBJ/MTL parser, camera/model/texture state, 3D scene control | `amg.*`, `cam3d.*`, `texture3d.*`, `model3d.*` |
 | `engine/gfx/gfx3d.c` | GE 3D state and textured triangle submission | shared by the 3D modules |

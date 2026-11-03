@@ -4,6 +4,7 @@
 #include "engine/gfx/gfx.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 int font_stub_blits;
 OL_Surface *font_stub_last_surface;
@@ -55,4 +56,62 @@ void gfx_blit(OL_Surface *s, int x, int y,
     font_stub_last_sw = sw;
     font_stub_last_sh = sh;
     font_stub_last_tint = tint;
+}
+
+/* Extra surface helpers used when the image module is linked into the host
+ * binary for the game/PBP tests.  They mirror the real buffer semantics
+ * (ABGR pixels, power-of-two pitch) without touching the GE. */
+OL_Surface *gfx_surface_clone(OL_Surface *s)
+{
+    if (!s)
+        return NULL;
+    OL_Surface *c = gfx_surface_new(s->realW, s->realH);
+    if (!c)
+        return NULL;
+    c->w = s->w;
+    c->h = s->h;
+    c->frameW = s->frameW;
+    c->frameH = s->frameH;
+    c->flipX = s->flipX;
+    c->flipY = s->flipY;
+    c->angle = s->angle;
+    c->scaleX = s->scaleX;
+    c->scaleY = s->scaleY;
+    c->pivotX = s->pivotX;
+    c->pivotY = s->pivotY;
+    c->pivotSet = s->pivotSet;
+    c->z = s->z;
+    c->tint = s->tint;
+    for (int y = 0; y < s->realH; y++)
+        memcpy(c->pixels + (size_t)y * c->realW,
+               s->pixels + (size_t)y * s->realW,
+               (size_t)s->realW * sizeof(unsigned int));
+    return c;
+}
+
+void gfx_surface_fill(OL_Surface *s, unsigned int color)
+{
+    if (!s)
+        return;
+    for (int y = 0; y < s->h; y++)
+        for (int x = 0; x < s->w; x++)
+            s->pixels[(size_t)y * s->realW + x] = color;
+}
+
+unsigned int gfx_surface_pixel_get(OL_Surface *s, int x, int y)
+{
+    if (!s || x < 0 || y < 0 || x >= s->w || y >= s->h)
+        return 0;
+    return s->pixels[(size_t)y * s->realW + x];
+}
+
+void gfx_surface_pixel_set(OL_Surface *s, int x, int y, unsigned int c)
+{
+    if (!s || x < 0 || y < 0 || x >= s->w || y >= s->h)
+        return;
+    s->pixels[(size_t)y * s->realW + x] = c;
+}
+
+void gfx_cache_note(void)
+{
 }

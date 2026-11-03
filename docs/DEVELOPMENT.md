@@ -57,21 +57,22 @@ make clean
 ## Host tests
 
 Host-testable pieces (VFS, timers, OneLua math/battery/OS/hardware helpers,
-power/OS/hardware bindings, transform math, OBJ/MTL parsing, PGF/SFont atlas
-packing, splash image loading, OSK argument handling, Lua modules):
+power/OS/hardware bindings, transform math, OBJ/MTL parsing, PBP/SFO parsing,
+PGF/SFont atlas packing, splash image loading, OSK argument handling, game
+image extraction, Lua modules):
 
 ```bash
 bash test/host/run.sh
 ```
 
 Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
-`psmf: 20 checks, 0 failed`, `obj: 26 checks, 0 failed`,
-`battery: 16 checks, 0 failed`,
+`psmf: 20 checks, 0 failed`, `pbp: 53 checks, 0 failure(s)`,
+`obj: 26 checks, 0 failed`, `battery: 16 checks, 0 failed`,
 `RESULT: 10 passed, 0 failed` for the OS C helpers,
 `RESULT: 54 passed, 0 failed` for the hardware helpers,
 `maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed`,
 `sfont C: 20 checks, 0 failure(s)` and `pgf C: 17 checks, 0 failure(s)`
-(418 C checks total), then `RESULT: 46 passed, 0 failed`,
+(471 C checks total), then `RESULT: 46 passed, 0 failed`,
 `RESULT: 21 passed, 0 failed` for timers, `RESULT: 23 passed, 0 failed` for
 math, `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for
 JSON, `RESULT: 64 passed, 0 failed` for savedata,
@@ -80,15 +81,17 @@ power, `RESULT: 61 passed, 0 failed` for the OS Lua surface,
 `RESULT: 67 passed, 0 failed` for hardware, `RESULT: 13 passed, 0 failed` for
 sound, `sfont Lua: 19 assertions, 0 failure(s)`,
 `pgf Lua: 20 assertions, 0 failure(s)`, `RESULT: 33 passed, 0 failed` for
-the 3D handle/API surface, `splash Lua: 20 assertions, 0 failure(s)` and
-`osk Lua: 54 assertions, 0 failure(s)` (590 Lua assertions total). The PGF
+the 3D handle/API surface, `splash Lua: 20 assertions, 0 failure(s)`,
+`osk Lua: 54 assertions, 0 failure(s)` and
+`game Lua: 46 assertions, 0 failure(s)` (636 Lua assertions total). The PGF
 tests use `test/host/pspfont_stub.c` in place of the PSP system library; real
 PGF rendering is checked separately in PPSSPP. The 3D host test exercises
 parse/load/transform/render bookkeeping only; GE output is checked in PPSSPP.
 The splash test loads and validates the generated PNGs but skips the timed
 display loop, which is PPSSPP-verified. The OSK host test validates defaults,
 clamping, UTF-8 round trips, empty input and error paths; the system dialog is
-PPSSPP-verified.
+PPSSPP-verified. The game suite covers the PBP/SFO parser, Lua metadata, image
+extraction and malformed-file paths; extracted artwork is PPSSPP-verified.
 Build output is kept in `out/build.log`; the script prints it only when a build
 fails.
 
@@ -99,14 +102,14 @@ bash tools/check_repo_hygiene.sh
 ```
 
 This fails if `*.o`, `*.elf`, `*.pbp`, `EBOOT.PBP`, `PARAM.SFO` or an AppImage
-is tracked.
+is tracked. The generated `assets/sample.pbp` test fixture is the exception.
 
 The script builds all host targets with `-Wall -Wextra -Werror` and runs the C
-tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_obj.c`,
-`test_batt.c`, `test_os.c`, `test_maps.c`, `test_sound.c`, `test_sfont.c`,
-`test_pgf.c`) plus
+tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_pbp.c`,
+`test_obj.c`, `test_batt.c`, `test_os.c`, `test_maps.c`, `test_sound.c`,
+`test_sfont.c`, `test_pgf.c`) plus
 the Lua suites for files/INI/JSON/savedata/timers/math/battery/power/os/
-hardware/font/sfont/pgf/3D/splash/osk in `out/`. Compiler
+hardware/font/sfont/pgf/3D/splash/osk/game in `out/`. Compiler
 output is captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
@@ -116,14 +119,15 @@ engine/
   core/   main.c, olreg.c/h, stb_impl.c
   gfx/    gfx.c/h (surface + GE), draw.c/h (primitives), gfx3d.c/h (3D GE),
           splash.c/h (splash screens)
-  img/    image.c/h (Lua image module, stb decode)
+  img/    image.c/h (Lua image module, stb decode), image_mem.c (in-memory
+          decode for extracted data)
   font/   font.c/h (handles + fixed-cell/SFont), pgf.c/h (sceLibFont PGF)
   snd/    sound.c/h (WAV/VMA + PSP audio)
   input/  buttons.c/h
   util/   timers.c/h, olmath.c/h (OneLua math helpers)
   fs/     olfs.c/h (platform VFS), files.c/h, ini.c/h
-  data/   json.c/h
-  sys/    savedata.c/h, battery.c/h, power.c/h, os.c/h, osk.c/h
+  data/   json.c/h, psmf.c/h, pbp.c/h (PBP + PARAM.SFO parser)
+  sys/    savedata.c/h, battery.c/h, power.c/h, os.c/h, osk.c/h, game.c/h
   maps/   maps.c/h
   3d/     obj.c/h (OBJ/MTL), amg.c/h, cam3d.c/h, texture3d.c/h, model3d.c/h
 third_party/

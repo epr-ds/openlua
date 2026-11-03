@@ -5,6 +5,7 @@
 EBOOT.PBP
 PARAM.SFO
 *.pbp
+!assets/sample.pbp
 openlua_strip.elf
 out/
 

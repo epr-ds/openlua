@@ -30,6 +30,7 @@ emulator OSD, not the game. The splash runs were taken with logging disabled.
 | ![splash-2d](splash-2d.png) | Normal 2D frame loop after four splash slideshows, proving the GE state and clear colour were restored | `demos/splash.lua` |
 | ![osk-open](osk-open.png) | System OSK open: description, initial `Player` text, 20-character limit, normal English keyboard | `demos/osk.lua` |
 | ![osk-edit](osk-edit.png) | After deleting two characters and finishing: `osk.init` returned `Play`, and the normal 2D loop resumed | `demos/osk.lua` |
+| ![game](game.png) | `game` demo: PARAM.SFO TITLE/TITLE_ID/CATEGORY/APP_VER/PARENTAL_LEVEL/BOOTABLE, ICON0 `144x80`, and the extracted PIC1/PIC0 artwork | `demos/game.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was
@@ -65,11 +66,21 @@ so the `nil` cancel branch cannot be exercised in the emulator; it is covered
 by `test/host/test_osk.lua` and the PSP-only result handling. No PSP hardware
 was available.
 
+The `game` capture comes from `demos/game.lua` at a 960x544 PPSSPP window
+(downscaled to 480x272). The demo reads the generated `assets/sample.pbp`,
+prints the PARAM.SFO fields returned by `game.info`, and blits ICON0, PIC0 and
+PIC1 as ordinary image handles returned by `game.geticon0`/`getpic0`/`getpic1`.
+This confirms the bounds-checked PBP/SFO parser, in-memory image decode and the
+read-only Lua surface. The parser and malformed-input paths are covered by
+`test/host/test_pbp.c` and `test/host/test_game.lua`; no PSP hardware was
+available.
+
 [#19]: https://github.com/epr-ds/openlua/issues/19
 [#20]: https://github.com/epr-ds/openlua/issues/20
 [#36]: https://github.com/epr-ds/openlua/issues/36
 [#37]: https://github.com/epr-ds/openlua/issues/37
 [#38]: https://github.com/epr-ds/openlua/issues/38
 [#39]: https://github.com/epr-ds/openlua/issues/39
+[#40]: https://github.com/epr-ds/openlua/issues/40
 [#41]: https://github.com/epr-ds/openlua/issues/41
 [#42]: https://github.com/epr-ds/openlua/issues/42

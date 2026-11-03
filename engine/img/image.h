@@ -3,8 +3,14 @@
 
 #include "engine/gfx/gfx.h"
 #include <lua.h>
+#include <stddef.h>
 
 void image_api_register(lua_State *L);
+
+/* Decode PNG/JPEG/BMP data and push it as a normal image userdata.
+ * Returns 1 on success, 0 on decode/allocation failure (no Lua error is
+ * raised).  Used by the PBP extractor. */
+int image_push_memory(lua_State *L, const void *data, size_t len);
 
 /* Borrow the surface behind an image userdata (validates OL.Image).
  * Errors out if the argument is not an image.  Ownership stays with the

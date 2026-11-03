@@ -647,6 +647,42 @@ actual open, edit and confirm path; its utility HLE always reports
 `PSP_UTILITY_OSK_RESULT_CHANGED` and has no cancel button, so the `nil`
 (cancel) branch is covered by host tests and the PSP implementation only.
 
+## game
+
+```lua
+local info = game.info(path)        -- PARAM.SFO fields, or nil
+local icon = game.geticon0(path)    -- ICON0 image handle, or nil
+local pic0 = game.getpic0(path)     -- PIC0 image handle, or nil
+local pic1 = game.getpic1(path)     -- PIC1 image handle, or nil
+```
+
+Reads a PBP file and exposes only its metadata and artwork. `info` parses
+PARAM.SFO and returns a table containing every valid entry: integer entries
+(`0x0404`) become Lua numbers and UTF-8 strings (`0x0004`/`0x0204`) become Lua
+strings. Common keys are `TITLE`, `TITLE_ID`, `CATEGORY`, `APP_VER`,
+`PARENTAL_LEVEL` and `BOOTABLE`.
+
+The image functions extract ICON0, PIC0 or PIC1, decode the image data in
+memory and return a normal `image` handle (`image.blit`, `image.scale`,
+`image.getw`, ...). Each call creates an independent handle that the normal
+garbage collector frees.
+
+Missing, unreadable or non-PBP files, truncated headers, out-of-range sections,
+an oversized SFO (128 KB cap) or image (4 MB cap) and undecodable images return
+`nil` instead of raising, so a bad path cannot break a menu script. Invalid Lua
+argument types still raise an error. Paths are resolved like any other relative
+file path, from the script's working directory.
+
+Only PBP files are parsed; ISO/CSO images are not supported yet. The
+destructive OneLua operations `game.pack`, `game.add`, `game.remove`,
+`game.unpack` and `game.launch` are intentionally not registered.
+
+On the host build the parser and Lua surface are covered by
+`test/host/test_pbp.c` (53 checks) and `test/host/test_game.lua` (46
+assertions) using the generated `assets/sample.pbp` fixture. PPSSPP
+verification covers the extracted images and the rendered table. No PSP
+hardware was available.
+
 ## 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`)
 
 The 3D subset is original code: a small OBJ/MTL parser (`engine/3d/obj.c`),

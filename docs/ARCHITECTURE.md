@@ -18,8 +18,8 @@ engine/core/main.c ── register_api() ─────────────
     ├── input/   sceCtrl polling                     (buttons)      │
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
-    ├── data/    JSON + PSMF header parsing          (json)         │
-    ├── sys/     saves + battery + power + os + hw + osk            │
+    ├── data/    JSON + PSMF + PBP/SFO parsing       (json, game)   │
+    ├── sys/     saves + battery + power + os + hw + osk + game     │
     ├── maps/    tile grid renderer                  (map)          │
     ├── 3d/      OBJ/MTL parser, camera, 3D textures  (amg, cam3d,   │
     │            and model state                      texture3d,    │
@@ -196,6 +196,25 @@ dialog; `test/host/test_osk.lua` checks defaults, clamping, UTF-8 round trips,
 empty input and the error paths. The actual dialog is PPSSPP-verified.
 PPSSPP 1.20.4's OSK HLE has no cancel control and always reports
 `RESULT_CHANGED`, so the cancel/`nil` branch is host-tested and PSP-only.
+
+### PBP metadata and artwork
+
+`engine/data/pbp.c` is a pure, bounds-checked parser for the PBP container and
+PARAM.SFO. `engine/sys/game.c` adds the file and Lua layer: it reads the 40-byte
+PBP header, validates every section offset against the real file size, and reads
+only the requested section (PARAM.SFO is capped at 128 KB and images at 4 MB).
+`game.info` converts every `0x0404` integer value to a Lua number and every
+`0x0004`/`0x0204` UTF-8 value to a string; `strnlen` is used because SFO strings
+are not required to be NUL-terminated inside their declared value. Extracted
+images are decoded with `stbi_load_from_memory` in `engine/img/image_mem.c` and
+pushed as ordinary `OL.Image` userdata, so `image.*` and the normal `__gc` path
+apply without temporary files.
+
+Malformed input returns `nil`; the parser never trusts an offset or length from
+the file. Only PBP is supported: ISO/CSO parsing and the destructive OneLua
+`pack`/`add`/`remove`/`unpack`/`launch` operations are not registered. The
+parser and Lua surface are host-tested with the generated `assets/sample.pbp`;
+PPSSPP covers the extracted artwork.
 
 ## Audio pipeline
 
@@ -375,10 +394,11 @@ The PSP headers keep most graphics/input code out of host builds. The storage
 layer, timers, OneLua math helpers, battery formatting and host mocks, power
 bindings and stubs, OS formatting and host mocks, hardware formatting/clamping
 and host mocks, transform math, OBJ/MTL parsing, map geometry, sound parsing
-and channel bookkeeping, `engine/core/olreg.c`, and the Lua sources compile and
-run on the host. `test/host/run.sh` covers OLFS paths/cwd, transforms, OBJ/MTL
-parsing, map geometry, sound, battery/OS/hardware formatting, and Lua-level
-files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D/splash/osk
+and channel bookkeeping, PBP/SFO parsing, `engine/core/olreg.c`, and the Lua
+sources compile and run on the host. `test/host/run.sh` covers OLFS paths/cwd,
+transforms, OBJ/MTL parsing, PBP/SFO parsing, map geometry, sound,
+battery/OS/hardware formatting, and Lua-level
+files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D/splash/osk/game
 tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
@@ -389,14 +409,14 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 |---|---|---|
 | `engine/core` | boot, Lua registration | `color`, `screen.clear/flip` |
 | `engine/gfx` | surfaces, GE, primitives, splash screens | `draw.*`, `splash.*` |
-| `engine/img` | image decode, blits, transforms | `image.*` |
+| `engine/img` | image decode (file and memory), blits, transforms | `image.*` |
 | `engine/font` | PGF via `sceLibFont`, PNG/SFont loaders, atlas packer | `font.*`, `sfont.*`, `screen.print` |
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
-| `engine/data` | JSON parser/serializer, PSMF header parser | `json.*`, PMF validation |
-| `engine/sys` | save slots, battery, power, OS queries, hardware info/audio, OSK | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*`, `osk.*` |
+| `engine/data` | JSON parser/serializer, PSMF header parser, PBP/PARAM.SFO parser | `json.*`, PMF validation, PBP metadata |
+| `engine/sys` | save slots, battery, power, OS queries, hardware info/audio, OSK, PBP metadata | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*`, `osk.*`, `game.*` |
 | `engine/maps` | tilemaps | `map.*` |
 | `engine/3d` | OBJ/MTL parser, camera/model/texture state, 3D scene control | `amg.*`, `cam3d.*`, `texture3d.*`, `model3d.*` |
 | `engine/gfx/gfx3d.c` | GE 3D state and textured triangle submission | shared by the 3D modules |

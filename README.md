@@ -25,6 +25,9 @@ modules on top of the hardware:
   fallback.
 - On-screen keyboard input through `osk.init`, with normal/numeric modes,
   length/line limits and the OneLua language list.
+- Read-only PBP inspection through `game.info` and
+  `game.geticon0`/`getpic0`/`getpic1`, with bounds-checked PARAM.SFO parsing
+  and artwork decoded as normal image handles.
 - Native WAV/VMA audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
 - Read-only battery telemetry through the OneLua `batt` table.
@@ -50,7 +53,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 418 C checks + 536 Lua assertions
+bash test/host/run.sh              # 471 C checks + 636 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -92,6 +95,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`) | Implemented; host-tested and PPSSPP-verified; lighting, animation and transparent passes documented as unsupported ([#39]) |
 | Splash screens (`splash`) | Implemented; host-tested and PPSSPP-verified ([#41]) |
 | On-screen keyboard (`osk`) | Implemented; host-tested; edit/confirm PPSSPP-verified, cancel is PSP-only ([#42]) |
+| PBP metadata/artwork (`game`) | Implemented; host-tested and PPSSPP-verified; read-only subset, ISO/CSO unsupported ([#40]) |
 | Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
@@ -186,6 +190,7 @@ for a local toolchain build, host tests and debugging.
 | `amg` / `cam3d` / `texture3d` / `model3d` | Scene control, camera, textures, OBJ/MTL models | Static textured models with depth testing; lighting, animation and transparent passes are not implemented ([#39]) |
 | `splash` | `show`, `old`, `oldschool` | Single images or slideshows, timing and skip input, built-in missing-asset fallback ([#41]) |
 | `osk` | `init` | Normal/numeric keyboard, length/line/language options, blocking edit/confirm and `nil` cancel; restores GE/display state ([#42]) |
+| `game` | `info`, `geticon0`, `getpic0`, `getpic1` | Read-only PBP/PARAM.SFO metadata and artwork as normal image handles; missing/malformed input returns `nil`; pack/add/remove/unpack/launch and ISO/CSO are not exposed ([#40]) |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |
@@ -219,5 +224,6 @@ used or modified.
 [#37]: https://github.com/epr-ds/openlua/issues/37
 [#38]: https://github.com/epr-ds/openlua/issues/38
 [#39]: https://github.com/epr-ds/openlua/issues/39
+[#40]: https://github.com/epr-ds/openlua/issues/40
 [#41]: https://github.com/epr-ds/openlua/issues/41
 [#42]: https://github.com/epr-ds/openlua/issues/42

@@ -37,6 +37,12 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
 "$BUILD/psmf_test"
 
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
+    "$ROOT/engine/data/pbp.c" \
+    "$ROOT/test/host/test_pbp.c" \
+    -o "$BUILD/pbp_test"
+"$BUILD/pbp_test"
+
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     "$ROOT/engine/3d/obj.c" \
     "$ROOT/test/host/test_obj.c" \
     -o "$BUILD/obj_test"
@@ -110,8 +116,11 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/fs/files.c" \
     "$ROOT/engine/fs/ini.c" \
     "$ROOT/engine/data/json.c" \
+    "$ROOT/engine/data/pbp.c" \
     "$ROOT/engine/font/font.c" "$ROOT/engine/font/pgf.c" \
     "$ROOT/engine/gfx/splash.c" \
+    "$ROOT/engine/img/image.c" \
+    "$ROOT/engine/img/image_mem.c" \
     "$ROOT/engine/core/stb_impl.c" \
     "$ROOT/test/host/font_stub.c" "$ROOT/test/host/pspfont_stub.c" \
     "$ROOT/engine/snd/sound.c" \
@@ -121,6 +130,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/sys/os.c" \
     "$ROOT/engine/sys/hardware.c" \
     "$ROOT/engine/sys/osk.c" \
+    "$ROOT/engine/sys/game.c" \
     "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
     "$ROOT/engine/3d/obj.c" \
@@ -150,3 +160,4 @@ OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_3d.lua"
 # Splash defaults are relative to the working directory, like script.lua paths.
 (cd "$ROOT" && OPENLUA_ROOT="$ROOT" "$BUILD/host_test" "$ROOT/test/host/test_splash.lua")
 OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_osk.lua"
+(cd "$ROOT" && OPENLUA_ROOT="$ROOT" "$BUILD/host_test" "$ROOT/test/host/test_game.lua")

@@ -6,6 +6,20 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `game` module (read-only subset): `game.info(path)` returns every
+  valid PARAM.SFO entry in a Lua table, converting `0x0404` integers to numbers
+  and `0x0004`/`0x0204` UTF-8 values to strings. `game.geticon0`,
+  `game.getpic0` and `game.getpic1` extract ICON0/PIC0/PIC1 from the PBP and
+  return normal `image` handles decoded in memory, ready for `image.blit`,
+  `image.scale` and the usual GC path. A new bounds-checked PBP/PARAM.SFO
+  parser rejects truncated headers, unsorted or out-of-range sections, bad keys
+  and short values; missing or malformed files return `nil`. Section reads are
+  capped (128 KB for SFO, 4 MB per image). `game.pack`, `game.add`,
+  `game.remove`, `game.unpack` and `game.launch` are intentionally not
+  registered, and ISO/CSO images are not parsed yet. Includes 53 C checks, 46
+  Lua assertions, the generated `assets/sample.pbp` fixture
+  (`tools/gen_pbp.py`), `demos/game.lua`, a PPSSPP capture and
+  API/architecture/demo/verification documentation (#40).
 - OneLua on-screen keyboard module: `osk.init(desc, text [, type [, textmax
   [, lines [, mode]]]])` opens the PSP system keyboard, supports normal and
   numeric modes, clamps length (`1..512`), lines (`1..8`) and language

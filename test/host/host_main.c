@@ -13,6 +13,7 @@
 #include "engine/data/json.h"
 #include "engine/font/font.h"
 #include "engine/gfx/splash.h"
+#include "engine/img/image.h"
 #include "engine/snd/sound.h"
 #include "engine/sys/savedata.h"
 #include "engine/sys/battery.h"
@@ -20,6 +21,7 @@
 #include "engine/sys/os.h"
 #include "engine/sys/hardware.h"
 #include "engine/sys/osk.h"
+#include "engine/sys/game.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
 #include "engine/3d/amg.h"
@@ -57,6 +59,8 @@ int main(int argc, char **argv)
     olmath_api_register(L);
     splash_api_register(L);
     osk_api_register(L);
+    image_api_register(L);
+    game_api_register(L);
 
     amg_api_register(L);
     cam3d_api_register(L);

@@ -44,6 +44,7 @@ OBJS = engine/core/main.o \
 	engine/gfx/transform.o \
 	engine/gfx/draw.o \
 	engine/img/image.o \
+	engine/img/image_mem.o \
 	engine/input/buttons.o \
 	engine/util/olmath.o \
 	engine/util/timers.o \
@@ -55,12 +56,14 @@ OBJS = engine/core/main.o \
 	engine/fs/ini.o \
 	engine/data/json.o \
 	engine/data/psmf.o \
+	engine/data/pbp.o \
 	engine/sys/savedata.o \
 	engine/sys/battery.o \
 	engine/sys/power.o \
 	engine/sys/os.o \
 	engine/sys/hardware.o \
 	engine/sys/osk.o \
+	engine/sys/game.o \
 	engine/video/pmf.o \
 	engine/maps/maps.o \
 	engine/3d/amg.o \

@@ -37,6 +37,7 @@ file itself.
 | `3d.lua` | Textured rotating OBJ cube: `amg` scene, `cam3d` camera, `model3d` OBJ/MTL load, `texture3d` PNG, 3D→2D HUD switch | `assets/3d/cube.obj`, `assets/3d/cube.mtl`, `assets/3d/checker.png` |
 | `splash.lua` | `splash.show`/`old`/`oldschool`, single images and a slideshow, then the normal 2D frame loop | `assets/splash.png`, `assets/splash_old.png`, `assets/splash_oldschool.png` |
 | `osk.lua` | `osk.init` with the normal keyboard, a 20-character limit and English mode; shows the returned string or the `nil` cancel branch | `assets/font.png` |
+| `game.lua` | Read-only PBP metadata: `game.info` PARAM.SFO fields, plus ICON0/PIC0/PIC1 extracted as ordinary image handles | `assets/sample.pbp`, `assets/font.png` |
 
 ## Assets
 
@@ -52,6 +53,7 @@ file itself.
 | `assets/splash.png` | Current OpenLua introduction, 480x272 | `python3 tools/gen_splash.py` |
 | `assets/splash_old.png` | Retro old-splash variant, 480x272 | `python3 tools/gen_splash.py` |
 | `assets/splash_oldschool.png` | Original OSLib-style tribute, 480x272 | `python3 tools/gen_splash.py` |
+| `assets/sample.pbp` | 27 KB synthetic PBP: PARAM.SFO, 144x80 ICON0, 310x180 PIC0, 480x272 PIC1 | `python3 tools/gen_pbp.py` |
 
 ## Known caveats
 
@@ -89,6 +91,12 @@ file itself.
   1.20.4 has no cancel control (Circle deletes) and always reports
   `RESULT_CHANGED`, so the `nil` branch is host-tested and PSP-only; see
   [../docs/API.md](../docs/API.md) and #42.
+- `game` is read-only. `game.info` returns PARAM.SFO fields and
+  `geticon0`/`getpic0`/`getpic1` return normal `image` handles; missing,
+  non-PBP or malformed files return `nil`. ISO/CSO images are not parsed, and
+  `game.pack`/`add`/`remove`/`unpack`/`launch` are intentionally not registered.
+  The demo uses the synthetic `assets/sample.pbp`; see
+  [../docs/API.md](../docs/API.md) and #40.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

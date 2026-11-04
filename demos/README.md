@@ -38,6 +38,7 @@ file itself.
 | `splash.lua` | `splash.show`/`old`/`oldschool`, single images and a slideshow, then the normal 2D frame loop | `assets/splash.png`, `assets/splash_old.png`, `assets/splash_oldschool.png` |
 | `osk.lua` | `osk.init` with the normal keyboard, a 20-character limit and English mode; shows the returned string or the `nil` cancel branch | `assets/font.png` |
 | `game.lua` | Read-only PBP metadata: `game.info` PARAM.SFO fields, plus ICON0/PIC0/PIC1 extracted as ordinary image handles | `assets/sample.pbp`, `assets/font.png` |
+| `cam.lua` | GO! CAM lifecycle, live `cam.render`, `cam.toimage`, PNG `cam.shot` and the image controls; shows the safe absent-hardware path | `assets/font.png` (camera is optional) |
 
 ## Assets
 
@@ -97,6 +98,12 @@ file itself.
   `game.pack`/`add`/`remove`/`unpack`/`launch` are intentionally not registered.
   The demo uses the synthetic `assets/sample.pbp`; see
   [../docs/API.md](../docs/API.md) and #40.
+- `cam.*` drives the optional GO! CAM USB accessory. Without a camera,
+  `init`/`begin` return `0`, getters return `-1`, state/available are false and
+  render/toimage do nothing. PPSSPP provides dummy frames, so `demos/cam.lua`
+  verifies the active path there; its control getters report `n/a` because
+  PPSSPP does not implement that HLE. Call `cam.term()` before switching to
+  USB storage mode. See [../docs/API.md](../docs/API.md) and #43.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

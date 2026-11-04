@@ -26,6 +26,7 @@ docker/.cache/
 # Generated demo output
 demos/*/output.png
 demos/*/script.lua
+cam_snapshot.png
 test_hello/script.lua
 
 # Logs

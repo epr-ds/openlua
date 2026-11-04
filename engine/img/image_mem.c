@@ -32,20 +32,26 @@ static OL_Surface *surface_from_rgba(const unsigned char *data, int w, int h)
     return s;
 }
 
-int image_push_memory(lua_State *L, const void *data, size_t len)
+OL_Surface *image_surface_from_memory(const void *data, size_t len)
 {
     if (!data || len == 0 || len > IMAGE_MEMORY_MAX)
-        return 0;
+        return NULL;
 
     int w, h, comp;
     unsigned char *pixels = stbi_load_from_memory((const stbi_uc *)data,
                                                   (int)len, &w, &h, &comp,
                                                   STBI_rgb_alpha);
     if (!pixels)
-        return 0;
+        return NULL;
 
     OL_Surface *s = surface_from_rgba(pixels, w, h);
     stbi_image_free(pixels);
+    return s;
+}
+
+int image_push_memory(lua_State *L, const void *data, size_t len)
+{
+    OL_Surface *s = image_surface_from_memory(data, len);
     if (!s)
         return 0;
 

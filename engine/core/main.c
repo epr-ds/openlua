@@ -30,6 +30,7 @@
 #include "engine/sys/hardware.h"
 #include "engine/sys/osk.h"
 #include "engine/sys/game.h"
+#include "engine/sys/cam.h"
 #include "engine/maps/maps.h"
 #include "engine/video/pmf.h"
 #include "engine/3d/amg.h"
@@ -164,6 +165,7 @@ static void register_api(lua_State *L)
     splash_api_register(L);   /* splash.*   (show/old/oldschool)             */
     osk_api_register(L);      /* osk.*      (init)                           */
     game_api_register(L);     /* game.*     (PBP info/icon/pic, read-only)   */
+    cam_api_register(L);      /* cam.*      (USB camera, safe when absent)   */
 
     /* OneLua 3D module family.  texture3d owns global texture handles and
      * must be registered before model3d is used; module registration order

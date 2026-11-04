@@ -19,7 +19,7 @@ engine/core/main.c ── register_api() ─────────────
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
     ├── data/    JSON + PSMF + PBP/SFO parsing       (json, game)   │
-    ├── sys/     saves + battery + power + os + hw + osk + game     │
+    ├── sys/     saves + battery + power + os + hw + osk + game + cam    │
     ├── maps/    tile grid renderer                  (map)          │
     ├── 3d/      OBJ/MTL parser, camera, 3D textures  (amg, cam3d,   │
     │            and model state                      texture3d,    │
@@ -215,6 +215,31 @@ the file. Only PBP is supported: ISO/CSO parsing and the destructive OneLua
 `pack`/`add`/`remove`/`unpack`/`launch` operations are not registered. The
 parser and Lua surface are host-tested with the generated `assets/sample.pbp`;
 PPSSPP covers the extracted artwork.
+
+### USB camera
+
+`engine/sys/cam.c` owns the GO! CAM lifecycle and a small hardware abstraction
+so the host build can compile without PSPSDK. `cam.init` starts the
+`USBCamDriver` through `sceUsbStart`; `cam.begin` allocates a 1 MB driver work
+area and a 512 KB JPEG frame buffer, configures 480x272 video at 30 fps with
+the documented default image controls, and calls `sceUsbCamStartVideo`.
+`cam.term` stops video and unloads the driver.
+
+`cam.render` reads one `sceUsbCamReadVideoFrameBlocking` JPEG frame, decodes it
+with `stbi_load_from_memory` through `image_surface_from_memory`, and submits
+it with the normal 2D blitter, optionally scaled. `cam.toimage` reuses
+`image_push_memory`, so camera frames follow the same `OL.Image` ownership and
+`__gc` rules as files. `cam.shot` decodes the frame and writes a PNG with
+`stbi_write_png`.
+
+OneLua's 1-based effect/EV enums and 1x..5x zoom are converted to the PSPSDK
+enums in small pure helpers (`cam_effect_to_psp`, `cam_ev_to_psp`,
+`cam_zoom_to_psp` and their reverse mappings), which are covered by
+`test/host/test_cam.c`. The host build reports no camera attached, so
+`test/host/test_cam.lua` checks the documented `false`/`0`/`nil`/`-1` contract.
+PPSSPP's dummy camera frames exercise the active init/begin/render/toimage/shot
+path; its control get/set HLE is incomplete, and no real GO! CAM hardware was
+available.
 
 ## Audio pipeline
 

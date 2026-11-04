@@ -65,6 +65,16 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "${OBJS[@]}" -lm -o "$BUILD/batt_test"
 "$BUILD/batt_test"
 
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" -I"$ROOT/third_party/stb" \
+    "$ROOT/test/host/test_cam.c" \
+    "$ROOT/engine/sys/cam.c" \
+    "$ROOT/engine/img/image_mem.c" \
+    "$ROOT/engine/core/stb_impl.c" \
+    "$ROOT/test/host/font_stub.c" \
+    "$ROOT/engine/core/olreg.c" "${OBJS[@]}" \
+    -lm -o "$BUILD/cam_test"
+"$BUILD/cam_test"
+
 run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/test_os.c" \
     "$ROOT/engine/sys/os.c" "$ROOT/engine/core/olreg.c" \
@@ -131,6 +141,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/sys/hardware.c" \
     "$ROOT/engine/sys/osk.c" \
     "$ROOT/engine/sys/game.c" \
+    "$ROOT/engine/sys/cam.c" \
     "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
     "$ROOT/engine/3d/obj.c" \
@@ -161,3 +172,4 @@ OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_3d.lua"
 (cd "$ROOT" && OPENLUA_ROOT="$ROOT" "$BUILD/host_test" "$ROOT/test/host/test_splash.lua")
 OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_osk.lua"
 (cd "$ROOT" && OPENLUA_ROOT="$ROOT" "$BUILD/host_test" "$ROOT/test/host/test_game.lua")
+OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_cam.lua"

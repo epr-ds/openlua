@@ -683,6 +683,58 @@ assertions) using the generated `assets/sample.pbp` fixture. PPSSPP
 verification covers the extracted images and the rendered table. No PSP
 hardware was available.
 
+## cam
+
+```lua
+cam.init()                       -- 1/0: load the USB camera driver
+cam.begin()                      -- 1/0: configure 480x272 video
+cam.state()                      -- true/false: driver loaded
+cam.available()                  -- true/false: camera connected
+cam.render(x, y)                 -- draw the current frame
+cam.render(x, y, w, h)           -- draw it scaled
+local img = cam.toimage()        -- ordinary image handle, or nil
+local ok = cam.shot(path)        -- 1/0: write a PNG snapshot
+
+cam.direction()                  -- 1 = lens towards the user, 0 otherwise
+cam.brightness([value])          -- 0..255, or -1; setter clamps
+cam.contrast([value])            -- 0..255, or -1; setter clamps
+cam.sharpness([value])           -- 0..255, or -1; setter clamps
+cam.saturation([value])          -- 0..255, or -1; setter clamps
+cam.zoom([value])                -- 1..5, or -1; setter clamps
+cam.evlevel([value])             -- 1..17, or -1; setter clamps
+cam.effect([value])              -- 1..7, or -1; setter clamps
+cam.autoreverse([mode])          -- 1/0; mode 1 enables, 0 disables
+cam.mirror([value])              -- 1/0, or -1; value 1 enables
+cam.term()                       -- 1/0: stop video and unload the driver
+```
+
+`cam` drives the PSP GO! CAM USB accessory through `sceUsb`/`sceUsbCam`.
+Call `cam.init()` before `cam.begin()`, and call `cam.term()` when finished.
+The camera driver and USB storage mode cannot be active at the same time.
+`render` displays the current JPEG frame, decoding it in memory; `toimage`
+returns the same kind of handle as `image.load`, so `image.blit`, `image.scale`
+and the normal garbage collector apply. `shot` decodes the current frame and
+writes a PNG. Each render/snapshot call reads one camera frame.
+
+All calls are safe when the camera is missing or unsupported. `init`/`begin`
+return `0`, `state`/`available` return `false`, getters return `-1`,
+`direction`/`autoreverse` return `0`, `render` is a no-op, and
+`shot`/`toimage` return `0`/`nil`. Setters clamp their values and do nothing
+without an active camera; invalid Lua argument types still raise an error.
+`term` is idempotent.
+
+Effect values follow OneLua's 1-based enum (`1` normal, `2` negative,
+`3` black-and-white, `4` sepia, `5` blue, `6` red, `7` green). Zoom `1..5`
+maps to the driver's 1x..5x range, and EV `1..17` maps to +2.0..-2.0 with
+`8` as 0.0.
+
+Host tests cover the absent-hardware contract, argument handling and the
+OneLua/PSPSDK value converters (`test/host/test_cam.c`, 23 checks, and
+`test/host/test_cam.lua`, 90 assertions). PPSSPP supplies a dummy camera
+frame, so the active init/begin/render/toimage/shot path is PPSSPP-verified;
+its control getters are not implemented in PPSSPP (`n/a`), and no real GO! CAM
+hardware was available.
+
 ## 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`)
 
 The 3D subset is original code: a small OBJ/MTL parser (`engine/3d/obj.c`),
@@ -843,6 +895,8 @@ implemented yet.
 | Splash timing | Fixed at about 2 s per image with a 250 ms fade-in and 300 ms fade-out; skip advances one image at a time | #41 |
 | OSK cancel verification | PPSSPP 1.20.4 has no OSK cancel control and its HLE always returns `RESULT_CHANGED`; confirm/edit is PPSSPP-verified, the `nil` cancel branch is host-tested and PSP-only | #42 |
 | OSK Chinese modes | PSPSDK has no Chinese input-language value, so OneLua modes `9`/`10` use the firmware default | #42 |
+| Camera controls in PPSSPP | PPSSPP 1.20.4 provides dummy video frames but its `sceUsbCam` get/set control HLE is unimplemented, so getters show `n/a` there; the setters still run on real hardware | #43 |
+| Camera hardware verification | The active path was checked with PPSSPP dummy frames only; no GO! CAM accessory or PSP hardware was available | #43 |
 | 3D modules | `amg`/`cam3d`/`texture3d`/`model3d` support the documented subset (textured static OBJ models, camera, fog, points/lines/triangles); lighting, animation and transparent passes are not implemented | #39 |
 | 3D verification | Textured rotating cube and the 2D sfont regression were checked in PPSSPP only; no PSP hardware was available | #39 |
 | Transforms | Implemented and PPSSPP-verified; PSP hardware pending | #19, #20 |

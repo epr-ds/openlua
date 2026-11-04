@@ -28,6 +28,9 @@ modules on top of the hardware:
 - Read-only PBP inspection through `game.info` and
   `game.geticon0`/`getpic0`/`getpic1`, with bounds-checked PARAM.SFO parsing
   and artwork decoded as normal image handles.
+- USB camera support through `cam.init`/`begin`/`render`/`toimage`, with
+  snapshot capture and the OneLua image controls. Every call is safe when the
+  GO! CAM accessory is absent.
 - Native WAV/VMA audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
 - Read-only battery telemetry through the OneLua `batt` table.
@@ -53,7 +56,7 @@ In PPSSPP, disable software rendering and enable fast memory if needed.
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 471 C checks + 636 Lua assertions
+bash test/host/run.sh              # 494 C checks + 726 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -96,6 +99,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Splash screens (`splash`) | Implemented; host-tested and PPSSPP-verified ([#41]) |
 | On-screen keyboard (`osk`) | Implemented; host-tested; edit/confirm PPSSPP-verified, cancel is PSP-only ([#42]) |
 | PBP metadata/artwork (`game`) | Implemented; host-tested and PPSSPP-verified; read-only subset, ISO/CSO unsupported ([#40]) |
+| USB camera (`cam`) | Implemented; host-tested; active path PPSSPP-verified with dummy frames; real GO! CAM hardware pending ([#43]) |
 | Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented (`waitforkey` pending) |
 | Timers | Implemented; elapsed-time fix [#21] |
@@ -128,7 +132,7 @@ engine/
   util/   timers, OneLua math helpers
   fs/     portable VFS, files, INI
   data/   JSON parser/serializer, PSMF header parser
-  sys/    save slots, battery, power, OS queries, hardware info/audio
+  sys/    save slots, battery, power, OS queries, hardware info/audio, cam
   maps/   tilemap renderer
   3d/     OBJ/MTL parser, camera/model/texture state, 3D scene control
   video/  PMF playback through sceMpeg
@@ -191,6 +195,7 @@ for a local toolchain build, host tests and debugging.
 | `splash` | `show`, `old`, `oldschool` | Single images or slideshows, timing and skip input, built-in missing-asset fallback ([#41]) |
 | `osk` | `init` | Normal/numeric keyboard, length/line/language options, blocking edit/confirm and `nil` cancel; restores GE/display state ([#42]) |
 | `game` | `info`, `geticon0`, `getpic0`, `getpic1` | Read-only PBP/PARAM.SFO metadata and artwork as normal image handles; missing/malformed input returns `nil`; pack/add/remove/unpack/launch and ISO/CSO are not exposed ([#40]) |
+| `cam` | `init`, `begin`, `state`, `available`, `render`, `shot`, `toimage`, `direction`, image controls, `term` | GO! CAM USB camera; absent hardware returns `false`/`0`/`nil`/`-1`; PPSSPP dummy-frame path verified, real camera hardware pending ([#43]) |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |
@@ -227,3 +232,4 @@ used or modified.
 [#40]: https://github.com/epr-ds/openlua/issues/40
 [#41]: https://github.com/epr-ds/openlua/issues/41
 [#42]: https://github.com/epr-ds/openlua/issues/42
+[#43]: https://github.com/epr-ds/openlua/issues/43

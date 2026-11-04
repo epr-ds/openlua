@@ -6,6 +6,17 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua `cam` module for the PSP GO! CAM USB accessory: `init`, `begin`,
+  `state`, `available`, `render` (native or scaled), `shot` (PNG snapshot),
+  `toimage` (ordinary image handle), `direction`, brightness/contrast/
+  sharpness/saturation/zoom/EV/effect controls, autoreverse, mirror and
+  `term`. Video frames are read as JPEG and decoded in memory through the
+  shared image path. Every call is safe when the camera is absent: init/begin
+  return `0`, getters `-1`, state/available `false`, and render/shot/toimage
+  do nothing or return `0`/`nil`. OneLua's 1-based effect/EV enums and 1x..5x
+  zoom are mapped and clamped to the PSPSDK ranges. Includes 23 C checks, 90
+  Lua assertions, `demos/cam.lua`, a PPSSPP capture with dummy camera frames,
+  and API/architecture/demo/verification documentation (#43).
 - OneLua `game` module (read-only subset): `game.info(path)` returns every
   valid PARAM.SFO entry in a Lua table, converting `0x0404` integers to numbers
   and `0x0004`/`0x0204` UTF-8 values to strings. `game.geticon0`,

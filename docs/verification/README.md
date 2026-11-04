@@ -31,6 +31,7 @@ emulator OSD, not the game. The splash runs were taken with logging disabled.
 | ![osk-open](osk-open.png) | System OSK open: description, initial `Player` text, 20-character limit, normal English keyboard | `demos/osk.lua` |
 | ![osk-edit](osk-edit.png) | After deleting two characters and finishing: `osk.init` returned `Play`, and the normal 2D loop resumed | `demos/osk.lua` |
 | ![game](game.png) | `game` demo: PARAM.SFO TITLE/TITLE_ID/CATEGORY/APP_VER/PARENTAL_LEVEL/BOOTABLE, ICON0 `144x80`, and the extracted PIC1/PIC0 artwork | `demos/game.lua` |
+| ![cam](cam.png) | `cam` demo: init/available/begin/state YES, 480x272 dummy camera frame, `toimage` OK and `shot` YES; control getters show `n/a` because PPSSPP lacks that HLE | `demos/cam.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was
@@ -75,6 +76,16 @@ read-only Lua surface. The parser and malformed-input paths are covered by
 `test/host/test_pbp.c` and `test/host/test_game.lua`; no PSP hardware was
 available.
 
+The `cam` capture comes from `demos/cam.lua`. PPSSPP's `sceUsbCam` HLE supplies
+a dummy 480x272 JPEG frame, so the demo confirms `cam.init`/`cam.begin`, live
+`cam.render` scaling, `cam.toimage` returning a normal image handle, and
+`cam.shot` writing a 480x272 PNG snapshot. The image is the emulator's red
+dummy frame, not a real camera picture. PPSSPP 1.20.4 does not implement the
+`sceUsbCam` control get/set HLE, so brightness/contrast/saturation/zoom/effect
+show `n/a`; those setters and the absent-hardware contract are covered by
+`test/host/test_cam.c` and `test/host/test_cam.lua`. No GO! CAM accessory or
+PSP hardware was available.
+
 [#19]: https://github.com/epr-ds/openlua/issues/19
 [#20]: https://github.com/epr-ds/openlua/issues/20
 [#36]: https://github.com/epr-ds/openlua/issues/36
@@ -84,3 +95,4 @@ available.
 [#40]: https://github.com/epr-ds/openlua/issues/40
 [#41]: https://github.com/epr-ds/openlua/issues/41
 [#42]: https://github.com/epr-ds/openlua/issues/42
+[#43]: https://github.com/epr-ds/openlua/issues/43

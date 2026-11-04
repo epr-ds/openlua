@@ -7,9 +7,14 @@
 
 void image_api_register(lua_State *L);
 
+/* Decode PNG/JPEG/BMP data into a new surface.  Returns NULL on decode or
+ * allocation failure.  The caller owns the surface and frees it with
+ * gfx_surface_free(). */
+OL_Surface *image_surface_from_memory(const void *data, size_t len);
+
 /* Decode PNG/JPEG/BMP data and push it as a normal image userdata.
  * Returns 1 on success, 0 on decode/allocation failure (no Lua error is
- * raised).  Used by the PBP extractor. */
+ * raised).  Used by the PBP extractor and camera module. */
 int image_push_memory(lua_State *L, const void *data, size_t len);
 
 /* Borrow the surface behind an image userdata (validates OL.Image).

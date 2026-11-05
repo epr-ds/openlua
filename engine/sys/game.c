@@ -93,23 +93,11 @@ static unsigned char *read_section(const char *path, int index,
     return buf;
 }
 
-static int l_info(lua_State *L)
+int game_push_sfo_table(lua_State *L, const unsigned char *data, size_t len)
 {
-    const char *path = luaL_checkstring(L, 1);
-    unsigned int len = 0;
-    unsigned char *buf = read_section(path, PBP_SECTION_SFO,
-                                      GAME_SFO_MAX, &len);
-    if (!buf) {
-        lua_pushnil(L);
-        return 1;
-    }
-
     OL_Sfo sfo;
-    if (!sfo_parse(buf, len, &sfo)) {
-        free(buf);
-        lua_pushnil(L);
-        return 1;
-    }
+    if (!sfo_parse(data, len, &sfo))
+        return 0;
 
     lua_newtable(L);
     for (unsigned int i = 0; i < sfo.count; i++) {
@@ -126,6 +114,25 @@ static int l_info(lua_State *L)
             lua_pushlstring(L, (const char *)value, n);
         }
         lua_setfield(L, -2, key);
+    }
+    return 1;
+}
+
+static int l_info(lua_State *L)
+{
+    const char *path = luaL_checkstring(L, 1);
+    unsigned int len = 0;
+    unsigned char *buf = read_section(path, PBP_SECTION_SFO,
+                                      GAME_SFO_MAX, &len);
+    if (!buf) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    if (!game_push_sfo_table(L, buf, len)) {
+        free(buf);
+        lua_pushnil(L);
+        return 1;
     }
 
     free(buf);

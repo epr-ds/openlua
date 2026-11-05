@@ -19,7 +19,8 @@ engine/core/main.c ── register_api() ─────────────
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
     ├── data/    JSON + PSMF + PBP/SFO parsing       (json, game)   │
-    ├── sys/     saves + battery + power + os + hw + osk + game + cam    │
+    ├── sys/     saves + battery + power + os + hw + osk + game + cam +   │
+    │            umd/usb/sio/ir                                           │
     ├── maps/    tile grid renderer                  (map)          │
     ├── 3d/      OBJ/MTL parser, camera, 3D textures  (amg, cam3d,   │
     │            and model state                      texture3d,    │
@@ -240,6 +241,38 @@ enums in small pure helpers (`cam_effect_to_psp`, `cam_ev_to_psp`,
 PPSSPP's dummy camera frames exercise the active init/begin/render/toimage/shot
 path; its control get/set HLE is incomplete, and no real GO! CAM hardware was
 available.
+
+### UMD, USB and serial peripherals
+
+`engine/sys/umd.c` wraps the read-only UMD lifecycle. `umd.init` checks
+`sceUmdCheckMedium`, activates `disc0:` and waits for `PSP_UMD_READY` with a
+five-second timeout. Metadata comes from `disc0:/PSP_GAME/PARAM.SFO` through
+the same `game_push_sfo_table` helper as `game.info`, so both paths share one
+bounds-checked parser. `umd.size` walks the mounted tree with
+`engine/fs/olfs.c`, using a depth/entry budget instead of trusting sector
+counts. `dumpiso`/`launch` are left unregistered because they write disc
+images or start other applications.
+
+`engine/sys/usb.c` starts `USBBusDriver` + `USBStor_Driver` and activates PID
+`0x282`; that path uses only standard PSPSDK imports and works in PPSSPP.
+`usb.umd`/`flash*` first call `pspUsbDeviceSetDevice` from Sony's optional
+`_usbdevice.prx`. The import is safe when the module is absent: the call fails,
+the drivers are not started, and `usb.isactive` stays false. Flash modes pass
+`ronly = 1` unconditionally. USB storage and `cam` share the port, so callers
+must stop one before starting the other.
+
+`engine/sys/sio.c` and `engine/sys/ir.c` keep the OneLua signatures but have no
+hardware backend. A user-mode EBOOT cannot touch the UART registers or install
+the SIRC interrupt handler safely, and PSPSDK has no user-mode SIO syscall.
+They therefore report the documented empty results (`init` 0, `read`/`get`
+`-1`/`nil`, sends no-ops) so scripts can probe and fall back. A future
+kernel-mode build only needs to replace the `*_hw` hooks.
+
+The portable UMD helpers (`umd_type_name`, `umd_format_size`) are covered by
+`test/host/test_umd.c`; the absent-hardware contract for all four modules is in
+`test/host/test_peripherals.lua`. PPSSPP verifies UMD present/init/type and the
+USB state flags. It does not implement `_usbdevice` or a UART/IR driver, so
+those paths remain hardware/CFW-only.
 
 ## Audio pipeline
 

@@ -23,6 +23,10 @@
 #include "engine/sys/osk.h"
 #include "engine/sys/game.h"
 #include "engine/sys/cam.h"
+#include "engine/sys/umd.h"
+#include "engine/sys/usb.h"
+#include "engine/sys/sio.h"
+#include "engine/sys/ir.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
 #include "engine/3d/amg.h"
@@ -63,6 +67,10 @@ int main(int argc, char **argv)
     image_api_register(L);
     game_api_register(L);
     cam_api_register(L);
+    umd_api_register(L);
+    usb_api_register(L);
+    sio_api_register(L);
+    ir_api_register(L);
 
     amg_api_register(L);
     cam3d_api_register(L);

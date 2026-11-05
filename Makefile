@@ -65,6 +65,10 @@ OBJS = engine/core/main.o \
 	engine/sys/osk.o \
 	engine/sys/game.o \
 	engine/sys/cam.o \
+	engine/sys/umd.o \
+	engine/sys/usb.o \
+	engine/sys/sio.o \
+	engine/sys/ir.o \
 	engine/video/pmf.o \
 	engine/maps/maps.o \
 	engine/3d/amg.o \
@@ -84,6 +88,7 @@ LDFLAGS = -L.
 # sees all sceUtility stubs as one block instead of splitting the import table.
 LIBS = -lpspgu -lpspgum -lpspaudio -lpspmpeg -lpsppower -lpsprtc -lpspwlan \
        -lpsputility -lpspreg -lpsphprm -lpspfont -lpspusbcam -lpspusb \
+       -lpspumd -lpspusbstor -lpspusbdevice \
        -Wl,--undefined=sceUtilityGetSystemParamInt
 
 EXTRA_TARGETS = EBOOT.PBP

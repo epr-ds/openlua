@@ -6,6 +6,23 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua peripheral modules: read-only `umd` (`init`, `present`, `size`,
+  `type`, `gameid`, `info`, `term`), USB mass storage `usb` (`mstick`, `umd`,
+  `flash0`-`flash3`, `stop`, `isconnected`, `isactive`), plus API-compatible
+  `sio` (`init`, `baud`, `available`, `read`, `write`, `print`, `putstring`,
+  `term`) and `ir` (`init`, `baud`, `state`, `get`, `put`, `read`, `write`,
+  `term`). `umd.init` mounts `disc0:` and waits for READY; `umd.gameid`/`info`
+  reuse the shared bounds-checked PARAM.SFO parser, and `umd.size` walks the
+  mounted ISO9660 tree with a depth/entry budget and returns GB with four
+  decimals. `umd.dumpiso`/`umd.launch` are intentionally not registered.
+  `usb.umd`/`flash*` need Sony's optional `_usbdevice.prx` and fail safely
+  without it; flash modes are always read-only, and USB storage and the camera
+  are documented as mutually exclusive. `sio`/`ir` register their documented
+  signatures but stay inactive in the user-mode build because raw UART/IR
+  access needs a kernel driver. Every module returns documented empty values
+  when the hardware is absent. Includes 12 C checks, 89 Lua assertions,
+  `demos/peripherals.lua`, a PPSSPP capture and API/architecture/demo/
+  verification documentation (#44).
 - OneLua `cam` module for the PSP GO! CAM USB accessory: `init`, `begin`,
   `state`, `available`, `render` (native or scaled), `shot` (PNG snapshot),
   `toimage` (ordinary image handle), `direction`, brightness/contrast/

@@ -39,6 +39,7 @@ file itself.
 | `osk.lua` | `osk.init` with the normal keyboard, a 20-character limit and English mode; shows the returned string or the `nil` cancel branch | `assets/font.png` |
 | `game.lua` | Read-only PBP metadata: `game.info` PARAM.SFO fields, plus ICON0/PIC0/PIC1 extracted as ordinary image handles | `assets/sample.pbp`, `assets/font.png` |
 | `cam.lua` | GO! CAM lifecycle, live `cam.render`, `cam.toimage`, PNG `cam.shot` and the image controls; shows the safe absent-hardware path | `assets/font.png` (camera is optional) |
+| `peripherals.lua` | UMD present/init/type/gameid/info/size, USB mass-storage flags, and the documented SIO/IR availability results | `assets/font.png` |
 
 ## Assets
 
@@ -104,6 +105,13 @@ file itself.
   verifies the active path there; its control getters report `n/a` because
   PPSSPP does not implement that HLE. Call `cam.term()` before switching to
   USB storage mode. See [../docs/API.md](../docs/API.md) and #43.
+- `peripherals.lua` only reads state, then activates USB mass storage with
+  `usb.mstick()`; it never exposes flash or dumps a disc. `umd.dumpiso` and
+  `umd.launch` are not registered. UMD metadata (`gameid`/`info`) needs a game
+  disc, so PPSSPP shows `-` for the homebrew EBOOT; UMD present/type and the
+  USB flags are verified there. `sio`/`ir` report unavailable because raw
+  access needs a kernel driver. USB storage and the camera cannot be active
+  together. See [../docs/API.md](../docs/API.md) and #44.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

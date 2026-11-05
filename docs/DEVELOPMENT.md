@@ -69,12 +69,12 @@ bash test/host/run.sh
 Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
 `psmf: 20 checks, 0 failed`, `pbp: 53 checks, 0 failure(s)`,
 `obj: 26 checks, 0 failed`, `battery: 16 checks, 0 failed`,
-`cam: 23 checks, 0 failure(s)`,
+`cam: 23 checks, 0 failure(s)`, `umd: 12 checks, 0 failure(s)`,
 `RESULT: 10 passed, 0 failed` for the OS C helpers,
 `RESULT: 54 passed, 0 failed` for the hardware helpers,
 `maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed`,
 `sfont C: 20 checks, 0 failure(s)` and `pgf C: 17 checks, 0 failure(s)`
-(494 C checks total), then `RESULT: 46 passed, 0 failed`,
+(506 C checks total), then `RESULT: 46 passed, 0 failed`,
 `RESULT: 21 passed, 0 failed` for timers, `RESULT: 23 passed, 0 failed` for
 math, `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for
 JSON, `RESULT: 64 passed, 0 failed` for savedata,
@@ -85,8 +85,9 @@ sound, `sfont Lua: 19 assertions, 0 failure(s)`,
 `pgf Lua: 20 assertions, 0 failure(s)`, `RESULT: 33 passed, 0 failed` for
 the 3D handle/API surface, `splash Lua: 20 assertions, 0 failure(s)`,
 `osk Lua: 54 assertions, 0 failure(s)`,
-`game Lua: 46 assertions, 0 failure(s)` and
-`cam Lua: 90 assertions, 0 failure(s)` (726 Lua assertions total). The PGF
+`game Lua: 46 assertions, 0 failure(s)`,
+`cam Lua: 90 assertions, 0 failure(s)` and
+`peripherals Lua: 89 assertions, 0 failure(s)` (815 Lua assertions total). The PGF
 tests use `test/host/pspfont_stub.c` in place of the PSP system library; real
 PGF rendering is checked separately in PPSSPP. The 3D host test exercises
 parse/load/transform/render bookkeeping only; GE output is checked in PPSSPP.
@@ -98,6 +99,10 @@ extraction and malformed-file paths; extracted artwork is PPSSPP-verified.
 The camera C test covers the OneLua-to-PSPSDK effect/EV/zoom mappings and
 clamping; the Lua suite checks the absent-hardware contract, setters and
 argument errors. PPSSPP's dummy camera frames verify the active video path.
+The peripheral C test covers UMD type names and the four-decimal size format;
+its Lua suite covers the absent UMD drive, inactive USB modes and the
+documented SIO/IR stubs, including argument errors. PPSSPP verifies UMD
+present/init/type and the USB state flags.
 Build output is kept in `out/build.log`; the script prints it only when a build
 fails.
 
@@ -112,10 +117,10 @@ is tracked. The generated `assets/sample.pbp` test fixture is the exception.
 
 The script builds all host targets with `-Wall -Wextra -Werror` and runs the C
 tests (`test_olfs.c`, `test_transform.c`, `test_psmf.c`, `test_pbp.c`,
-`test_obj.c`, `test_batt.c`, `test_cam.c`, `test_os.c`, `test_maps.c`,
-`test_sound.c`, `test_sfont.c`, `test_pgf.c`) plus
+`test_obj.c`, `test_batt.c`, `test_cam.c`, `test_umd.c`, `test_os.c`,
+`test_maps.c`, `test_sound.c`, `test_sfont.c`, `test_pgf.c`) plus
 the Lua suites for files/INI/JSON/savedata/timers/math/battery/power/os/
-hardware/font/sfont/pgf/3D/splash/osk/game/cam in `out/`. Compiler
+hardware/font/sfont/pgf/3D/splash/osk/game/cam/peripherals in `out/`. Compiler
 output is captured in `out/build.log` and shown only if a build fails.
 
 ## Project layout
@@ -133,7 +138,8 @@ engine/
   util/   timers.c/h, olmath.c/h (OneLua math helpers)
   fs/     olfs.c/h (platform VFS), files.c/h, ini.c/h
   data/   json.c/h, psmf.c/h, pbp.c/h (PBP + PARAM.SFO parser)
-  sys/    savedata.c/h, battery.c/h, power.c/h, os.c/h, osk.c/h, game.c/h, cam.c/h
+  sys/    savedata.c/h, battery.c/h, power.c/h, os.c/h, osk.c/h, game.c/h,
+          cam.c/h, umd.c/h, usb.c/h, sio.c/h, ir.c/h
   maps/   maps.c/h
   3d/     obj.c/h (OBJ/MTL), amg.c/h, cam3d.c/h, texture3d.c/h, model3d.c/h
 third_party/

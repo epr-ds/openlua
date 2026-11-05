@@ -735,6 +735,110 @@ frame, so the active init/begin/render/toimage/shot path is PPSSPP-verified;
 its control getters are not implemented in PPSSPP (`n/a`), and no real GO! CAM
 hardware was available.
 
+## umd
+
+```lua
+umd.init()      -- true/false: mount disc0: and wait for READY
+umd.present()   -- true/false: disc in the drive
+umd.type()      -- "GAME", "VIDEO", "AUDIO" or "-"
+umd.gameid()    -- DISC_ID string, or "" when unavailable
+umd.info()      -- PARAM.SFO table, or nil
+umd.size()      -- mounted size in GB, 4 decimals, as a string
+umd.term()      -- unmount disc0: (idempotent)
+```
+
+`umd.init` checks for a disc, activates `disc0:` and waits up to five seconds
+for the drive to become ready. `umd.gameid` and `umd.info` read
+`disc0:/PSP_GAME/PARAM.SFO` through the same bounds-checked parser as
+`game.info`; a video/audio disc or an unreadable filesystem returns `""`/`nil`.
+
+`umd.size` walks the mounted ISO9660 view and returns gigabytes with four
+decimals (`"1.2345"`). It is an estimate of the visible files, not the raw
+disc capacity: hidden sectors and anything beyond the walk budget are not
+counted. Without a disc it returns `"0.0000"`.
+
+OneLua's `umd.dumpiso` and `umd.launch` are intentionally **not registered**:
+they write a disc image or hand control to another application and need a
+separate safety review.
+
+Absent hardware never raises: `init` is `false`, `present` is `false`, `type`
+is `"-"`, `gameid` is `""`, `info` is `nil`, `size` is `"0.0000"` and `term`
+does nothing. Argument errors still raise.
+
+## usb
+
+```lua
+usb.mstick()       -- expose the memory stick
+usb.umd()          -- expose the UMD as read-only ISO9660
+usb.flash0()       -- expose flash0 read-only
+usb.flash1()       -- expose flash1 read-only
+usb.flash2()       -- expose flash2 read-only
+usb.flash3()       -- expose flash3 read-only
+usb.stop()         -- stop the connection
+usb.isconnected()  -- true when a PC has taken the connection
+usb.isactive()     -- true when a mode was activated
+```
+
+All modes return nothing. `isactive` reports whether activation was attempted
+successfully, even without a USB cable; `isconnected` reports whether the PC
+has actually established the link.
+
+`mstick` uses the standard `USBBusDriver` + `USBStor_Driver` pair. The
+`umd`/`flash*` modes additionally select a device through
+`pspUsbDeviceSetDevice`, which needs Sony's optional `_usbdevice.prx` (usually
+provided by custom firmware). When that module is absent the mode fails
+safely: nothing is exposed and `isactive` stays `false`. Flash modes are
+always requested read-only; the API never enables USB writes to flash.
+
+USB storage and the GO! CAM camera share the USB port and cannot be active at
+the same time. Call `cam.term()` before `usb.mstick()`, or `usb.stop()` before
+`cam.init()`.
+
+On the host every mode is inactive and every query is `false`. PPSSPP 1.20.4
+implements the `sceUsb` state flags, so `usb.mstick`, `isactive` and
+`isconnected` are PPSSPP-verified; it does not implement `_usbdevice`, so the
+UMD/flash modes are documented but not PPSSPP-verified.
+
+## sio
+
+```lua
+sio.init()              -- 1/0
+sio.baud(baud)          -- nothing
+sio.available()         -- bytes waiting, or 0
+sio.read()              -- 0..255, or -1 when empty
+sio.write(data)         -- nothing
+sio.print(msg)          -- nothing
+sio.putstring(data,len) -- nothing
+sio.term()              -- 1/0
+```
+
+PSPSDK exposes no user-mode SIO/UART system call; the extra `pspuart`
+library performs kernel-only register and interrupt-handler access. This
+user-mode EBOOT therefore registers the documented signatures but stays
+inactive: `init` is `0`, `available` is `0`, `read` is `-1`, sending is a
+no-op and `term` is `1`. Scripts can probe `sio.init()` and fall back. Argument
+types are still validated.
+
+## ir
+
+```lua
+ir.init()      -- 1/0
+ir.baud(baud)  -- nothing
+ir.state()     -- true/false
+ir.get()       -- 0..255, or -1 when empty
+ir.put(data)   -- 1/0
+ir.read()      -- string + length, or nil
+ir.write(msg)  -- bytes sent, or -1
+ir.term()      -- 1/0
+```
+
+Raw IR byte streams need a kernel-mode SIRC/IrDA driver and only PSP-1000
+models have the IR port. PSPSDK's `sceSircsSend` sends complete remote-control
+frames, not the byte-stream interface OneLua exposes. The module is therefore
+registered for compatibility but inactive: `init` is `0`, `state` is `false`,
+`get` is `-1`, `read` is `nil`, `put` is `0`, `write` is `-1` and `term` is
+`1`. Argument types are still validated.
+
 ## 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`)
 
 The 3D subset is original code: a small OBJ/MTL parser (`engine/3d/obj.c`),
@@ -897,6 +1001,14 @@ implemented yet.
 | OSK Chinese modes | PSPSDK has no Chinese input-language value, so OneLua modes `9`/`10` use the firmware default | #42 |
 | Camera controls in PPSSPP | PPSSPP 1.20.4 provides dummy video frames but its `sceUsbCam` get/set control HLE is unimplemented, so getters show `n/a` there; the setters still run on real hardware | #43 |
 | Camera hardware verification | The active path was checked with PPSSPP dummy frames only; no GO! CAM accessory or PSP hardware was available | #43 |
+| UMD size | `umd.size` sums the mounted ISO9660 tree with a depth/entry budget, so it is an estimate of visible files rather than raw disc capacity | #44 |
+| UMD dump/launch | `umd.dumpiso` and `umd.launch` are not registered; they write disc images or start other applications | #44 |
+| USB device modes | `usb.umd`/`flash*` need Sony's `_usbdevice.prx`, which is not part of PSPSDK; without it they fail safely and `isactive` stays `false` | #44 |
+| USB flash writes | Flash modes are always requested read-only; there is no way to expose writable flash through this API | #44 |
+| USB and camera | Both use the USB port and cannot be active together; call `cam.term` or `usb.stop` before switching | #43, #44 |
+| SIO | User-mode PSPSDK has no safe UART syscall, so `sio.init` is `0`, `read` is `-1` and sends are no-ops | #44 |
+| IR | Raw IR needs a kernel SIRC/IrDA driver and only PSP-1000 has the port; `ir.init` is `0`, `read` is `nil` and `write` is `-1` | #44 |
+| Peripheral verification | UMD present/init/type and USB state flags were checked in PPSSPP only; game-disc metadata, flash/UMD USB modes and SIO/IR need real hardware or CFW | #44 |
 | 3D modules | `amg`/`cam3d`/`texture3d`/`model3d` support the documented subset (textured static OBJ models, camera, fog, points/lines/triangles); lighting, animation and transparent passes are not implemented | #39 |
 | 3D verification | Textured rotating cube and the 2D sfont regression were checked in PPSSPP only; no PSP hardware was available | #39 |
 | Transforms | Implemented and PPSSPP-verified; PSP hardware pending | #19, #20 |

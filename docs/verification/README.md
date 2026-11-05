@@ -32,6 +32,7 @@ emulator OSD, not the game. The splash runs were taken with logging disabled.
 | ![osk-edit](osk-edit.png) | After deleting two characters and finishing: `osk.init` returned `Play`, and the normal 2D loop resumed | `demos/osk.lua` |
 | ![game](game.png) | `game` demo: PARAM.SFO TITLE/TITLE_ID/CATEGORY/APP_VER/PARENTAL_LEVEL/BOOTABLE, ICON0 `144x80`, and the extracted PIC1/PIC0 artwork | `demos/game.lua` |
 | ![cam](cam.png) | `cam` demo: init/available/begin/state YES, 480x272 dummy camera frame, `toimage` OK and `shot` YES; control getters show `n/a` because PPSSPP lacks that HLE | `demos/cam.lua` |
+| ![peripherals](peripherals.png) | `umd`/`usb`/`sio`/`ir` demo: UMD present/init/type GAME, empty gameid/title and `0.0000` size for a homebrew EBOOT, USB active/connected YES, SIO/IR unavailable | `demos/peripherals.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was
@@ -86,6 +87,19 @@ show `n/a`; those setters and the absent-hardware contract are covered by
 `test/host/test_cam.c` and `test/host/test_cam.lua`. No GO! CAM accessory or
 PSP hardware was available.
 
+The `peripherals` capture comes from `demos/peripherals.lua`. PPSSPP's
+`sceUmd` HLE reports the homebrew EBOOT as an inserted `GAME` disc, so the demo
+confirms `umd.init`, `umd.present` and `umd.type`. There is no
+`disc0:/PSP_GAME/PARAM.SFO` on that volume, so `umd.gameid` stays empty,
+`umd.info` is `nil` and `umd.size` is `0.0000`; those fields need a real game
+disc. PPSSPP implements the `sceUsb` state flags, so `usb.mstick` reports
+active/connected `YES`; it does not implement `_usbdevice`, UART or IR, so the
+UMD/flash USB modes and the `sio`/`ir` modules remain documented only. The demo
+never dumps a disc or exposes flash, and `umd.dumpiso`/`umd.launch` are not
+registered. The UMD helpers and the absent-hardware contract are covered by
+`test/host/test_umd.c` and `test/host/test_peripherals.lua`. No PSP hardware,
+game UMD, USB host or SIO/IR hardware was available.
+
 [#19]: https://github.com/epr-ds/openlua/issues/19
 [#20]: https://github.com/epr-ds/openlua/issues/20
 [#36]: https://github.com/epr-ds/openlua/issues/36
@@ -96,3 +110,4 @@ PSP hardware was available.
 [#41]: https://github.com/epr-ds/openlua/issues/41
 [#42]: https://github.com/epr-ds/openlua/issues/42
 [#43]: https://github.com/epr-ds/openlua/issues/43
+[#44]: https://github.com/epr-ds/openlua/issues/44

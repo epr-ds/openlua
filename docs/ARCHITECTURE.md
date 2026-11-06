@@ -274,6 +274,40 @@ The portable UMD helpers (`umd_type_name`, `umd_format_size`) are covered by
 USB state flags. It does not implement `_usbdevice` or a UART/IR driver, so
 those paths remain hardware/CFW-only.
 
+### Networking
+
+`engine/net/net.c` is a reference-counted portability layer over the PSP
+network stack and POSIX sockets. The first `ol_net_acquire` calls `sceNetInit`
+and `sceNetInetInit` (then `sceNetApctlInit` and `sceNetResolverInit` when
+available); the last `ol_net_release` tears them down in reverse order. Modules
+own their own reference, so a socket teardown cannot disconnect a WiFi session
+that `wlan` is still using. The same layer provides TCP connect/listen/accept/
+send/recv helpers, IPv4 parsing/formatting, DNS resolution and millisecond
+timeouts.
+
+`engine/sys/wlan.c` exposes the connection-state and query subset over
+`sceNetApctl`. Profile enumeration and mutation stay inside Sony's dialog, so
+`getconfigs`/`scan` return empty tables and `autoconnect` is a validated no-op.
+`engine/sys/socket.c` wraps TCP descriptors as Lua userdata with `__gc` and
+tracks up to 64 handles for `socket.term()`. `engine/sys/http.c` implements a
+synchronous HTTP/1.x client with URL validation, redirect handling, cookies,
+chunked decoding and strict body/header limits; HTTPS is rejected because
+PSPSDK has no TLS client. `engine/sys/ftp.c` runs an anonymous read-only
+passive FTP server on a thread, roots it at the working directory and rejects
+path escapes as well as all write/rename/delete commands. `engine/sys/adhoc.c`
+handles the `sceNetAdhoc` lifecycle, the WLAN-switch guard, MAC and peer-list
+queries; its matching/PDP calls return documented empty results.
+`engine/sys/bluetooth.c` is an unavailable compatibility stub because the PSP
+has no built-in radio and PSPSDK has no Bluetooth stack.
+
+The pure URL/response parsing and the live loopback TCP, HTTP and FTP paths are
+covered by `test/host/test_net.c` (79 checks); the Lua surface and
+absent-network contract are in `test/host/test_net.lua` (94 assertions). All
+transfers are plaintext and the FTP server has no authentication, so these
+features are opt-in and intended for trusted scripts and networks. PPSSPP
+confirmed module registration and the safe-absence path only; no WiFi, adhoc,
+Bluetooth or real-LAN hardware was available.
+
 ## Audio pipeline
 
 `engine/snd/sound.c`
@@ -452,12 +486,13 @@ The PSP headers keep most graphics/input code out of host builds. The storage
 layer, timers, OneLua math helpers, battery formatting and host mocks, power
 bindings and stubs, OS formatting and host mocks, hardware formatting/clamping
 and host mocks, transform math, OBJ/MTL parsing, map geometry, sound parsing
-and channel bookkeeping, PBP/SFO parsing, `engine/core/olreg.c`, and the Lua
-sources compile and run on the host. `test/host/run.sh` covers OLFS paths/cwd,
-transforms, OBJ/MTL parsing, PBP/SFO parsing, map geometry, sound,
-battery/OS/hardware formatting, and Lua-level
-files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D/splash/osk/game
-tests.
+and channel bookkeeping, PBP/SFO parsing, URL/HTTP response parsing, loopback
+TCP/HTTP/FTP paths, `engine/core/olreg.c`, and the Lua sources compile and run
+on the host. `test/host/run.sh` covers OLFS paths/cwd, transforms, OBJ/MTL
+parsing, PBP/SFO parsing, map geometry, sound, battery/OS/hardware formatting,
+networking, and Lua-level
+files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D/splash/osk/game/
+network tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -474,7 +509,8 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
 | `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser, PBP/PARAM.SFO parser | `json.*`, PMF validation, PBP metadata |
-| `engine/sys` | save slots, battery, power, OS queries, hardware info/audio, OSK, PBP metadata | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*`, `osk.*`, `game.*` |
+| `engine/net` | shared network-stack refcount, TCP/DNS helpers | used by the networking modules |
+| `engine/sys` | save slots, battery, power, OS queries, hardware info/audio, OSK, PBP metadata, networking | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*`, `osk.*`, `game.*`, `wlan.*`, `socket.*`, `http.*`, `ftp.*`, `adhoc.*`, `bluetooth.*` |
 | `engine/maps` | tilemaps | `map.*` |
 | `engine/3d` | OBJ/MTL parser, camera/model/texture state, 3D scene control | `amg.*`, `cam3d.*`, `texture3d.*`, `model3d.*` |
 | `engine/gfx/gfx3d.c` | GE 3D state and textured triangle submission | shared by the 3D modules |

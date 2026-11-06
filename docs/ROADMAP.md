@@ -11,10 +11,10 @@ This document explains the phases and maps the remaining work to issues.
 | **S2: Font + Sound** | PGF, SFont, `sfont`, `screen.print`, WAV/VMA audio, 3D models | Implemented; host-tested and PPSSPP-verified (#25, #37, #38, #39) |
 | **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, splash, PMF video | Maps host-tested (#4, #26); splash implemented and PPSSPP-verified (#41); PMF implemented and PPSSPP-verified (#5) |
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
-| **S5: Network + Adhoc** | WiFi, HTTP, IRC, adhoc | Not started |
+| **S5: Network + Adhoc** | WiFi, HTTP, sockets, FTP, adhoc | Documented subsets implemented and host-tested with loopback servers (#45); real WiFi/adhoc hardware, TLS and background transfers remain |
 | **S6: Testing + Polish** | Boot/verify, renderer, tests, docs | **Current focus** |
 | **3.5: Data + Platform** | JSON module, PSP Go support | JSON host-tested (#30); PSP Go paths implemented, verification pending (#31) |
-| **OneLua API parity** | Missing module families from the OneLua index | Math (#32), battery (#33), power (#34), OS (#35), hardware (#36), `sfont` (#37), PGF fonts (#38), the 3D modules (#39), `splash` (#41), the OSK (#42), PBP metadata (#40), the camera (#43) and the peripheral modules (#44) complete; networking work tracked in #45 |
+| **OneLua API parity** | Missing module families from the OneLua index | Math (#32), battery (#33), power (#34), OS (#35), hardware (#36), `sfont` (#37), PGF fonts (#38), the 3D modules (#39), `splash` (#41), the OSK (#42), PBP metadata (#40), the camera (#43), the peripheral modules (#44) and the networking modules (#45) complete |
 
 “Implemented” means the API exists and basic smoke testing passes. It does not
 mean every edge case is correct; the linked issues are the source of truth.
@@ -52,17 +52,19 @@ correctly, host tests cover the milestone regressions, and CI is green.
 The OneLua module index was audited in October 2026. Gaps now have scoped
 issues and project-board items; `math` (#32), `battery` (#33), `power` (#34),
 `os` (#35), `hardware` (#36), `sfont` (#37), PGF `font` (#38), the 3D
-modules (#39), `splash` (#41), `osk` (#42), `game` (#40), `cam` (#43) and
-the peripherals (#44) are complete.
+modules (#39), `splash` (#41), `osk` (#42), `game` (#40), `cam` (#43),
+the peripherals (#44) and the networking modules (#45) are complete.
 
 - **Font and graphics:** none remaining
 - **Applications:** none remaining
 - **Peripherals:** none remaining (`sio`/`ir` are API-compatible but need a
   kernel backend for real hardware)
-- **Networking:** #45 `wlan`, `socket`, `http`, `ftp`, `adhoc`
+- **Networking:** none remaining in the documented subset (`wlan`, `socket`,
+  `http`, `ftp`, `adhoc`, `bluetooth`); real WiFi/adhoc hardware, TLS and
+  background transfers are follow-up work
 
 ### Not started
-- `wlan` / HTTP / IRC / adhoc (S5, #45)
+- IRC client
 - Archive extraction (`files.extract`, zip/rar)
 - VSH save dialog
 - MP4 container support (PMF/PSMF playback is implemented)
@@ -87,7 +89,8 @@ labels. The board README lists the provisioned views (`Board by Status`,
 - **Phase 3.5: Data & Platform** — PSP Go
 - **Phase 4: Codec (PMF/MP4/Audio) + Archive**
 - **Bug Fixes & Polish (Final)** — current S6 bugs
-- **Phase 5: Networking (+ WiFi/HTTP)**
+- **Phase 5: Networking (+ WiFi/HTTP)** — documented subsets landed in #45;
+  hardware/TLS/background work remains
 
 ## How work is prioritised
 

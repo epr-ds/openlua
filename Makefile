@@ -38,6 +38,7 @@ LUAOBJS = \
 OBJS = engine/core/main.o \
 	engine/core/olreg.o \
 	engine/core/stb_impl.o \
+	engine/net/net.o \
 	engine/gfx/gfx.o \
 	engine/gfx/gfx3d.o \
 	engine/gfx/splash.o \
@@ -69,6 +70,12 @@ OBJS = engine/core/main.o \
 	engine/sys/usb.o \
 	engine/sys/sio.o \
 	engine/sys/ir.o \
+	engine/sys/wlan.o \
+	engine/sys/socket.o \
+	engine/sys/http.o \
+	engine/sys/ftp.o \
+	engine/sys/adhoc.o \
+	engine/sys/bluetooth.o \
 	engine/video/pmf.o \
 	engine/maps/maps.o \
 	engine/3d/amg.o \
@@ -86,9 +93,15 @@ LDFLAGS = -L.
 
 # Pull libcglue's sceUtility stub in with libpsputility so psp-fixup-imports
 # sees all sceUtility stubs as one block instead of splitting the import table.
-LIBS = -lpspgu -lpspgum -lpspaudio -lpspmpeg -lpsppower -lpsprtc -lpspwlan \
+# libpspnet/libpspnet_apctl are appended by build.mak, and psp-gcc's specs add
+# libpspnet_inet/libpspnet_resolver last.  Listing those four here as well
+# would scan them twice and split their stub blocks ("stubs out of order"), so
+# this list only carries the libraries the SDK does not add automatically.
+LIBS = -lpspgu -lpspgum -lpspaudio -lpspmpeg -lpsppower -lpsprtc \
        -lpsputility -lpspreg -lpsphprm -lpspfont -lpspusbcam -lpspusb \
        -lpspumd -lpspusbstor -lpspusbdevice \
+       -lpspnet_adhocctl -lpspnet_adhocmatching -lpspnet_adhoc \
+       -lpspwlan \
        -Wl,--undefined=sceUtilityGetSystemParamInt
 
 EXTRA_TARGETS = EBOOT.PBP

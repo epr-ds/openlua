@@ -35,6 +35,12 @@
 #include "engine/sys/usb.h"
 #include "engine/sys/sio.h"
 #include "engine/sys/ir.h"
+#include "engine/sys/wlan.h"
+#include "engine/sys/socket.h"
+#include "engine/sys/http.h"
+#include "engine/sys/ftp.h"
+#include "engine/sys/adhoc.h"
+#include "engine/sys/bluetooth.h"
 #include "engine/maps/maps.h"
 #include "engine/video/pmf.h"
 #include "engine/3d/amg.h"
@@ -174,6 +180,12 @@ static void register_api(lua_State *L)
     usb_api_register(L);      /* usb.*      (USB mass storage)               */
     sio_api_register(L);      /* sio.*      (serial, inactive in user mode)  */
     ir_api_register(L);       /* ir.*       (IR, inactive in user mode)      */
+    wlan_api_register(L);     /* wlan.*     (WiFi connection state)          */
+    socket_api_register(L);   /* socket.*   (TCP client/server)              */
+    http_api_register(L);     /* http.*     (synchronous HTTP/1.x client)    */
+    ftp_api_register(L);      /* ftp.*      (read-only FTP server)           */
+    adhoc_api_register(L);    /* adhoc.*    (PSP adhoc lifecycle/peers)      */
+    bluetooth_api_register(L);/* bluetooth.* (unavailable compatibility stub)*/
 
     /* OneLua 3D module family.  texture3d owns global texture handles and
      * must be registered before model3d is used; module registration order

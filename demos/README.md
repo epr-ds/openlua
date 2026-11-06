@@ -40,6 +40,7 @@ file itself.
 | `game.lua` | Read-only PBP metadata: `game.info` PARAM.SFO fields, plus ICON0/PIC0/PIC1 extracted as ordinary image handles | `assets/sample.pbp`, `assets/font.png` |
 | `cam.lua` | GO! CAM lifecycle, live `cam.render`, `cam.toimage`, PNG `cam.shot` and the image controls; shows the safe absent-hardware path | `assets/font.png` (camera is optional) |
 | `peripherals.lua` | UMD present/init/type/gameid/info/size, USB mass-storage flags, and the documented SIO/IR availability results | `assets/font.png` |
+| `network.lua` | `wlan` state/queries, loopback socket and HTTP failure paths, `ftp` state, `adhoc` lifecycle/peer queries and the Bluetooth stub; shows the safe no-network result | `assets/font.png` |
 
 ## Assets
 
@@ -112,6 +113,13 @@ file itself.
   USB flags are verified there. `sio`/`ir` report unavailable because raw
   access needs a kernel driver. USB storage and the camera cannot be active
   together. See [../docs/API.md](../docs/API.md) and #44.
+- `network.lua` never starts the FTP server and only attempts refused loopback
+  connections, so it is safe without WiFi. `wlan` profiles and access points
+  report empty tables, adhoc needs the WLAN switch on, and Bluetooth is always
+  unavailable. HTTP is plaintext and synchronous; there is no TLS. If you test
+  `ftp.init()` yourself, remember it exposes the working directory anonymously
+  on the selected port until `ftp.term()`. See [../docs/API.md](../docs/API.md)
+  and #45.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

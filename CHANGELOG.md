@@ -6,6 +6,23 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua networking modules: `wlan` (`init`, `term`, `connect`, `disconnect`,
+  `isconnected`, `status`, `getip`, `strength`, `over`, `getconfigs`, `scan`,
+  `autoconnect`, `autostatus`), TCP `socket` (`connect`, `server`, `accept`,
+  `send`, `recv`, `close`, `term`), synchronous `http` (`getfile`, `postfile`,
+  `request`, `term`), read-only passive `ftp` (`init`, `term`, `state`),
+  `adhoc` (`init`, `term`, `getmac`, `scan`, `gettotal` plus documented
+  matching/PDP stubs) and a `bluetooth` compatibility stub. A shared
+  refcounted `engine/net` layer initialises `sceNet`/`sceNetInet` once and
+  tears it down with the last user, so modules can be started and stopped
+  independently. WLAN profile mutation and Sony's dialog are not exposed;
+  HTTP is plaintext HTTP/1.x only (no TLS, 16 MB body cap, four redirects,
+  in-memory cookies) and the OneLua background flag runs synchronously; FTP is
+  anonymous/read-only and rejects path escapes and write commands; adhoc
+  requires the WLAN switch and the matching/PDP calls return empty results.
+  Includes 79 C checks with live loopback TCP/HTTP/FTP servers, 94 Lua
+  assertions, `demos/network.lua`, a PPSSPP capture and API/architecture/demo/
+  verification documentation (#45).
 - OneLua peripheral modules: read-only `umd` (`init`, `present`, `size`,
   `type`, `gameid`, `info`, `term`), USB mass storage `usb` (`mstick`, `umd`,
   `flash0`-`flash3`, `stop`, `isconnected`, `isactive`), plus API-compatible

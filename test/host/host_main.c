@@ -27,6 +27,12 @@
 #include "engine/sys/usb.h"
 #include "engine/sys/sio.h"
 #include "engine/sys/ir.h"
+#include "engine/sys/wlan.h"
+#include "engine/sys/socket.h"
+#include "engine/sys/http.h"
+#include "engine/sys/ftp.h"
+#include "engine/sys/adhoc.h"
+#include "engine/sys/bluetooth.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
 #include "engine/3d/amg.h"
@@ -71,6 +77,12 @@ int main(int argc, char **argv)
     usb_api_register(L);
     sio_api_register(L);
     ir_api_register(L);
+    wlan_api_register(L);
+    socket_api_register(L);
+    http_api_register(L);
+    ftp_api_register(L);
+    adhoc_api_register(L);
+    bluetooth_api_register(L);
 
     amg_api_register(L);
     cam3d_api_register(L);

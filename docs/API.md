@@ -839,6 +839,152 @@ registered for compatibility but inactive: `init` is `0`, `state` is `false`,
 `get` is `-1`, `read` is `nil`, `put` is `0`, `write` is `-1` and `term` is
 `1`. Argument types are still validated.
 
+## wlan
+
+```lua
+wlan.init()                 -- true/false: acquire the shared network stack
+wlan.term()                 -- release this module's reference
+wlan.connect([profile])     -- 1/0: connect and wait up to 30 s
+wlan.disconnect()           -- disconnect and release this module's reference
+wlan.isconnected()          -- true/false
+wlan.status()               -- apctl state, or -13 when networking is unavailable
+wlan.getip()                -- dotted IPv4 string, or nil
+wlan.strength()             -- signal strength, or 0
+wlan.over()                 -- active profile name, or ""
+wlan.getconfigs()           -- empty table
+wlan.scan()                 -- empty table
+wlan.autoconnect(mode[, arg]) -- validated no-op
+wlan.autostatus()           -- false
+```
+
+`wlan` exposes connection state and an explicit connect/disconnect path. The
+default profile is `1`; `status` returns the `sceNetApctl` state (notably `4`
+means connected) or `-13` when the stack cannot be initialised. `getip` returns
+an address only when the state is connected; on the host it always returns
+`nil` so scripts follow the same not-connected path as an unconfigured PSP.
+
+Sony's network-configuration dialog and its profile add/copy/delete/backup/
+restore operations are intentionally **not registered**. PSPSDK has no
+user-mode API that enumerates profiles or access points, so `getconfigs` and
+`scan` return empty tables, and `autoconnect` validates its integer arguments
+and returns without starting a background loop. All calls are safe when the
+network stack or WiFi hardware is absent. `term` and `disconnect` release only
+this module's reference to the shared stack.
+
+## socket
+
+```lua
+local client, err = socket.connect(host[, port]) -- port defaults to 80
+local server, err = socket.server([port])        -- port defaults to 80
+local peer, err = server:accept()                -- blocking
+local sent      = sock:send(data[, length])      -- bytes sent, or -1
+local data, len = sock:recv([max])               -- string + length, or nil + 0
+sock:close()
+socket.term()                                    -- close all live sockets
+```
+
+Sockets are TCP-only Lua userdata. `connect` uses a 10-second connect timeout;
+`accept` waits until a peer arrives or `socket.term()` closes the listener.
+`send` sends all requested bytes and returns the count (or `-1`), while `recv`
+returns a string and its length, or `nil` and `0` on error/EOF. The optional
+`recv` limit defaults to 1024 bytes and is capped at 1 MiB. Module-call forms
+such as `socket.send(sock, data)` and `socket.close(sock)` are also accepted.
+
+At most 64 sockets may be live at once, and the userdata `__gc` metamethod
+closes a handle that the script forgets. `socket.term()` closes every tracked
+socket and is the deterministic shutdown path. Ports outside `1..65535` raise;
+a failed connect/listen returns `nil, "connection failed"` or
+`nil, "could not listen"`. UDP, TLS, hostname resolution diagnostics and
+non-blocking mode are not exposed. This is a general TCP primitive: only run
+trusted scripts, because a script can connect to any reachable host and port.
+
+## http
+
+```lua
+local ok          = http.getfile(url, path[, background])
+local ok          = http.postfile(url, path, body[, length])
+local response, err = http.request(method, url[, body])
+http.term()
+```
+
+`http.request` performs a synchronous HTTP/1.x request and returns a table with
+`status` (number), `reason` (string), `url` (the original URL), `body` (string),
+`length` (number) and `headers` (a name-to-value table). `GET`, `POST` and other
+HTTP method tokens are sent as given; a non-`nil` body adds
+`Content-Type: application/x-www-form-urlencoded` and `Content-Length`.
+`getfile`/`postfile` write a successful (2xx) response body to the given path
+and return `true`/`false`; existing files are overwritten. OneLua's third
+`getfile` argument (background download) is validated but the request still
+runs synchronously.
+
+The client follows up to four `301`/`302`/`303`/`307`/`308` redirects, keeps
+up to eight `Set-Cookie` values in memory for the next request until
+`http.term()`, and decodes chunked and `Content-Length` bodies. Limits are a
+15-second connect timeout, 16 KB of response headers, 16 MB of body and a
+2048-byte URL. `https://` is rejected because PSPSDK has no TLS client; there
+is no proxy, authentication, certificate validation or background thread.
+Traffic is plaintext, so do not send credentials over untrusted networks.
+`http.getfile` can write any path the application can write.
+
+## ftp
+
+```lua
+ftp.init()   -- true/false: start the server
+ftp.state()  -- true/false: server thread running
+ftp.term()   -- stop the server and join/delete its thread
+```
+
+`ftp.init()` starts a small anonymous, read-only FTP server rooted at the
+current working directory. Only passive mode is supported; `LIST`, `NLST`,
+`SIZE`, `RETR` and `CWD` are available, while `STOR`, `APPE`, `DELE`, `MKD`,
+`RMD`, `RNFR`, `RNTO` and `SITE` are rejected with `550 Read-only server`.
+Path resolution refuses `..` traversal above the root and limits each path to
+16 components. Directory listings are capped at 64 entries per command.
+
+The server listens on port 21 by default; set `OPENLUA_FTP_PORT` to a valid
+port before `ftp.init()` to override it (useful for host tests or a non-root
+process). There is **no authentication**: while running, any device that can
+reach the PSP can read the exposed directory tree. Start it only on a trusted
+LAN, do not run it from a directory containing secrets, and always call
+`ftp.term()` before leaving the app.
+
+## adhoc
+
+```lua
+adhoc.init([gameid])  -- 1/0: join the adhoc group (up to 8 chars used)
+adhoc.term()          -- leave and release the network stack
+adhoc.getmac()        -- "AA:BB:CC:DD:EE:FF", or ""
+adhoc.scan()          -- array of { name = ..., mac = ..., state = 1 }
+adhoc.gettotal()      -- number of peers
+```
+
+`adhoc.init` normalises the optional game id to uppercase letters, digits,
+`_` and `-` (default `OPENLUA`), requires the WLAN switch to be on, initialises
+`sceNetAdhoc`/`sceNetAdhocctl`, joins the group and waits up to five seconds for
+the control state to report connected. `scan` reads the current peer list;
+`state` is always `1` (`__JOINED`) for peers returned by this call.
+
+The matching-request and PDP data APIs are registered for compatibility but
+remain inactive in this build: `sendrequest` returns `false`, `getrequest`
+returns an empty table, `accept`/`reject` are validated no-ops, `send` returns
+`0` and `recv` returns `nil`. Without a WLAN switch or adhoc-capable hardware,
+`init` returns `0`, `getmac` is `""` and the peer queries are empty. Adhoc was
+not verified on real hardware; see `docs/verification/README.md`.
+
+## bluetooth
+
+```lua
+bluetooth.init()       -- false
+bluetooth.term()       -- false
+bluetooth.state()      -- false
+bluetooth.available()  -- false
+```
+
+The PSP has no built-in Bluetooth radio and PSPSDK exposes no Bluetooth stack.
+This table is a compatibility stub for scripts that probe for the module: all
+four calls return `false` without changing system state. There is no pairing,
+device discovery or data-transfer API.
+
 ## 3D modules (`amg`, `cam3d`, `texture3d`, `model3d`)
 
 The 3D subset is original code: a small OBJ/MTL parser (`engine/3d/obj.c`),
@@ -989,12 +1135,23 @@ implemented yet.
 
 | Module | Status |
 |---|---|
-| `wlan` / `http` | Not implemented |
+| Archive extraction (`files.extract`, zip/rar) | Not implemented |
+| VSH save dialog | Not implemented |
+| IRC client | Not implemented |
+| MP4 container support | Not implemented (PMF/PSMF playback works) |
 
 ## Known API deviations
 
 | Area | Current behaviour | Tracking |
 |---|---|---|
+| WLAN profiles | The Sony profile dialog and add/copy/delete/backup/restore calls are not registered; `getconfigs`/`scan` return empty tables and `autoconnect` is a validated no-op | #45 |
+| HTTP transport | Synchronous plaintext HTTP/1.x only; no TLS, proxy, authentication, certificate validation or background downloads. `getfile`'s background flag is accepted but ignored | #45 |
+| HTTP limits | 16 MB response body, 16 KB headers, 4 redirects, 8 in-memory cookies and a 15 s connect timeout | #45 |
+| FTP | Anonymous read-only passive server rooted at the working directory; no authentication, writes, renames or deletes | #45 |
+| Sockets | Blocking TCP only; no UDP, TLS or non-blocking mode. 64 live handles maximum and 1 MB per `recv` | #45 |
+| Adhoc matching/PDP | `sendrequest` returns `false`, `getrequest` `{}`, `accept`/`reject` do nothing, `send` returns `0` and `recv` returns `nil`; peer-list scanning is implemented | #45 |
+| Bluetooth | Compatibility stub; all calls return `false` because the PSP has no built-in radio and PSPSDK has no stack | #45 |
+| Network verification | Loopback socket/HTTP/FTP paths are host-tested; PPSSPP verified the registered modules and safe absence only. No WiFi, adhoc, Bluetooth or real-LAN hardware was available | #45 |
 | Splash assets | `splash.show`/`old` share the same renderer and differ only in their default asset; `oldschool` is an original tribute rather than the historical OSLib artwork | #41 |
 | Splash timing | Fixed at about 2 s per image with a 250 ms fade-in and 300 ms fade-out; skip advances one image at a time | #41 |
 | OSK cancel verification | PPSSPP 1.20.4 has no OSK cancel control and its HLE always returns `RESULT_CHANGED`; confirm/edit is PPSSPP-verified, the `nil` cancel branch is host-tested and PSP-only | #42 |

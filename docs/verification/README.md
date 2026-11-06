@@ -33,6 +33,7 @@ emulator OSD, not the game. The splash runs were taken with logging disabled.
 | ![game](game.png) | `game` demo: PARAM.SFO TITLE/TITLE_ID/CATEGORY/APP_VER/PARENTAL_LEVEL/BOOTABLE, ICON0 `144x80`, and the extracted PIC1/PIC0 artwork | `demos/game.lua` |
 | ![cam](cam.png) | `cam` demo: init/available/begin/state YES, 480x272 dummy camera frame, `toimage` OK and `shot` YES; control getters show `n/a` because PPSSPP lacks that HLE | `demos/cam.lua` |
 | ![peripherals](peripherals.png) | `umd`/`usb`/`sio`/`ir` demo: UMD present/init/type GAME, empty gameid/title and `0.0000` size for a homebrew EBOOT, USB active/connected YES, SIO/IR unavailable | `demos/peripherals.lua` |
+| ![network](network.png) | `wlan`/`socket`/`http`/`ftp`/`adhoc`/`bluetooth` demo: module registration, not-connected WLAN state, refused loopback connect/request, inactive FTP, adhoc unavailable and Bluetooth NO | `demos/network.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was
@@ -100,6 +101,18 @@ registered. The UMD helpers and the absent-hardware contract are covered by
 `test/host/test_umd.c` and `test/host/test_peripherals.lua`. No PSP hardware,
 game UMD, USB host or SIO/IR hardware was available.
 
+The `network` capture comes from `demos/network.lua`. It shows `wlan.init`
+succeeding (the shared stack initialises) while the connection state is
+disconnected and no IP/strength/profile is available, then the documented
+failures for a refused loopback socket and HTTP request, an inactive FTP
+server, adhoc unavailable (the WLAN switch is off in the emulator) and the
+Bluetooth stub returning `NO`. It does **not** start the FTP server, add a
+WiFi profile or join an adhoc group. The live TCP/HTTP/FTP paths are covered by
+`test/host/test_net.c` against in-process loopback servers, and the Lua
+contract by `test/host/test_net.lua`; PPSSPP verified registration and the safe
+absence path only. No WiFi, adhoc, Bluetooth or real-LAN hardware was
+available, and HTTPS is unsupported because PSPSDK has no TLS client.
+
 [#19]: https://github.com/epr-ds/openlua/issues/19
 [#20]: https://github.com/epr-ds/openlua/issues/20
 [#36]: https://github.com/epr-ds/openlua/issues/36
@@ -111,3 +124,4 @@ game UMD, USB host or SIO/IR hardware was available.
 [#42]: https://github.com/epr-ds/openlua/issues/42
 [#43]: https://github.com/epr-ds/openlua/issues/43
 [#44]: https://github.com/epr-ds/openlua/issues/44
+[#45]: https://github.com/epr-ds/openlua/issues/45

@@ -88,6 +88,16 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
 "$BUILD/umd_test"
 
 run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
+    "$ROOT/test/host/test_net.c" \
+    "$ROOT/engine/net/net.c" \
+    "$ROOT/engine/sys/http.c" \
+    "$ROOT/engine/sys/ftp.c" \
+    "$ROOT/engine/fs/olfs.c" \
+    "$ROOT/engine/core/olreg.c" "${OBJS[@]}" \
+    -lpthread -lm -o "$BUILD/net_test"
+"$BUILD/net_test"
+
+run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/test_os.c" \
     "$ROOT/engine/sys/os.c" "$ROOT/engine/core/olreg.c" \
     "${OBJS[@]}" -lm -o "$BUILD/os_test"
@@ -158,6 +168,13 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/sys/usb.c" \
     "$ROOT/engine/sys/sio.c" \
     "$ROOT/engine/sys/ir.c" \
+    "$ROOT/engine/sys/wlan.c" \
+    "$ROOT/engine/sys/socket.c" \
+    "$ROOT/engine/sys/http.c" \
+    "$ROOT/engine/sys/ftp.c" \
+    "$ROOT/engine/sys/adhoc.c" \
+    "$ROOT/engine/sys/bluetooth.c" \
+    "$ROOT/engine/net/net.c" \
     "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
     "$ROOT/engine/3d/obj.c" \
@@ -166,7 +183,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/3d/texture3d.c" \
     "$ROOT/engine/3d/model3d.c" \
     "${OBJS[@]}" \
-    -lm -o "$BUILD/host_test"
+    -lpthread -lm -o "$BUILD/host_test"
 
 rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork "$BUILD"/jsonwork "$BUILD"/data "$BUILD"/objwork
 cd "$BUILD"
@@ -190,3 +207,4 @@ OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_osk.lua"
 (cd "$ROOT" && OPENLUA_ROOT="$ROOT" "$BUILD/host_test" "$ROOT/test/host/test_game.lua")
 OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_cam.lua"
 OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_peripherals.lua"
+OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_net.lua"

@@ -122,7 +122,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Renderer correctness | Fixed and PPSSPP-verified; PSP hardware pending ([#19], [#20]) |
 | PSP Go | Storage/boot paths implemented; device verification [#31] |
 | PMF/PSMF video + ATRAC3+ audio | Implemented; PPSSPP-verified ([#5]) |
-| WiFi/HTTP | Not started |
+| Networking (`wlan`, `socket`, `http`, `ftp`, `adhoc`, `bluetooth`) | Documented subsets implemented; host-tested with in-process loopback servers and PPSSPP-verified for safe absence; real WiFi/adhoc hardware and TLS/background transfers are not available ([#45]) |
 
 The [project board](https://github.com/users/epr-ds/projects/4) is the source
 of truth for remaining work.
@@ -140,8 +140,9 @@ engine/
   util/   timers, OneLua math helpers
   fs/     portable VFS, files, INI
   data/   JSON parser/serializer, PSMF header parser
+  net/    shared network stack init/refcount, TCP/DNS helpers
   sys/    save slots, battery, power, OS queries, hardware info/audio, cam,
-          umd/usb/sio/ir
+          umd/usb/sio/ir, wlan/socket/http/ftp/adhoc/bluetooth
   maps/   tilemap renderer
   3d/     OBJ/MTL parser, camera/model/texture state, 3D scene control
   video/  PMF playback through sceMpeg
@@ -215,7 +216,12 @@ for a local toolchain build, host tests and debugging.
 | `savedata` | `data.save/load/delete` | Plain-text slots |
 | `maps` | `map.new/blit/set/get` | Host-tested ([#26]) |
 | `json` | `decode`, `encode`, `load`, `save` | Implemented; host-tested ([#30]) |
-| `http` / `wlan` | — | Not started |
+| `wlan` | `init`, `term`, `connect`, `disconnect`, `isconnected`, `status`, `getip`, `strength`, `over`, `getconfigs`, `scan`, `autoconnect`, `autostatus` | Read-only connection state plus explicit connect/disconnect; Sony's profile dialog and add/copy/delete/backup/restore calls are not exposed; `getconfigs`/`scan` return empty tables and `autoconnect` is a validated no-op ([#45]) |
+| `socket` | `connect`, `server`, `accept`, `send`, `recv`, `close`, `term` | Blocking TCP client/server userdata with `__gc`; no UDP or TLS; at most 64 live handles and 1 MB per `recv` ([#45]) |
+| `http` | `getfile`, `postfile`, `request`, `term` | Synchronous HTTP/1.x GET/POST only; no TLS; 15 s timeout, 4 redirects, 16 MB body cap, in-memory cookies; the OneLua background flag is accepted but runs synchronously ([#45]) |
+| `ftp` | `init`, `term`, `state` | Anonymous read-only passive FTP server rooted at the working directory; writes/renames/deletes are rejected; default port 21, override with `OPENLUA_FTP_PORT` ([#45]) |
+| `adhoc` | `init`, `term`, `getmac`, `scan`, `gettotal`; matching/PDP stubs | Lifecycle and peer-list subset; init needs the WLAN switch on; matching/PDP calls return their documented empty results ([#45]) |
+| `bluetooth` | `init`, `term`, `state`, `available` | Compatibility stub; always `false` because the PSP has no built-in Bluetooth radio and PSPSDK exposes no stack ([#45]) |
 
 ## License
 
@@ -247,3 +253,4 @@ used or modified.
 [#42]: https://github.com/epr-ds/openlua/issues/42
 [#43]: https://github.com/epr-ds/openlua/issues/43
 [#44]: https://github.com/epr-ds/openlua/issues/44
+[#45]: https://github.com/epr-ds/openlua/issues/45

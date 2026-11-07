@@ -162,10 +162,16 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 - Runnable demos under `demos/` with shared assets under `assets/`.
 
 ### Changed
-- PSP Go storage support: savedata probes M2 (`ms0:`) and internal storage
-  (`ef0:`), keeps existing saves on their volume, and loads/deletes across
-  both. Boot falls back to `app0:/` when the `argv[0]` directory cannot be
-  entered (#31).
+- PSP Go storage support: savedata probes M2 (`ms0:/`) and internal storage
+  (`ef0:/`), creates the missing `PSP/SAVEDATA` directory, keeps existing saves
+  on their volume, and loads/deletes across both. Device paths use the
+  canonical `ms0:/...`/`ef0:/...` separator, script discovery has explicit
+  `app0:/` fallbacks, and `files.move` falls back to recursive copy + delete
+  across volumes because `sceIoRename` cannot cross filesystems. Boot falls
+  back to `app0:/` when the `argv[0]` directory cannot be entered. Includes
+  cross-filesystem host tests and `demos/storage.lua`; PPSSPP 1.20.4 verifies
+  `app0:`/`ms0:` boot, savedata and files, but has no PSP Go model and does not
+  emulate `ef0:` (#31).
 - Docker builds now use a local builder image with `ccache`, run `make` with
   the host CPU count by default, and keep generated files owned by the
   invoking user. The compiler cache lives in git-ignored

@@ -41,6 +41,7 @@ file itself.
 | `cam.lua` | GO! CAM lifecycle, live `cam.render`, `cam.toimage`, PNG `cam.shot` and the image controls; shows the safe absent-hardware path | `assets/font.png` (camera is optional) |
 | `peripherals.lua` | UMD present/init/type/gameid/info/size, USB mass-storage flags, and the documented SIO/IR availability results | `assets/font.png` |
 | `network.lua` | `wlan` state/queries, loopback socket and HTTP failure paths, `ftp` state, `adhoc` lifecycle/peer queries and the Bluetooth stub; shows the safe no-network result | `assets/font.png` |
+| `storage.lua` | `files.cdir`, `os.infoms0`/`infoef0`, savedata save/load/delete and `files.mkdir/list/copy/move/delete` across `ms0:`/`ef0:`; cleans up its probe directory | `assets/font.png` |
 
 ## Assets
 
@@ -120,6 +121,12 @@ file itself.
   `ftp.init()` yourself, remember it exposes the working directory anonymously
   on the selected port until `ftp.term()`. See [../docs/API.md](../docs/API.md)
   and #45.
+- `storage.lua` only creates `PSP/OPENLUA_COMPAT` for its probe and removes it
+  afterwards; savedata uses the game id `OPENLUA1` and deletes it at the end.
+  A PSP Go shows `ef0: YES` and both cross-volume copy and move; PPSSPP 1.20.4
+  does not emulate `ef0:`, so it shows `ef0: NO` while `app0:`/`ms0:` boot,
+  savedata and file operations still pass. See [../docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md)
+  and #31.
 - `batt.mode()`/`batt.serial()` return `"-"`; mode changes and EEPROM
   backup/restore are safe no-ops. See [../docs/API.md](../docs/API.md).
 - `power.suspend()`/`power.off()` can sleep a real PSP, so the power demo never

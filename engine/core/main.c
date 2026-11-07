@@ -234,8 +234,14 @@ static const char *find_script(int argc, char *argv[])
             return argv[i];
         }
     }
-    static const char *candidates[] = { "script.lua", "SCRIPT.LUA", "boot.lua" };
-    for (int i = 0; i < 3; i++) {
+    static const char *candidates[] = {
+        "script.lua", "SCRIPT.LUA", "boot.lua",
+        /* Explicit app0: fallbacks cover launches where argv[0] was not a
+         * usable directory (or chdir_to_appdir fell back to app0:).  app0:
+         * resolves to the EBOOT directory on both ms0: and ef0:. */
+        "app0:/script.lua", "app0:/SCRIPT.LUA", "app0:/boot.lua"
+    };
+    for (size_t i = 0; i < sizeof(candidates)/sizeof(candidates[0]); i++) {
         FILE *f = fopen(candidates[i], "rb");
         if (f) {
             fclose(f);

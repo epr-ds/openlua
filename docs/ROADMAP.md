@@ -13,7 +13,7 @@ This document explains the phases and maps the remaining work to issues.
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, sockets, FTP, adhoc | Documented subsets implemented and host-tested with loopback servers (#45); real WiFi/adhoc hardware, TLS and background transfers remain |
 | **S6: Testing + Polish** | Boot/verify, renderer, tests, docs | **Current focus** |
-| **3.5: Data + Platform** | JSON module, PSP Go support | JSON host-tested (#30); PSP Go paths implemented, verification pending (#31) |
+| **3.5: Data + Platform** | JSON module, PSP Go support | JSON host-tested (#30); PSP Go boot/savedata/file paths PPSSPP-verified, `ef0:` hardware check pending (#31) |
 | **OneLua API parity** | Missing module families from the OneLua index | Math (#32), battery (#33), power (#34), OS (#35), hardware (#36), `sfont` (#37), PGF fonts (#38), the 3D modules (#39), `splash` (#41), the OSK (#42), PBP metadata (#40), the camera (#43), the peripheral modules (#44) and the networking modules (#45) complete |
 
 “Implemented” means the API exists and basic smoke testing passes. It does not
@@ -35,7 +35,7 @@ correctly, host tests cover the milestone regressions, and CI is green.
 
 | Issue | Work | Notes |
 |---|---|---|
-| #31 | PSP Go compatibility | Internal storage/M2 paths implemented; device/PPSSPP verification pending |
+| #31 | PSP Go compatibility | `app0:`/`ms0:` boot, savedata and file paths PPSSPP-verified; `ef0:` internal storage needs hardware |
 
 ## Backlog by theme
 
@@ -53,7 +53,9 @@ The OneLua module index was audited in October 2026. Gaps now have scoped
 issues and project-board items; `math` (#32), `battery` (#33), `power` (#34),
 `os` (#35), `hardware` (#36), `sfont` (#37), PGF `font` (#38), the 3D
 modules (#39), `splash` (#41), `osk` (#42), `game` (#40), `cam` (#43),
-the peripherals (#44) and the networking modules (#45) are complete.
+the peripherals (#44) and the networking modules (#45) are complete. PSP Go
+compatibility (#31) is verified in PPSSPP for `app0:`/`ms0:` boot, savedata and
+file paths; the `ef0:` internal-storage path still needs real hardware.
 
 - **Font and graphics:** none remaining
 - **Applications:** none remaining

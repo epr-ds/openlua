@@ -447,8 +447,8 @@ channel (or pass `0`) to reserve the next free channel.
 | `files.nofile(path)` | Directory part. |
 | `files.nopath(path)` | File name part. |
 | `files.rename(old, new)` | Returns 1 or raises. |
-| `files.copy(src, dst)` | Returns 1 or raises. |
-| `files.move(src, dst)` | Returns 1 or raises. |
+| `files.copy(src, dst)` | Returns 1 or raises; works across volumes. |
+| `files.move(src, dst)` | Returns 1 or raises; cross-volume moves use copy + delete. |
 | `files.delete(path)` | Delete a file or directory tree; returns a boolean. |
 | `files.mkdir(path)` | Create a directory and parents (best effort). |
 | `files.size(path)` | Size in bytes, or -1. |
@@ -490,13 +490,14 @@ data.delete(gameid)
 - `gameid` is 1..13 characters from `A-Z`, `a-z`, `0-9`, `-` and `_`;
   path separators and traversal sequences are rejected.
 - `savedata` is an alias for `data`.
-- On PSP, new saves go to the first writable root, `ms0:` (M2) then `ef0:`
-  (PSP Go internal storage). An existing game stays on its current volume.
-  Loads search both volumes and pick the highest-numbered slot; deletes remove
-  the game directory from both.
+- On PSP, new saves go to the first writable root, `ms0:/` (M2) then
+  `ef0:/` (PSP Go internal storage). An existing game stays on its current
+  volume. Loads search both volumes and pick the highest-numbered slot; deletes
+  remove the game directory from both.
 
 The PSP VSH save dialog is not implemented; files are plain text under
-`<root>PSP/SAVEDATA/<GAMEID>/`.
+`<root>/PSP/SAVEDATA/<GAMEID>/` (for example
+`ef0:/PSP/SAVEDATA/OPENLUA1/AUTOSAVE`).
 
 ## json
 

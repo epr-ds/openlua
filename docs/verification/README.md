@@ -34,6 +34,7 @@ emulator OSD, not the game. The splash runs were taken with logging disabled.
 | ![cam](cam.png) | `cam` demo: init/available/begin/state YES, 480x272 dummy camera frame, `toimage` OK and `shot` YES; control getters show `n/a` because PPSSPP lacks that HLE | `demos/cam.lua` |
 | ![peripherals](peripherals.png) | `umd`/`usb`/`sio`/`ir` demo: UMD present/init/type GAME, empty gameid/title and `0.0000` size for a homebrew EBOOT, USB active/connected YES, SIO/IR unavailable | `demos/peripherals.lua` |
 | ![network](network.png) | `wlan`/`socket`/`http`/`ftp`/`adhoc`/`bluetooth` demo: module registration, not-connected WLAN state, refused loopback connect/request, inactive FTP, adhoc unavailable and Bluetooth NO | `demos/network.lua` |
+| ![storage](storage.png) | `storage` demo booted from `ms0:/PSP/GAME/OpenLua`: app-directory cwd, `app0:` access, `ms0:` write/list, savedata save/load/delete YES; `ef0:` absent because PPSSPP does not emulate it | `demos/storage.lua` |
 
 Before these fixes the smoke test showed only the clear colour, sprites sampled
 the transparent corner of the sheet, and window capture of the engine's GUI was
@@ -113,6 +114,20 @@ contract by `test/host/test_net.lua`; PPSSPP verified registration and the safe
 absence path only. No WiFi, adhoc, Bluetooth or real-LAN hardware was
 available, and HTTPS is unsupported because PSPSDK has no TLS client.
 
+The `storage` capture comes from `demos/storage.lua`, with the EBOOT deployed
+under `ms0:/PSP/GAME/OpenLua/` so the boot path is a Memory Stick path rather
+than a loose `umd0:` PBP. It shows `files.cdir()` returning
+`ms0:/PSP/GAME/OPENLUA`, `app0:` access succeeding (via the relative
+`script.lua` fallback, because PPSSPP does not mount `app0:` as a stat-able
+device), `ms0:/PSP/OPENLUA_COMPAT` write/list, and savedata
+save/load/delete. `ef0:` is absent and the cross-volume copy/move rows are NO:
+PPSSPP 1.20.4 neither offers a PSP Go model (its `PSPModel` setting only lists
+PSP-1000 and PSP-2000/3000) nor emulates the Go's `ef0:` internal storage, so
+the internal-volume and `ef0:`↔`ms0:` paths need real hardware. The
+cross-volume move fallback itself is covered on the host by
+`test/host/test_olfs.c` (`/tmp` vs `/dev/shm`). No PSP Go, M2 card or `ef0:`
+hardware was available.
+
 [#19]: https://github.com/epr-ds/openlua/issues/19
 [#20]: https://github.com/epr-ds/openlua/issues/20
 [#36]: https://github.com/epr-ds/openlua/issues/36
@@ -125,3 +140,4 @@ available, and HTTPS is unsupported because PSPSDK has no TLS client.
 [#43]: https://github.com/epr-ds/openlua/issues/43
 [#44]: https://github.com/epr-ds/openlua/issues/44
 [#45]: https://github.com/epr-ds/openlua/issues/45
+[#31]: https://github.com/epr-ds/openlua/issues/31

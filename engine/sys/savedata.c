@@ -53,15 +53,35 @@ static const char *ROOTS[] = { ".", "data", NULL };
 static char cached_root[32] = {0};
 static int cached_valid = 0;
 
+/* Join a volume root and a relative suffix with a canonical slash.  Device
+ * roots are written as "ms0:" / "ef0:" but SCE Io paths are "ms0:/..."; the
+ * host roots are "." and "data".  Always adding the separator keeps both
+ * forms valid and avoids relying on driver-specific "ms0:PSP" parsing. */
+static void root_join(const char *root, const char *suffix,
+                      char *out, unsigned int cap)
+{
+    size_t rlen = strlen(root), slen = strlen(suffix);
+    int sep = !(rlen > 0 && root[rlen - 1] == '/');
+
+    if (rlen + (size_t)sep + slen + 1 > cap) {
+        if (cap > 0)
+            out[0] = '\0';
+        return;
+    }
+    memcpy(out, root, rlen);
+    if (sep)
+        out[rlen++] = '/';
+    memcpy(out + rlen, suffix, slen + 1);
+}
+
 static const char *save_root(void)
 {
     if (cached_valid) return cached_root;
     cached_root[0] = 0;  /* clear */
     cached_valid = 0;
-#if defined(__PSP__)
     for (int i = 0; ROOTS[i]; i++) {
         char dirp[220];
-        snprintf(dirp, sizeof(dirp), "%sPSP/SAVEDATA", ROOTS[i]);
+        root_join(ROOTS[i], "PSP/SAVEDATA", dirp, sizeof(dirp));
         if (olfs_mkdir_p(dirp) != 0)
             continue;              /* missing or read-only root      */
         char test[256];
@@ -72,20 +92,6 @@ static const char *save_root(void)
             cached_valid = 1;
             return cached_root; }
     }
-#else
-    for (int i = 0; ROOTS[i]; i++) {
-        char dirp[256];
-        snprintf(dirp, sizeof(dirp), "%s/PSP/SAVEDATA", ROOTS[i]);
-        if (olfs_mkdir_p(dirp) != 0) continue;
-        char test[256];
-        snprintf(test, sizeof(test), "%s/PSP/SAVEDATA/.olprobe", ROOTS[i]);
-        FILE *f = fopen(test, "a+");
-        if (f) { fclose(f); olfs_delete(test);
-            strncpy(cached_root, ROOTS[i], sizeof(cached_root)-1);
-            cached_valid = 1;
-            return cached_root; }
-    }
-#endif
     return NULL;
 }
 
@@ -106,13 +112,9 @@ static int valid_gameid(const char *gameid)
 static void root_game_dir(const char *root, const char *gameid,
                           char *out, unsigned int cap)
 {
-    /* Root may be "ms0:" / "ef0:" (device) or "." / "data" (host). */
-    size_t rlen = strlen(root);
-    if (rlen > 0 && root[rlen-1] != '/' && root[rlen-1] != ':') {
-        snprintf(out, cap, "%.31s/PSP/SAVEDATA/%.13s", root, gameid);
-    } else {
-        snprintf(out, cap, "%.31sPSP/SAVEDATA/%.13s", root, gameid);
-    }
+    char suffix[64];
+    snprintf(suffix, sizeof(suffix), "PSP/SAVEDATA/%.13s", gameid);
+    root_join(root, suffix, out, cap);
 }
 
 static int save_game_dir(const char *gameid, char *out, unsigned int cap)

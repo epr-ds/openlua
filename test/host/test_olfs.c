@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 static int checks;
@@ -25,6 +26,28 @@ static int touch(const char *path)
         return -1;
     fputs("x", f);
     fclose(f);
+    return 0;
+}
+
+static int write_text(const char *path, const char *text)
+{
+    FILE *f = fopen(path, "w");
+    if (!f)
+        return -1;
+    fputs(text, f);
+    fclose(f);
+    return 0;
+}
+
+static int read_text(const char *path, char *buf, size_t cap)
+{
+    FILE *f = fopen(path, "rb");
+    size_t n;
+    if (!f)
+        return -1;
+    n = fread(buf, 1, cap - 1, f);
+    fclose(f);
+    buf[n] = 0;
     return 0;
 }
 
@@ -122,6 +145,43 @@ int main(void)
         if (strstr(entries[i].name, "LLLL"))
             long_seen = 1;
     check(long_seen == 0, "long name not exposed");
+
+    /* Cross-filesystem move: this is the host stand-in for moving between
+     * PSP Go internal storage (ef0:) and M2 (ms0:), where rename(2) fails
+     * with EXDEV and olfs must fall back to copy + delete.  /dev/shm and
+     * /tmp are separate mounts on most CI and desktop systems; skip when
+     * they are not. */
+    struct stat st_tmp, st_shm;
+    char other_tmp[] = "/dev/shm/openlua-olfs-XXXXXX";
+    if (stat("/tmp", &st_tmp) == 0 && stat("/dev/shm", &st_shm) == 0 &&
+        st_tmp.st_dev != st_shm.st_dev && mkdtemp(other_tmp) != NULL) {
+        char src[1024], dst[1024], cpath[1200], text[64];
+
+        snprintf(src, sizeof(src), "%s/cross.txt", tmp);
+        snprintf(dst, sizeof(dst), "%s/cross.txt", other_tmp);
+        check(write_text(src, "cross-volume") == 0, "create cross-volume file");
+        check(olfs_move(src, dst) == 0, "cross-volume move file");
+        check(!olfs_exists(src), "cross-volume move removed source");
+        check(read_text(dst, text, sizeof(text)) == 0 &&
+              strcmp(text, "cross-volume") == 0,
+              "cross-volume move copied contents");
+
+        snprintf(src, sizeof(src), "%s/tree", tmp);
+        snprintf(dst, sizeof(dst), "%s/tree", other_tmp);
+        snprintf(cpath, sizeof(cpath), "%s/sub", src);
+        check(olfs_mkdir_p(cpath) == 0, "create cross-volume tree");
+        snprintf(cpath, sizeof(cpath), "%s/sub/file.txt", src);
+        check(write_text(cpath, "nested") == 0,
+              "create cross-volume nested file");
+        check(olfs_move(src, dst) == 0, "cross-volume move tree");
+        check(!olfs_exists(src), "cross-volume tree removed source");
+        snprintf(cpath, sizeof(cpath), "%s/sub/file.txt", dst);
+        check(read_text(cpath, text, sizeof(text)) == 0 &&
+              strcmp(text, "nested") == 0,
+              "cross-volume tree copied contents");
+
+        check(olfs_delete(other_tmp) == 0, "remove cross-volume test tree");
+    }
 
     check(olfs_chdir(original) == 0, "restore cwd");
     check(olfs_delete(tmp) == 0, "remove test tree");

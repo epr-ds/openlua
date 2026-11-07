@@ -36,11 +36,13 @@ engine/core/main.c ── register_api() ─────────────
 
 1. Register the PSP exit callback.
 2. `chdir` to the directory containing the executable (`argv[0]`), falling
-   back to `app0:/`.
+   back to `app0:/`. `app0:` resolves to the EBOOT directory on both Memory
+   Stick (`ms0:`) and PSP Go internal storage (`ef0:`).
 3. Initialise the GE (`gfx_init`).
 4. Create the Lua state and open the standard libraries.
 5. Register engine modules (`register_api`).
-6. Find and run `script.lua` (or `SCRIPT.LUA` / `boot.lua`, or an `argv` path).
+6. Find and run `script.lua` (or `SCRIPT.LUA` / `boot.lua`, an `argv` path, or
+   the explicit `app0:/` equivalents).
 7. On error, write `openlua.log` and fall back to the debug screen.
 
 Boot tracing also appends short markers to
@@ -351,8 +353,12 @@ logic and are host-testable:
 | `maps.c` | `map.*` | in-memory tile grid over a tileset |
 
 On host builds `savedata` falls back to `./PSP/SAVEDATA`. On PSP it probes
-M2 (`ms0:`) and PSP Go internal storage (`ef0:`), creates `PSP/SAVEDATA` when
-needed, and searches both roots for loads and deletes.
+M2 (`ms0:/PSP/SAVEDATA`) and PSP Go internal storage
+(`ef0:/PSP/SAVEDATA`), creates the directory when needed, and searches both
+roots for loads and deletes. Volume joins always include the canonical `/`
+after the device prefix. `olfs_move` first tries `sceIoRename`, then falls back
+to a recursive copy + delete when the source and destination are on different
+volumes; the fallback refuses to overwrite an existing destination.
 
 ## Battery telemetry
 

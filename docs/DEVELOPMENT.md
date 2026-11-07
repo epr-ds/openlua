@@ -66,7 +66,7 @@ URL/response parsing and loopback TCP/HTTP/FTP paths, Lua modules):
 bash test/host/run.sh
 ```
 
-Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
+Expected: `olfs: 47 checks, 0 failed`, `transform: 144 checks, 0 failed`,
 `psmf: 20 checks, 0 failed`, `pbp: 53 checks, 0 failure(s)`,
 `obj: 26 checks, 0 failed`, `battery: 16 checks, 0 failed`,
 `cam: 23 checks, 0 failure(s)`, `umd: 12 checks, 0 failure(s)`,
@@ -74,7 +74,7 @@ Expected: `olfs: 37 checks, 0 failed`, `transform: 144 checks, 0 failed`,
 helpers, `RESULT: 54 passed, 0 failed` for the hardware helpers,
 `maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed`,
 `sfont C: 20 checks, 0 failure(s)` and `pgf C: 17 checks, 0 failure(s)`
-(585 C checks total), then `RESULT: 46 passed, 0 failed`,
+(595 C checks total), then `RESULT: 46 passed, 0 failed`,
 `RESULT: 21 passed, 0 failed` for timers, `RESULT: 23 passed, 0 failed` for
 math, `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for
 JSON, `RESULT: 64 passed, 0 failed` for savedata,
@@ -198,10 +198,16 @@ toolchain link order and module imports (#6, #7).
 
 `chdir_to_appdir` uses `argv[0]` and falls back to `app0:/` when the launch
 path is unavailable, so relative `script.lua`/asset paths work from Memory
-Stick and PSP Go internal storage. `files.*` accepts either volume explicitly.
-Savedata creates `PSP/SAVEDATA` on the first writable root (`ms0:` then
-`ef0:`), keeps an existing game on its current volume, and searches both
-volumes for loads and deletes.
+Stick and PSP Go internal storage. Script discovery also tries the explicit
+`app0:/script.lua` (and `SCRIPT.LUA`/`boot.lua`) paths, which resolve to the
+EBOOT directory on either volume. `files.*` accepts either volume explicitly.
+
+Savedata uses the canonical `ms0:/PSP/SAVEDATA` and `ef0:/PSP/SAVEDATA` paths
+(never the driver-specific `ms0:PSP` form), creates the missing directory on
+the first writable root, keeps an existing game on its current volume, and
+searches both volumes for loads and deletes. `files.copy` works across
+volumes; `files.move` uses copy + delete when `sceIoRename` cannot cross from
+`ms0:` to `ef0:` (or back).
 
 ## Coding conventions
 
@@ -235,12 +241,20 @@ volumes for loads and deletes.
 | Model | Application storage | Save/file roots | Status |
 |---|---|---|---|
 | PSP-1000 / 2000 / 3000 | `ms0:` | `ms0:` | Code path and host tests; device verification pending |
-| PSP Go N1000 | `ef0:` internal or `ms0:` M2 | `ef0:` internal + `ms0:` M2 | Code path and host tests; device/PPSSPP verification pending (#31) |
-| Host tests | `./` | `./` + `data/` | Covered by the host suite |
+| PSP Go N1000 | `ef0:` internal or `ms0:` M2 | `ef0:` internal + `ms0:` M2 | `app0:`/`ms0:` boot, savedata and file paths verified in PPSSPP 1.20.4; internal `ef0:` + M2 cross-volume verification needs real hardware (#31) |
+| Host tests | `./` | `./` + `data/` | Covered by the host suite, including cross-volume copy/move |
 
 The build targets the 6.00+ PSPSDK API (`_PSP_FW_VERSION=600`) and is intended
 for current custom firmware. Verify boot, controller, display and audio on
 real hardware before release.
+
+PPSSPP 1.20.4 exposes `ms0:` (memory stick) and `app0:`, but it has no PSP Go
+model option (its `PSPModel` setting only offers PSP-1000 and PSP-2000/3000)
+and it does not emulate the PSP Go's `ef0:` internal-storage volume. PPSSPP can
+therefore verify `app0:`/`ms0:` boot, savedata and filesystem paths, but not
+the Go model or `ef0:` itself. The host suite models two independent save
+roots and exercises the copy + delete cross-volume move fallback; see
+`demos/storage.lua` for the on-device check.
 
 ## Continuous integration
 

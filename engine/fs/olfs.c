@@ -159,11 +159,6 @@ int olfs_delete(const char *path)
     return olfs_rdelete(path);
 }
 
-int olfs_move(const char *src, const char *dst)
-{
-    return sceIoRename(src, dst) == 0 ? 0 : -1;
-}
-
 int olfs_copyfile(const char *src, const char *dst)
 {
     int rs, rw;
@@ -179,10 +174,80 @@ int olfs_copyfile(const char *src, const char *dst)
 
     while ((n = sceIoRead(rs, buf, sizeof(buf))) > 0)
         if (sceIoWrite(rw, buf, n) != n)
-        { sceIoClose(rs); sceIoClose(rw); return -1; }
+        {
+            sceIoClose(rs);
+            sceIoClose(rw);
+            sceIoRemove(dst);              /* do not leave a partial copy */
+            return -1;
+        }
+
+    if (n < 0) {
+        sceIoClose(rs);
+        sceIoClose(rw);
+        sceIoRemove(dst);
+        return -1;
+    }
 
     sceIoClose(rs);
     sceIoClose(rw);
+    return 0;
+}
+
+/* Recursively copy a file or directory.  Used as the cross-volume fallback
+ * for olfs_move(): sceIoRename() only works within one filesystem, while the
+ * PSP Go exposes internal storage (ef0:) and M2 (ms0:) as distinct volumes. */
+static int olfs_copy_tree(const char *src, const char *dst)
+{
+    SceIoStat st;
+    SceIoDirent d;
+    int fd, rc = 0;
+
+    if (sceIoGetstat(src, &st) < 0)
+        return -1;
+    if (!FIO_S_ISDIR(st.st_attr))
+        return olfs_copyfile(src, dst);
+
+    if (olfs_mkdir_p(dst) != 0 && !olfs_isdir(dst))
+        return -1;
+
+    fd = sceIoDopen(src);
+    if (fd < 0)
+        return -1;
+    while (sceIoDread(fd, &d) > 0 && d.d_name[0]) {
+        char sp[512], dp[512];
+
+        if (!strcmp(d.d_name, ".") || !strcmp(d.d_name, ".."))
+            continue;
+        if (snprintf(sp, sizeof(sp), "%s/%s", src, d.d_name) >= (int)sizeof(sp) ||
+            snprintf(dp, sizeof(dp), "%s/%s", dst, d.d_name) >= (int)sizeof(dp)) {
+            rc = -1;
+            break;
+        }
+        if (olfs_copy_tree(sp, dp) != 0) {
+            rc = -1;
+            break;
+        }
+    }
+    sceIoDclose(fd);
+    return rc;
+}
+
+int olfs_move(const char *src, const char *dst)
+{
+    if (sceIoRename(src, dst) == 0)
+        return 0;
+
+    /* A rename cannot cross ms0:/ef0:.  Fall back to copy + delete, but never
+     * overwrite an existing destination (that would silently change the
+     * meaning of a failed rename). */
+    if (olfs_exists(dst))
+        return -1;
+    if (olfs_copy_tree(src, dst) != 0)
+        return -1;
+    if (olfs_delete(src) != 0) {
+        olfs_delete(dst);                  /* roll back the copy */
+        return -1;
+    }
     return 0;
 }
 
@@ -348,11 +413,6 @@ int olfs_delete(const char *path)
     return rdelete(path) == 0 ? 0 : -1;
 }
 
-int olfs_move(const char *src, const char *dst)
-{
-    return rename(src, dst) == 0 ? 0 : -1;
-}
-
 int olfs_copyfile(const char *src, const char *dst)
 {
     FILE *f = fopen(src, "rb");
@@ -366,10 +426,76 @@ int olfs_copyfile(const char *src, const char *dst)
     size_t n;
     while ((n = fread(buf, 1, sizeof(buf), f)) > 0)
         if (fwrite(buf, 1, n, t) != n)
-        { fclose(f); fclose(t); return -1; }
+        {
+            fclose(f);
+            fclose(t);
+            unlink(dst);               /* do not leave a partial copy */
+            return -1;
+        }
+
+    if (ferror(f)) {
+        fclose(f);
+        fclose(t);
+        unlink(dst);
+        return -1;
+    }
 
     fclose(f);
     fclose(t);
+    return 0;
+}
+
+/* Recursively copy a file or directory.  Used as the cross-filesystem
+ * fallback for olfs_move(); rename(2) returns EXDEV across mount points. */
+static int olfs_copy_tree(const char *src, const char *dst)
+{
+    struct stat st;
+    if (!stat_ok(src, &st))
+        return -1;
+    if (!S_ISDIR(st.st_mode))
+        return olfs_copyfile(src, dst);
+
+    if (olfs_mkdir_p(dst) != 0 && !olfs_isdir(dst))
+        return -1;
+
+    DIR *dir = opendir(src);
+    if (!dir)
+        return -1;
+    int rc = 0;
+    struct dirent *e;
+    while ((e = readdir(dir)) != NULL) {
+        char sp[700], dp[700];
+        if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, ".."))
+            continue;
+        if (snprintf(sp, sizeof(sp), "%s/%s", src, e->d_name) >= (int)sizeof(sp) ||
+            snprintf(dp, sizeof(dp), "%s/%s", dst, e->d_name) >= (int)sizeof(dp)) {
+            rc = -1;
+            break;
+        }
+        if (olfs_copy_tree(sp, dp) != 0) {
+            rc = -1;
+            break;
+        }
+    }
+    closedir(dir);
+    return rc;
+}
+
+int olfs_move(const char *src, const char *dst)
+{
+    if (rename(src, dst) == 0)
+        return 0;
+
+    /* rename(2) cannot cross filesystems.  Fall back to copy + delete, but
+     * never overwrite an existing destination. */
+    if (olfs_exists(dst))
+        return -1;
+    if (olfs_copy_tree(src, dst) != 0)
+        return -1;
+    if (olfs_delete(src) != 0) {
+        olfs_delete(dst);                  /* roll back the copy */
+        return -1;
+    }
     return 0;
 }
 

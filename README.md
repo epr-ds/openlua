@@ -120,7 +120,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | JSON | Implemented; host-tested ([#30]) |
 | Tilemaps | Implemented; host-tested ([#26]) |
 | Renderer correctness | Fixed and PPSSPP-verified; PSP hardware pending ([#19], [#20]) |
-| PSP Go | Storage/boot paths implemented; device verification [#31] |
+| PSP Go | `app0:`/`ms0:` boot, savedata and file paths verified in PPSSPP (no PSP Go model or `ef0:` emulation); `ef0:` internal-storage and M2 cross-volume check needs hardware ([#31]) |
 | PMF/PSMF video + ATRAC3+ audio | Implemented; PPSSPP-verified ([#5]) |
 | Networking (`wlan`, `socket`, `http`, `ftp`, `adhoc`, `bluetooth`) | Documented subsets implemented; host-tested with in-process loopback servers and PPSSPP-verified for safe absence; real WiFi/adhoc hardware and TLS/background transfers are not available ([#45]) |
 

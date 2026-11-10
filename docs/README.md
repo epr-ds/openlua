@@ -10,6 +10,7 @@ Start with the document that matches what you are doing.
 | [API.md](API.md) | Script authors | Complete Lua API reference as implemented |
 | [ROADMAP.md](ROADMAP.md) | Everyone | Phases, milestones, remaining work, issue map |
 | [../demos/README.md](../demos/README.md) | Script authors | Runnable demos and assets |
+| [TESTER.md](TESTER.md) | Testers | On-device hardware test menu, controls, model profiles and report format |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Workflow, labels, review and definition of done |
 | [../CHANGELOG.md](../CHANGELOG.md) | Everyone | Notable changes |
 

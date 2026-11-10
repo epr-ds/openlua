@@ -111,6 +111,21 @@ contract. No real WiFi, adhoc or Bluetooth hardware is involved.
 Build output is kept in `out/build.log`; the script prints it only when a build
 fails.
 
+## Hardware test menu
+
+`demos/tester.lua` exercises every module on a real PSP. Build the EBOOT, then
+stage `EBOOT.PBP`, `script.lua` and `assets/` in one step:
+
+```bash
+bash docker/build.sh
+bash tools/package_tester.sh            # -> out/tester-package/
+```
+
+Copy the staged `PSP/` tree to `ms0:` or `ef0:` and launch it. START writes
+`test_report.txt`; interactive USB/network/camera/OSK/PMF actions only run on
+an explicit key press. See [TESTER.md](TESTER.md) for the page list, controls,
+model profiles, safety rules and the current PPSSPP-only result.
+
 Repository hygiene check:
 
 ```bash
@@ -156,8 +171,8 @@ assets/   demo/test assets (including assets/3d/ and the splash PNGs)
 demos/    runnable Lua demos
 docs/     architecture, API, roadmap, reference
 test/     host and on-device tests
-tools/    asset generators (gen_font.py, gen_3d_assets.py, gen_splash.py, ...)
-          and local PPSSPP
+tools/    asset generators (gen_font.py, gen_3d_assets.py, gen_splash.py, ...),
+          package_tester.sh and local PPSSPP
 ```
 
 ## Adding a Lua module

@@ -44,6 +44,9 @@ modules on top of the hardware:
 - OS system queries and safe utilities through an extended Lua `os` table.
 - Hardware identity, sound-registry volume/mute, headphone detection and audio
   routing through the OneLua `hw` table.
+- An on-device hardware test menu (`demos/tester.lua`) that covers every
+  module, saves a declared PSP model and writes a PASS/FAIL/INFO/SKIP report;
+  stage it with `bash tools/package_tester.sh` (see [docs/TESTER.md](docs/TESTER.md)).
 - Builds with PSPSDK in Docker; storage and platform modules are host-testable.
 
 ## Quick start
@@ -123,6 +126,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | PSP Go | `app0:`/`ms0:` boot, savedata and file paths verified in PPSSPP (no PSP Go model or `ef0:` emulation); `ef0:` internal-storage and M2 cross-volume check needs hardware ([#31]) |
 | PMF/PSMF video + ATRAC3+ audio | Implemented; PPSSPP-verified ([#5]) |
 | Networking (`wlan`, `socket`, `http`, `ftp`, `adhoc`, `bluetooth`) | Documented subsets implemented; host-tested with in-process loopback servers and PPSSPP-verified for safe absence; real WiFi/adhoc hardware and TLS/background transfers are not available ([#45]) |
+| Hardware test menu (`demos/tester.lua`) | Implemented; all modules covered; PPSSPP batch reports 230 checks with 0 fail; real PSP-1000/2000/3000/E1000/Go runs pending ([docs/TESTER.md](docs/TESTER.md)) |
 
 The [project board](https://github.com/users/epr-ds/projects/4) is the source
 of truth for remaining work.
@@ -166,6 +170,7 @@ docker/   PSPSDK build script
 | [docs/API.md](docs/API.md) | Complete Lua API reference |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phases, issues and priorities |
 | [demos/README.md](demos/README.md) | Runnable examples |
+| [docs/TESTER.md](docs/TESTER.md) | On-device hardware test menu |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Workflow and definition of done |
 | [CHANGELOG.md](CHANGELOG.md) | Recent changes |
 | [docs/onelua-reference](docs/onelua-reference) | OneLua compatibility reference |

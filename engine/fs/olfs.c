@@ -72,12 +72,26 @@ int olfs_exists(const char *path)
     return olfs_stat_ok(path, NULL, NULL) == 0;
 }
 
+/* Some FAT/emulator layers report a directory without FIO_S_IFDIR in
+ * st_attr.  Fall back to opening it as a directory so recursive deletes,
+ * listdirs and copies still work there (and on real hardware). */
+static int olfs_probe_dir(const char *path)
+{
+    int fd = sceIoDopen(path);
+    if (fd < 0)
+        return 0;
+    sceIoDclose(fd);
+    return 1;
+}
+
 int olfs_isdir(const char *path)
 {
     unsigned int a;
     if (olfs_stat_ok(path, &a, NULL) != 0)
         return 0;
-    return FIO_S_ISDIR(a);
+    if (FIO_S_ISDIR(a))
+        return 1;
+    return olfs_probe_dir(path);
 }
 
 long olfs_size(const char *path)
@@ -129,22 +143,27 @@ int olfs_mkdir_p(const char *path)
 
 static int olfs_rdelete(const char *path)
 {
-    int fd, n, isdir = 0;
-    SceIoStat st;
+    int fd, n;
     SceIoDirent d;
     char child[512];
 
-    if (sceIoGetstat(path, &st) < 0)
+    if (!olfs_exists(path))
         return -1;
-    if (FIO_S_ISDIR(st.st_attr))
-        isdir = 1;
-    if (!isdir)
+
+    /* Use the attribute check plus the dopen fallback: some FAT layers report
+     * a directory without FIO_S_IFDIR in st_attr, which previously made us
+     * call sceIoRemove() on a directory and silently leave it behind. */
+    if (!olfs_isdir(path))
         return sceIoRemove(path) == 0 ? 0 : -1;
 
     fd = sceIoDopen(path);
     if (fd < 0)
         return -1;
-    while ((n = sceIoDread(fd, &d)) > 0 && d.d_name[0]) {
+    while (1) {
+        memset(&d, 0, sizeof(d));
+        n = sceIoDread(fd, &d);
+        if (n <= 0 || !d.d_name[0])
+            break;
         if (!strcmp(d.d_name, ".") || !strcmp(d.d_name, ".."))
             continue;
         snprintf(child, sizeof(child), "%s/%s", path, d.d_name);
@@ -204,7 +223,7 @@ static int olfs_copy_tree(const char *src, const char *dst)
 
     if (sceIoGetstat(src, &st) < 0)
         return -1;
-    if (!FIO_S_ISDIR(st.st_attr))
+    if (!olfs_isdir(src))
         return olfs_copyfile(src, dst);
 
     if (olfs_mkdir_p(dst) != 0 && !olfs_isdir(dst))
@@ -213,9 +232,11 @@ static int olfs_copy_tree(const char *src, const char *dst)
     fd = sceIoDopen(src);
     if (fd < 0)
         return -1;
-    while (sceIoDread(fd, &d) > 0 && d.d_name[0]) {
+    while (1) {
         char sp[512], dp[512];
-
+        memset(&d, 0, sizeof(d));
+        if (sceIoDread(fd, &d) <= 0 || !d.d_name[0])
+            break;
         if (!strcmp(d.d_name, ".") || !strcmp(d.d_name, ".."))
             continue;
         if (snprintf(sp, sizeof(sp), "%s/%s", src, d.d_name) >= (int)sizeof(sp) ||
@@ -264,6 +285,7 @@ int olfs_list(const char *dir, OLEntry *out, int n, int *outn, int *trunc)
         return -1;
 
     while (i < n) {
+        memset(&d, 0, sizeof(d));
         if (sceIoDread(fd, &d) <= 0 || !d.d_name[0])
             break;
         if (!strcmp(d.d_name, ".") || !strcmp(d.d_name, ".."))
@@ -274,13 +296,22 @@ int olfs_list(const char *dir, OLEntry *out, int n, int *outn, int *trunc)
             continue;
         }
         out[i].is_dir     = FIO_S_ISDIR(d.d_stat.st_attr);
+        if (!out[i].is_dir)
+            out[i].is_dir = olfs_probe_dir(out[i].path);
         out[i].size       = out[i].is_dir ? 0 : (long)d.d_stat.st_size;
-        out[i].attr       = d.d_stat.st_attr;
+        out[i].attr       = out[i].is_dir ? (d.d_stat.st_attr | 0777)
+                                          : d.d_stat.st_attr;
         i++;
     }
-    while (sceIoDread(fd, &d) > 0 && d.d_name[0] &&
-           (strcmp(d.d_name, ".") && strcmp(d.d_name, "..")))
-        if (trunc) *trunc = 1;
+    while (1) {
+        memset(&d, 0, sizeof(d));
+        if (sceIoDread(fd, &d) <= 0 || !d.d_name[0])
+            break;
+        if (strcmp(d.d_name, ".") && strcmp(d.d_name, "..")) {
+            if (trunc) *trunc = 1;
+            break;
+        }
+    }
     sceIoDclose(fd);
 
     if (outn) *outn = i;

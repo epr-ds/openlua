@@ -42,6 +42,25 @@ file itself.
 | `peripherals.lua` | UMD present/init/type/gameid/info/size, USB mass-storage flags, and the documented SIO/IR availability results | `assets/font.png` |
 | `network.lua` | `wlan` state/queries, loopback socket and HTTP failure paths, `ftp` state, `adhoc` lifecycle/peer queries and the Bluetooth stub; shows the safe no-network result | `assets/font.png` |
 | `storage.lua` | `files.cdir`, `os.infoms0`/`infoef0`, savedata save/load/delete and `files.mkdir/list/copy/move/delete` across `ms0:`/`ef0:`; cleans up its probe directory | `assets/font.png` |
+| `tester.lua` | On-device test menu for every module: per-page checks, interactive hardware actions, model profiles and a START batch report. See [Hardware test menu](#hardware-test-menu) | all of `assets/` (falls back to a built-in font) |
+
+## Hardware test menu
+
+`tester.lua` is the self-contained menu used to exercise the whole engine on a
+PSP-1000, PSP-2000/3000, PSP-E1000 and PSP Go. Copy it as `script.lua` next to
+`EBOOT.PBP` and `assets/`, or stage a ready tree with:
+
+```bash
+bash tools/package_tester.sh
+```
+
+Controls: UP/DOWN move, X or O open, O back, X run or trigger the page action,
+SELECT cycles the declared model (saved to `tester.cfg`) and START runs every
+non-interactive check and writes `test_report.txt`. Destructive calls
+(`os.exit`, `os.restart`, `power.suspend/off/lock`, flash writes, FTP server)
+are never made automatically; USB, network, camera, OSK, PMF and splash
+actions only start on the documented key press. The full reference, safety
+notes and current PPSSPP result are in [../docs/TESTER.md](../docs/TESTER.md).
 
 ## Assets
 

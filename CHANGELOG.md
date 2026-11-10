@@ -6,6 +6,17 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- `demos/tester.lua`, a self-contained on-device test menu for every module on
+  PSP-1000/2000/3000/E1000/Go. It has per-page checks, interactive
+  hardware actions behind explicit key presses, a SELECT-cycled declared model
+  saved to `tester.cfg`, a built-in font fallback and a START batch that writes
+  `test_report.txt` with PASS/FAIL/INFO/SKIP totals. `tools/package_tester.sh`
+  stages `EBOOT.PBP`, `script.lua` and `assets/`; `docs/TESTER.md` documents
+  deployment, controls, safety and the PPSSPP-only result. The full PPSSPP
+  batch reports 230 checks with 0 fail.
+- Fixed recursive directory deletion on FAT layers that omit `FIO_S_IFDIR`
+  from `st_attr`: `olfs_rdelete`, `olfs_list`, `olfs_copy_tree` and
+  `olfs_copyfile` now use the `dopen` fallback and report directory modes.
 - OneLua networking modules: `wlan` (`init`, `term`, `connect`, `disconnect`,
   `isconnected`, `status`, `getip`, `strength`, `over`, `getconfigs`, `scan`,
   `autoconnect`, `autostatus`), TCP `socket` (`connect`, `server`, `accept`,

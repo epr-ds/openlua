@@ -48,8 +48,9 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   reuse the shared bounds-checked PARAM.SFO parser, and `umd.size` walks the
   mounted ISO9660 tree with a depth/entry budget and returns GB with four
   decimals. `umd.dumpiso`/`umd.launch` are intentionally not registered.
-  `usb.umd`/`flash*` need Sony's optional `_usbdevice.prx` and fail safely
-  without it; flash modes are always read-only, and USB storage and the camera
+  `usb.umd`/`flash*` would need Sony's optional `_usbdevice.prx`; the standard
+  build omits that import so the EBOOT can boot, and those calls are no-ops
+  with `isactive` false. USB storage and the camera
   are documented as mutually exclusive. `sio`/`ir` register their documented
   signatures but stay inactive in the user-mode build because raw UART/IR
   access needs a kernel driver. Every module returns documented empty values
@@ -201,6 +202,12 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   networking) to the project board.
 
 ### Fixed
+- The PSP build no longer statically imports `pspUsbDevice` and
+  `sceUsbstorBoot`. On a normal CFW boot where `_usbdevice.prx` is not running,
+  those imports made the EBOOT refuse to launch with `8002013C`
+  (`SCE_KERNEL_ERROR_LIBRARY_NOTFOUND`). `usb.mstick()` still uses the standard
+  `sceUsb` path; `usb.umd()`/`flash*()` are now documented no-ops and the tester
+  reports them as `SKIP` instead of `PASS`.
 - The generated 5x7 font sheet now draws `N` with a left-to-right diagonal
   instead of a mirrored glyph, so `OPENLUA` and other generated text read
   correctly at every scale. `assets/font.png`, `assets/sfont.png` and the

@@ -770,11 +770,11 @@ does nothing. Argument errors still raise.
 
 ```lua
 usb.mstick()       -- expose the memory stick
-usb.umd()          -- expose the UMD as read-only ISO9660
-usb.flash0()       -- expose flash0 read-only
-usb.flash1()       -- expose flash1 read-only
-usb.flash2()       -- expose flash2 read-only
-usb.flash3()       -- expose flash3 read-only
+usb.umd()          -- no-op: unavailable in the standard build
+usb.flash0()       -- no-op: unavailable in the standard build
+usb.flash1()       -- no-op: unavailable in the standard build
+usb.flash2()       -- no-op: unavailable in the standard build
+usb.flash3()       -- no-op: unavailable in the standard build
 usb.stop()         -- stop the connection
 usb.isconnected()  -- true when a PC has taken the connection
 usb.isactive()     -- true when a mode was activated
@@ -784,12 +784,14 @@ All modes return nothing. `isactive` reports whether activation was attempted
 successfully, even without a USB cable; `isconnected` reports whether the PC
 has actually established the link.
 
-`mstick` uses the standard `USBBusDriver` + `USBStor_Driver` pair. The
-`umd`/`flash*` modes additionally select a device through
-`pspUsbDeviceSetDevice`, which needs Sony's optional `_usbdevice.prx` (usually
-provided by custom firmware). When that module is absent the mode fails
-safely: nothing is exposed and `isactive` stays `false`. Flash modes are
-always requested read-only; the API never enables USB writes to flash.
+`mstick` uses the standard `USBBusDriver` + `USBStor_Driver` pair and is the
+only mode built in. The `umd`/`flash*` modes need Sony's optional
+`pspUsbDevice` library (`_usbdevice.prx`), which is not loaded on a normal CFW
+boot. Statically importing it makes the EBOOT fail to load with
+`8002013C` (`SCE_KERNEL_ERROR_LIBRARY_NOTFOUND`), so the standard build omits
+it and those calls are safe no-ops: nothing is exposed and `isactive` stays
+`false`. They are not "read-only fallbacks"; the memory stick is simply the
+only available target.
 
 USB storage and the GO! CAM camera share the USB port and cannot be active at
 the same time. Call `cam.term()` before `usb.mstick()`, or `usb.stop()` before
@@ -797,8 +799,8 @@ the same time. Call `cam.term()` before `usb.mstick()`, or `usb.stop()` before
 
 On the host every mode is inactive and every query is `false`. PPSSPP 1.20.4
 implements the `sceUsb` state flags, so `usb.mstick`, `isactive` and
-`isconnected` are PPSSPP-verified; it does not implement `_usbdevice`, so the
-UMD/flash modes are documented but not PPSSPP-verified.
+`isconnected` are PPSSPP-verified. It does not implement `_usbdevice`, which
+matches the standard build's behaviour.
 
 ## sio
 
@@ -1161,8 +1163,8 @@ implemented yet.
 | Camera hardware verification | The active path was checked with PPSSPP dummy frames only; no GO! CAM accessory or PSP hardware was available | #43 |
 | UMD size | `umd.size` sums the mounted ISO9660 tree with a depth/entry budget, so it is an estimate of visible files rather than raw disc capacity | #44 |
 | UMD dump/launch | `umd.dumpiso` and `umd.launch` are not registered; they write disc images or start other applications | #44 |
-| USB device modes | `usb.umd`/`flash*` need Sony's `_usbdevice.prx`, which is not part of PSPSDK; without it they fail safely and `isactive` stays `false` | #44 |
-| USB flash writes | Flash modes are always requested read-only; there is no way to expose writable flash through this API | #44 |
+| USB device modes | `usb.umd`/`flash*` need Sony's `pspUsbDevice` (`_usbdevice.prx`); importing it statically breaks EBOOT loading with `8002013C`, so the standard build omits it and those calls are no-ops with `isactive` false | #44 |
+| USB flash writes | The standard build never exposes flash, so there is no path to USB flash writes through this API | #44 |
 | USB and camera | Both use the USB port and cannot be active together; call `cam.term` or `usb.stop` before switching | #43, #44 |
 | SIO | User-mode PSPSDK has no safe UART syscall, so `sio.init` is `0`, `read` is `-1` and sends are no-ops | #44 |
 | IR | Raw IR needs a kernel SIRC/IrDA driver and only PSP-1000 has the port; `ir.init` is `0`, `read` is `nil` and `write` is `-1` | #44 |

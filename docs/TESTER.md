@@ -110,7 +110,7 @@ the page footer. Nothing is started at boot.
 | OSK | X | open the system keyboard |
 | PMF | X | play `movie.pmf` if present |
 | CAMERA | X | live camera preview (SQUARE takes a snapshot inside the demo) |
-| UMD / USB | X / TRIANGLE / SQUARE / L / R | UMD mount / USB mass storage / stop / USB UMD / USB flash0 |
+| UMD / USB | X / TRIANGLE / SQUARE / L / R | UMD mount / USB mass storage / stop / USB UMD (SKIP) / USB flash0 (SKIP) |
 | NETWORK | X / TRIANGLE / SQUARE / L / R | WLAN connect / disconnect / FTP toggle / adhoc init / adhoc term |
 
 The following are never called automatically and are listed in every report:
@@ -123,6 +123,11 @@ The following are never called automatically and are listed in every report:
 USB mass storage exposes the Memory Stick or internal storage over USB until
 `usb.stop()`; press SQUARE on the UMD/USB page to stop it. The USB mass
 storage and GO! CAM modes cannot be active at the same time.
+
+`usb.umd()` and `usb.flash*()` are no-ops in the standard build. They need
+Sony's optional `_usbdevice.prx`; importing it statically makes the EBOOT fail
+to launch with `8002013C`, so the build omits it. L/R on this page therefore
+record `SKIP`, not `PASS`.
 
 ## Report
 
@@ -168,7 +173,9 @@ real-hardware behaviour.
 Things PPSSPP cannot verify and that need a real PSP:
 
 - `ef0:` internal storage and cross-volume copy/move on the PSP Go.
-- Real UMD discs (`gameid`, title, size) and the USB flash/UMD modes.
+- Real UMD discs (`gameid`, title, size). The USB flash/UMD modes are
+  unavailable in the standard build, so they need a custom build with
+  `_usbdevice.prx`, not just real hardware.
 - Battery voltage/capacity and temperature on all models.
 - The GO! CAM accessory and real camera frames.
 - WLAN profiles, access points, adhoc peers and an actual connection.

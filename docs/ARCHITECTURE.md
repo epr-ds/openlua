@@ -257,11 +257,13 @@ images or start other applications.
 
 `engine/sys/usb.c` starts `USBBusDriver` + `USBStor_Driver` and activates PID
 `0x282`; that path uses only standard PSPSDK imports and works in PPSSPP.
-`usb.umd`/`flash*` first call `pspUsbDeviceSetDevice` from Sony's optional
-`_usbdevice.prx`. The import is safe when the module is absent: the call fails,
-the drivers are not started, and `usb.isactive` stays false. Flash modes pass
-`ronly = 1` unconditionally. USB storage and `cam` share the port, so callers
-must stop one before starting the other.
+`usb.umd`/`flash*` would need `pspUsbDeviceSetDevice` from Sony's optional
+`_usbdevice.prx`. A *static* import of that library makes the EBOOT fail to
+load with `8002013C` when the module is not already running, so the standard
+build omits the import; those calls are no-ops and `usb.isactive` stays false.
+A custom build that preloads `_usbdevice.prx` can restore the device modes.
+USB storage and `cam` share the port, so callers must stop one before starting
+the other.
 
 `engine/sys/sio.c` and `engine/sys/ir.c` keep the OneLua signatures but have no
 hardware backend. A user-mode EBOOT cannot touch the UART registers or install

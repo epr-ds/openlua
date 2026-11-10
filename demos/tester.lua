@@ -1041,7 +1041,7 @@ local function test_peripherals()
     r[#r + 1] = PASS("USB.ISCONNECTED", type(select(2, pcall(usb.isconnected))) == "boolean",
                      tostring(select(2, pcall(usb.isconnected))))
     r[#r + 1] = SKIP("USB.MSTICK", "PRESS X IN THE USB TEST")
-    r[#r + 1] = SKIP("USB.UMD/FLASH", "READ-ONLY MODES NEED _usbdevice; PRESS TRIANGLE")
+    r[#r + 1] = SKIP("USB.UMD/FLASH", "_usbdevice.prx OMITTED FROM THIS BUILD")
 
     local si = select(2, pcall(sio.init))
     r[#r + 1] = PASS("SIO.INIT", si == 0, "inactive stub")
@@ -1546,12 +1546,12 @@ local function peripherals_action(pressed, page)
             select(2, pcall(usb.isactive)) == false, "stopped")
     elseif bit_has(pressed, __L) then
         pcall(usb.umd)
-        page.results[#page.results + 1] = PASS("USB.UMD LIVE",
-            select(2, pcall(usb.isactive)) == true, "read-only ISO9660")
+        page.results[#page.results + 1] = SKIP("USB.UMD LIVE",
+            "_usbdevice.prx NOT IN THIS BUILD")
     elseif bit_has(pressed, __R) then
         pcall(usb.flash0)
-        page.results[#page.results + 1] = PASS("USB.FLASH0 LIVE",
-            select(2, pcall(usb.isactive)) == true, "read-only")
+        page.results[#page.results + 1] = SKIP("USB.FLASH0 LIVE",
+            "_usbdevice.prx NOT IN THIS BUILD")
     end
 end
 
@@ -1625,7 +1625,7 @@ local pages = {
       action = camera_action, hint = "X LIVE CAMERA   O BACK   UP/DOWN SCROLL" },
     { id = "peripherals", tag = "UMD", title = "UMD / USB / SERIAL / IR / BT", run = test_peripherals,
       action = peripherals_action,
-      hint = "X UMD  TRI USB  SQU STOP  L/R IO  O BACK" },
+      hint = "X UMD  TRI USB  SQU STOP  L/R SKIP  O BACK" },
     { id = "network", tag = "NET", title = "WLAN / SOCKET / HTTP / FTP", run = test_network,
       action = network_action,
       hint = "X CONNECT  TRI OFF  SQU FTP  L/R ADHOC  O BACK" },

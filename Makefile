@@ -99,7 +99,7 @@ LDFLAGS = -L.
 # this list only carries the libraries the SDK does not add automatically.
 LIBS = -lpspgu -lpspgum -lpspaudio -lpspmpeg -lpsppower -lpsprtc \
        -lpsputility -lpspreg -lpsphprm -lpspfont -lpspusbcam -lpspusb \
-       -lpspumd -lpspusbstor -lpspusbdevice \
+       -lpspumd \
        -lpspnet_adhocctl -lpspnet_adhocmatching -lpspnet_adhoc \
        -lpspwlan \
        -Wl,--undefined=sceUtilityGetSystemParamInt

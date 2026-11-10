@@ -95,8 +95,9 @@ confirms `umd.init`, `umd.present` and `umd.type`. There is no
 `disc0:/PSP_GAME/PARAM.SFO` on that volume, so `umd.gameid` stays empty,
 `umd.info` is `nil` and `umd.size` is `0.0000`; those fields need a real game
 disc. PPSSPP implements the `sceUsb` state flags, so `usb.mstick` reports
-active/connected `YES`; it does not implement `_usbdevice`, UART or IR, so the
-UMD/flash USB modes and the `sio`/`ir` modules remain documented only. The demo
+active/connected `YES`; it does not implement `_usbdevice`, UART or IR, which
+matches the standard build (the UMD/flash USB modes are omitted at link time)
+and leaves the `sio`/`ir` modules as documented stubs. The demo
 never dumps a disc or exposes flash, and `umd.dumpiso`/`umd.launch` are not
 registered. The UMD helpers and the absent-hardware contract are covered by
 `test/host/test_umd.c` and `test/host/test_peripherals.lua`. No PSP hardware,

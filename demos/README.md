@@ -130,9 +130,11 @@ notes and current PPSSPP result are in [../docs/TESTER.md](../docs/TESTER.md).
   `usb.mstick()`; it never exposes flash or dumps a disc. `umd.dumpiso` and
   `umd.launch` are not registered. UMD metadata (`gameid`/`info`) needs a game
   disc, so PPSSPP shows `-` for the homebrew EBOOT; UMD present/type and the
-  USB flags are verified there. `sio`/`ir` report unavailable because raw
-  access needs a kernel driver. USB storage and the camera cannot be active
-  together. See [../docs/API.md](../docs/API.md) and #44.
+  USB flags are verified there. `usb.umd`/`flash*` need Sony's
+  `_usbdevice.prx`; the standard build omits that import so the EBOOT boots on
+  a normal CFW, and those calls are no-ops. `sio`/`ir` report unavailable
+  because raw access needs a kernel driver. USB storage and the camera cannot
+  be active together. See [../docs/API.md](../docs/API.md) and #44.
 - `network.lua` never starts the FTP server and only attempts refused loopback
   connections, so it is safe without WiFi. `wlan` profiles and access points
   report empty tables, adhoc needs the WLAN switch on, and Bluetooth is always

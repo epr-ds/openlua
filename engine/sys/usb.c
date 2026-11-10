@@ -1,9 +1,11 @@
 /* OpenLua - OneLua-compatible USB mass-storage module.
  *
  * See usb.h.  The memory-stick mode uses only the standard sceUsb and
- * USBStor drivers.  UMD/flash modes additionally select a device through
- * pspUsbDeviceSetDevice(), which needs Sony's optional _usbdevice.prx; a
- * failure there is reported through isactive() == false rather than raising.
+ * USBStor drivers.  The optional UMD/flash modes use pspUsbDevice, which needs
+ * Sony's `_usbdevice.prx` loaded before this EBOOT starts; importing that
+ * library statically makes the whole EBOOT fail with 8002013C on a normal CFW
+ * boot where the module is not preloaded.  This portable build therefore keeps
+ * only the standard memory-stick path and reports UMD/flash as unavailable.
  *
  * Host builds have no USB controller, so every mode is inactive and every
  * query returns false.
@@ -18,14 +20,11 @@
 
 #include <psptypes.h>
 #include <pspusb.h>
-#include <pspusbdevice.h>
-#include <pspusbstor.h>
+#include <pspusbstor.h>   /* PSP_USBSTOR_DRIVERNAME only; no USBStorBoot calls */
 
 #define USB_PID            0x282
-#define USB_STOR_CAPACITY  0x800000
 
 static int g_active;
-static int g_device_set;
 
 static void usb_stop_hw(void)
 {
@@ -35,22 +34,17 @@ static void usb_stop_hw(void)
         sceUsbStop(PSP_USBBUS_DRIVERNAME, 0, NULL);
         g_active = 0;
     }
-    if (g_device_set) {
-        pspUsbDeviceFinishDevice();
-        g_device_set = 0;
-    }
 }
 
-/* device < 0 selects the default memory-stick view. */
+/* device < 0 selects the default memory-stick view; the UMD/flash devices
+ * are not available in this portable build. */
 static int usb_start_hw(int device, int readonly)
 {
-    usb_stop_hw();
+    (void)readonly;
 
-    if (device >= 0) {
-        if (pspUsbDeviceSetDevice((unsigned int)device, readonly, 0) < 0)
-            return 0;
-        g_device_set = 1;
-    }
+    usb_stop_hw();
+    if (device >= 0)
+        return 0;
 
     if (sceUsbStart(PSP_USBBUS_DRIVERNAME, 0, NULL) < 0)
         goto fail;
@@ -58,9 +52,6 @@ static int usb_start_hw(int device, int readonly)
         sceUsbStop(PSP_USBBUS_DRIVERNAME, 0, NULL);
         goto fail;
     }
-
-    /* Advisory capacity hint used by the boot-capable storage driver. */
-    sceUsbstorBootSetCapacity(USB_STOR_CAPACITY);
 
     if (sceUsbActivate(USB_PID) < 0) {
         sceUsbStop(PSP_USBSTOR_DRIVERNAME, 0, NULL);
@@ -72,10 +63,6 @@ static int usb_start_hw(int device, int readonly)
     return 1;
 
 fail:
-    if (g_device_set) {
-        pspUsbDeviceFinishDevice();
-        g_device_set = 0;
-    }
     return 0;
 }
 
@@ -108,57 +95,36 @@ static int l_mstick(lua_State *L)
 static int l_umd(lua_State *L)
 {
     (void)L;
-#if defined(__PSP__)
-    usb_start_hw(PSP_USBDEVICE_UMD9660, 0);
-#endif
+    /* UMD mode needs _usbdevice.prx; not available in the portable build. */
     return 0;
 }
 
 static int l_flash(lua_State *L, int device)
 {
     (void)L;
-#if defined(__PSP__)
-    usb_start_hw(device, 1);   /* read-only: never allow flash writes */
-#else
     (void)device;
-#endif
+    /* Flash modes need _usbdevice.prx; not available in the portable build. */
     return 0;
 }
 
 static int l_flash0(lua_State *L)
 {
-#if defined(__PSP__)
-    return l_flash(L, PSP_USBDEVICE_FLASH0);
-#else
     return l_flash(L, 0);
-#endif
 }
 
 static int l_flash1(lua_State *L)
 {
-#if defined(__PSP__)
-    return l_flash(L, PSP_USBDEVICE_FLASH1);
-#else
     return l_flash(L, 1);
-#endif
 }
 
 static int l_flash2(lua_State *L)
 {
-#if defined(__PSP__)
-    return l_flash(L, PSP_USBDEVICE_FLASH2);
-#else
     return l_flash(L, 2);
-#endif
 }
 
 static int l_flash3(lua_State *L)
 {
-#if defined(__PSP__)
-    return l_flash(L, PSP_USBDEVICE_FLASH3);
-#else
     return l_flash(L, 3);
-#endif
 }
 
 static int l_stop(lua_State *L)

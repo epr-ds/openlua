@@ -23,6 +23,10 @@ The release is skipped for pull requests and non-`main` branches, and it only
 runs after the host tests and PSP build succeed. GitHub also attaches the
 automatic source archives.
 
+The release tag and the package `VERSION` file identify the project build.
+The `version 1.0` line at the top of `test_report.txt` is the tester's report
+format version, not the release version.
+
 ## Version scheme
 
 Versions are `vMAJOR.MINOR.PATCH`:

@@ -11,6 +11,7 @@ Start with the document that matches what you are doing.
 | [ROADMAP.md](ROADMAP.md) | Everyone | Phases, milestones, remaining work, issue map |
 | [../demos/README.md](../demos/README.md) | Script authors | Runnable demos and assets |
 | [TESTER.md](TESTER.md) | Testers | On-device hardware test menu, controls, model profiles and report format |
+| [RELEASING.md](RELEASING.md) | Maintainers | Automated GitHub Releases, version scheme and manual dispatch |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | Contributors | Workflow, labels, review and definition of done |
 | [../CHANGELOG.md](../CHANGELOG.md) | Everyone | Notable changes |
 

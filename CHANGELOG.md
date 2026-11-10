@@ -6,6 +6,11 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- Automated GitHub Releases in the `Build` workflow: pushes to `main` run the
+  host suite and PSP build, bump the patch version from the latest `v*` tag,
+  tag the commit and publish `openlua-tester-<version>.zip`,
+  `openlua-<version>.EBOOT.PBP` and `SHA256SUMS.txt`. A manual dispatch can
+  choose a minor/major/pre-release version. See `docs/RELEASING.md`.
 - `demos/tester.lua`, a self-contained on-device test menu for every module on
   PSP-1000/2000/3000/E1000/Go. It has per-page checks, interactive
   hardware actions behind explicit key presses, a SELECT-cycled declared model

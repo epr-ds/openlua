@@ -11,6 +11,10 @@
 #   PSP/GAME/OpenLua/script.lua     (copy of demos/tester.lua)
 #   PSP/GAME/OpenLua/assets/        (fonts, WAV, 3D, splash, sample PBP)
 #   README.txt                      (deployment and control notes)
+#   VERSION                         (OPENLUA_VERSION, or "dev")
+#
+# Set OPENLUA_VERSION to stamp a build version (the release workflow sets it
+# to the published tag).  OPENLUA_EBOOT overrides the EBOOT.PBP path.
 #
 # Copy PSP/ to the root of a Memory Stick or the PSP Go internal storage.  The
 # script needs EBOOT.PBP in the repository root; build it first with
@@ -21,6 +25,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="${1:-$ROOT/out/tester-package}"
 EBOOT="${OPENLUA_EBOOT:-$ROOT/EBOOT.PBP}"
+VERSION="${OPENLUA_VERSION:-dev}"
 APP="$OUT/PSP/GAME/OpenLua"
 
 if [ ! -f "$EBOOT" ]; then
@@ -94,6 +99,14 @@ Notes
 - HTTP is plaintext; the PSPSDK build has no TLS.
 - A PPSSPP run is emulator verification only.  Run this menu on real
   hardware before claiming hardware support.
+EOF
+
+printf '%s\n' "$VERSION" > "$OUT/VERSION"
+cat >> "$OUT/README.txt" <<EOF
+
+Build version
+-------------
+$VERSION
 EOF
 
 echo "packaged: $OUT"

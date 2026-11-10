@@ -62,6 +62,10 @@ Output: `EBOOT.PBP`. Copy it, `script.lua` and any assets into
 
 In PPSSPP, disable software rendering and enable fast memory if needed.
 
+Prebuilt, versioned releases (EBOOT.PBP plus the full tester package) are
+published automatically by GitHub Actions on every push to `main`; see
+[docs/RELEASING.md](docs/RELEASING.md) or the repository's Releases page.
+
 Host tests (no PSP toolchain required):
 
 ```bash
@@ -171,6 +175,7 @@ docker/   PSPSDK build script
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phases, issues and priorities |
 | [demos/README.md](demos/README.md) | Runnable examples |
 | [docs/TESTER.md](docs/TESTER.md) | On-device hardware test menu |
+| [docs/RELEASING.md](docs/RELEASING.md) | Versioning, CI/CD and release assets |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Workflow and definition of done |
 | [CHANGELOG.md](CHANGELOG.md) | Recent changes |
 | [docs/onelua-reference](docs/onelua-reference) | OneLua compatibility reference |

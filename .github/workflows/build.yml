@@ -2,7 +2,18 @@ name: Build
 
 on:
   push:
+    branches: [ "**" ]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (vMAJOR.MINOR.PATCH). Leave empty to bump the patch automatically."
+        required: false
+        default: ""
+      prerelease:
+        description: "Mark the release as a pre-release"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -41,3 +52,132 @@ jobs:
           path: EBOOT.PBP
           if-no-files-found: error
           retention-days: 7
+
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [ host-tests, psp-build ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: release-main
+      cancel-in-progress: false
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download EBOOT.PBP
+        uses: actions/download-artifact@v4
+        with:
+          name: openlua-eboot
+          path: release-input
+
+      - name: Resolve version
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${REQUESTED_VERSION:-}" ]; then
+            version="$REQUESTED_VERSION"
+            case "$version" in
+              v*) ;;
+              *) version="v$version" ;;
+            esac
+          else
+            latest="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
+            if [ -z "$latest" ]; then
+              version="v0.1.0"
+            else
+              core="${latest#v}"
+              major="${core%%.*}"
+              rest="${core#*.}"
+              minor="${rest%%.*}"
+              patch="${rest#*.}"
+              patch=$((patch + 1))
+              version="v${major}.${minor}.${patch}"
+            fi
+          fi
+
+          if ! printf '%s' "$version" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$'; then
+            echo "Invalid release version: $version" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Resolved release version: $version"
+
+      - name: Package tester
+        env:
+          OPENLUA_EBOOT: ${{ github.workspace }}/release-input/EBOOT.PBP
+          OPENLUA_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          version="$OPENLUA_VERSION"
+          dist="$PWD/out/dist"
+
+          bash tools/package_tester.sh "$PWD/out/tester-package"
+          mkdir -p "$dist"
+
+          (cd out/tester-package && zip -qr "$dist/openlua-tester-${version}.zip" PSP README.txt VERSION)
+          cp release-input/EBOOT.PBP "$dist/openlua-${version}.EBOOT.PBP"
+          (cd "$dist" && sha256sum ./* > SHA256SUMS.txt)
+
+          ls -lh "$dist"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PRERELEASE: ${{ github.event.inputs.prerelease }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null; then
+            echo "Tag $VERSION already exists; reusing it."
+          else
+            git tag -a "$VERSION" -m "OpenLua $VERSION" "$GITHUB_SHA"
+            git push origin "$VERSION"
+          fi
+
+          notes="$(mktemp)"
+          cat > "$notes" <<EOF
+          ## OpenLua $VERSION
+
+          Download the PSP test package below.
+
+          - \`openlua-tester-$VERSION.zip\` — full package: EBOOT.PBP, script.lua and assets/
+          - \`openlua-$VERSION.EBOOT.PBP\` — standalone EBOOT
+          - \`SHA256SUMS.txt\` — checksums for both
+
+          ### Install
+
+          1. Extract the \`PSP/\` folder from the zip to the root of a Memory Stick (\`ms0:\`) or the PSP Go internal storage (\`ef0:\`).
+          2. Launch **OpenLua** from the Game menu.
+          3. Press **SELECT** to match your model, then **START** to run the batch and write \`test_report.txt\`.
+
+          ### Verification
+
+          The menu is verified on PPSSPP only. Real PSP-1000/2000/3000/E1000/Go
+          results are welcome. See \`docs/TESTER.md\` for controls, safety rules and
+          the report format.
+          EOF
+
+          files=( out/dist/* )
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release upload "$VERSION" "${files[@]}" --clobber
+          else
+            release_args=( "$VERSION" "${files[@]}" --title "OpenLua $VERSION" --notes-file "$notes" )
+            if [ "${PRERELEASE:-false}" = "true" ]; then
+              release_args+=( --prerelease )
+            fi
+            gh release create "${release_args[@]}"
+          fi

@@ -5,10 +5,10 @@ module. It is meant to be run from `EBOOT.PBP` on a real PSP, but it is also
 useful in PPSSPP: the same menu runs there and marks anything the emulator
 cannot provide as `INFO` or `SKIP` instead of failing.
 
-No real PSP hardware was available while this menu was written. The only
-verification so far is PPSSPP v1.20.4; treat it as emulator verification until
-the report below has been collected on a physical PSP-1000, PSP-2000/3000,
-PSP-E1000 and PSP Go.
+The menu was originally written without real PSP hardware. It is verified on
+PPSSPP v1.20.4 and on a physical PSP-1000 (firmware 6.61); PSP-2000/3000,
+PSP-E1000 and PSP Go runs are still pending. Treat PPSSPP results as emulator
+verification only.
 
 ## Supported models
 
@@ -200,6 +200,32 @@ deliberately unrun destructive calls, and `FONT.LOAD PGF` (the standard build
 does not link `sceLibFont`; an opt-in PGF build adds the remaining checks).
 Zero `FAIL` confirms that every module's non-interactive surface works in the
 emulator; it does **not** prove real-hardware behaviour.
+
+## Current real-hardware result
+
+A PSP-1000 (FAT) on firmware 6.61, launched from `ms0:/PSP/GAME/OpenLua/`,
+produced the same totals with the standard PGF-disabled build:
+
+```text
+TOTAL 225 checks: 185 pass, 0 fail, 21 info, 19 skip
+```
+
+The header reports `declared model PSP-1000 (FAT)`, `detected model UNK`,
+firmware `6.61`, nickname `PSP 1001` and CFW `UNK`. `detected model UNK` is
+expected: user mode can only identify the Go, so the SELECT profile is the
+authoritative model on 1000/2000/3000/E1000. `ef0:` was absent, as expected on
+a 1000, so the EF0 and cross-volume rows are `SKIP`.
+
+This run also covers the `hw.getmodel()` fix: the 1000's CFW exposes an empty
+`ef0:` stub (`statvfs` succeeds with zero capacity), which previously made the
+menu report `Go`. Detection now requires non-zero capacity and matches
+`os.infoef0()`.
+
+Battery telemetry, power state and the `ms0:` file/savedata paths returned real
+values. `INFO` items are values the menu does not judge (battery capacity) or
+cannot read in user mode (kernel-only hardware IDs, UMD metadata). The
+interactive rows were not run, so this does not verify OSK, PMF playback,
+camera capture, USB, FTP, adhoc or a WLAN connection on hardware.
 
 Things PPSSPP cannot verify and that need a real PSP:
 

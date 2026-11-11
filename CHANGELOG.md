@@ -18,7 +18,8 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   `test_report.txt` with PASS/FAIL/INFO/SKIP totals. `tools/package_tester.sh`
   stages `EBOOT.PBP`, `script.lua` and `assets/`; `docs/TESTER.md` documents
   deployment, controls, safety and the PPSSPP-only result. The full PPSSPP
-  batch reports 225 checks with 0 fail in the standard PGF-disabled build.
+  batch reports 225 checks with 0 fail in the standard PGF-disabled build; a
+  real PSP-1000 (firmware 6.61, `ms0:`) matches that result.
 - Fixed recursive directory deletion on FAT layers that omit `FIO_S_IFDIR`
   from `st_attr`: `olfs_rdelete`, `olfs_list`, `olfs_copy_tree` and
   `olfs_copyfile` now use the `dopen` fallback and report directory modes.
@@ -202,6 +203,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   networking) to the project board.
 
 ### Fixed
+- `hw.getmodel()` no longer reports a non-Go PSP as a Go when its firmware
+  exposes an empty `ef0:` stub. Model detection now requires non-zero `ef0:`
+  capacity, matching `os.infoef0()`. A real PSP-1000 with CFW was reported as
+  `Go` while `ef0:` was absent; the decision is now a pure, host-tested helper.
 - The hardware test menu no longer re-runs a page action on every frame. The
   live-demo pages (GRAPHICS, FONTS, GAME, 3D, CAMERA) restarted their demo
   immediately after Circle/O exited it, so O looked like a no-op and never

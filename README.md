@@ -130,7 +130,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | PSP Go | `app0:`/`ms0:` boot, savedata and file paths verified in PPSSPP (no PSP Go model or `ef0:` emulation); `ef0:` internal-storage and M2 cross-volume check needs hardware ([#31]) |
 | PMF/PSMF video + ATRAC3+ audio | Implemented; PPSSPP-verified ([#5]) |
 | Networking (`wlan`, `socket`, `http`, `ftp`, `adhoc`, `bluetooth`) | Documented subsets implemented; host-tested with in-process loopback servers and PPSSPP-verified for safe absence; real WiFi/adhoc hardware and TLS/background transfers are not available ([#45]) |
-| Hardware test menu (`demos/tester.lua`) | Implemented; all modules covered; PPSSPP batch reports 230 checks with 0 fail; real PSP-1000/2000/3000/E1000/Go runs pending ([docs/TESTER.md](docs/TESTER.md)) |
+| Hardware test menu (`demos/tester.lua`) | Implemented; all modules covered; PPSSPP and a real PSP-1000 both report 225 checks with 0 fail; PSP-2000/3000/E1000/Go runs pending ([docs/TESTER.md](docs/TESTER.md)) |
 
 The [project board](https://github.com/users/epr-ds/projects/4) is the source
 of truth for remaining work.

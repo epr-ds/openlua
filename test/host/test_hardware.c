@@ -64,6 +64,22 @@ int main(void)
     check(strcmp(hw_model_name(99), "UNK") == 0, "model unknown");
     check(strcmp(hw_model_name(-1), "UNK") == 0, "model negative unknown");
 
+    /* hw.getmodel() must not treat a zero-capacity ef0: stub as a PSP Go.
+     * A real PSP-1000 with a CFW that mounts an empty ef0: reports zero
+     * blocks, exactly like the PPSSPP stub. */
+    check(strcmp(hw_model_from_probe(1, 0, 0), "Emulator") == 0,
+          "probe emulator nickname");
+    check(strcmp(hw_model_from_probe(1, 8192, 32768), "Emulator") == 0,
+          "probe emulator nickname wins over ef0");
+    check(strcmp(hw_model_from_probe(0, 8192, 32768), "Go") == 0,
+          "probe usable ef0 is a Go");
+    check(strcmp(hw_model_from_probe(0, 0, 32768), "UNK") == 0,
+          "probe zero-block ef0 is not a Go");
+    check(strcmp(hw_model_from_probe(0, 8192, 0), "UNK") == 0,
+          "probe zero-frsize ef0 is not a Go");
+    check(strcmp(hw_model_from_probe(0, 0, 0), "UNK") == 0,
+          "probe PSP-1000 zero ef0 stub is not a Go");
+
     check(strcmp(hw_region_name(0), "Japan") == 0, "region Japan");
     check(strcmp(hw_region_name(1), "America") == 0, "region America");
     check(strcmp(hw_region_name(2), "Australia") == 0, "region Australia");

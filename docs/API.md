@@ -385,7 +385,7 @@ fallbacks; the EBOOT never imports a kernel driver.
 
 | Function | Returns | Behaviour |
 |---|---|---|
-| `hw.getmodel()` | String | `"Emulator"` for PPSSPP's default nickname, `"Go"` when `ef0:/` is available, otherwise `"UNK"`. |
+| `hw.getmodel()` | String | `"Emulator"` for PPSSPP's default nickname, `"Go"` when `ef0:/` reports non-zero capacity, otherwise `"UNK"`. A zero-capacity `ef0:` stub (PPSSPP, or a non-Go model whose CFW exposes one) is not treated as a Go. |
 | `hw.firmware()` | String | Current firmware from `sceKernelDevkitVersion()`, for example `"6.60"`; `"UNK"` when unavailable. |
 | `hw.region()` | String | `"--"`; IDStorage region data is kernel-only. |
 | `hw.baryon()` | String | `"UNK"`; syscon is kernel-only. |

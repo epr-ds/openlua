@@ -2,7 +2,7 @@
  *
  * The safe, user-mode subset of the OneLua hw table is implemented here:
  *
- *   hw.getmodel()    PPSSPP nickname / ef0: heuristic + safe fallback
+ *   hw.getmodel()    PPSSPP nickname / usable ef0: heuristic + safe fallback
  *   hw.firmware()    sceKernelDevkitVersion()            (additive helper)
  *   hw.region()      "--": no reliable user-mode region query
  *   hw.volume([n])   /CONFIG/SYSTEM/SOUND main_volume (1..30)
@@ -122,6 +122,17 @@ const char *hw_model_name(int model)
     case 6: return "Emulator";
     default: return "UNK";
     }
+}
+
+const char *hw_model_from_probe(int emulator_nickname,
+                                unsigned long long ef0_blocks,
+                                unsigned long long ef0_frsize)
+{
+    if (emulator_nickname)
+        return hw_model_name(6);
+    if (ef0_blocks != 0 && ef0_frsize != 0)
+        return hw_model_name(3);
+    return "UNK";
 }
 
 const char *hw_region_name(int region)
@@ -414,6 +425,9 @@ static int l_getmodel(lua_State *L)
 #if defined(__PSP__)
     char nickname[64];
     struct statvfs vfs;
+    unsigned long long blocks = 0;
+    unsigned long long frsize = 0;
+    int emulator = 0;
 
     /* PPSSPP's default nickname is a stable, harmless emulator marker.  A
      * real PSP with the same nickname merely reports "Emulator"; it cannot
@@ -421,21 +435,22 @@ static int l_getmodel(lua_State *L)
     if (sceUtilityGetSystemParamString(PSP_SYSTEMPARAM_ID_STRING_NICKNAME,
                                        nickname, sizeof(nickname)) >= 0) {
         nickname[sizeof(nickname) - 1] = '\0';
-        if (strcmp(nickname, "PPSSPP") == 0) {
-            lua_pushliteral(L, "Emulator");
-            return 1;
-        }
+        emulator = strcmp(nickname, "PPSSPP") == 0;
     }
 
-    /* Only the PSP Go has the internal ef0: storage.  This identifies a Go
-     * without touching kernel APIs, but cannot distinguish 1000/2000/3000. */
+    /* Only the PSP Go has usable internal ef0: storage.  A successful
+     * statvfs() alone is not enough: non-Go models (and PPSSPP) can expose
+     * an empty ef0: stub whose f_blocks is zero.  Require real capacity so
+     * a PSP-1000 is not reported as a Go. */
     if (statvfs("ef0:/", &vfs) == 0) {
-        lua_pushliteral(L, "Go");
-        return 1;
+        blocks = (unsigned long long)vfs.f_blocks;
+        frsize = (unsigned long long)(vfs.f_frsize ? vfs.f_frsize
+                                                   : vfs.f_bsize);
     }
-    lua_pushliteral(L, "UNK");
+
+    lua_pushstring(L, hw_model_from_probe(emulator, blocks, frsize));
 #else
-    lua_pushliteral(L, "Emulator");
+    lua_pushstring(L, hw_model_from_probe(1, 0, 0));
 #endif
     return 1;
 }

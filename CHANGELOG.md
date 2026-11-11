@@ -18,7 +18,7 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   `test_report.txt` with PASS/FAIL/INFO/SKIP totals. `tools/package_tester.sh`
   stages `EBOOT.PBP`, `script.lua` and `assets/`; `docs/TESTER.md` documents
   deployment, controls, safety and the PPSSPP-only result. The full PPSSPP
-  batch reports 230 checks with 0 fail.
+  batch reports 225 checks with 0 fail in the standard PGF-disabled build.
 - Fixed recursive directory deletion on FAT layers that omit `FIO_S_IFDIR`
   from `st_attr`: `olfs_rdelete`, `olfs_list`, `olfs_copy_tree` and
   `olfs_copyfile` now use the `dopen` fallback and report directory modes.
@@ -208,6 +208,17 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   (`SCE_KERNEL_ERROR_LIBRARY_NOTFOUND`). `usb.mstick()` still uses the standard
   `sceUsb` path; `usb.umd()`/`flash*()` are now documented no-ops and the tester
   reports them as `SKIP` instead of `PASS`.
+- The standard PSP build no longer links `sceLibFont`. On real hardware that
+  symbol is exported by the per-game user module `libfont.prx`, not by a flash0
+  kernel module, so the static import caused the same `8002013C` boot failure
+  (PPSSPP hid it because it emulates `sceFont` in HLE). `engine/font/pgf.c` now
+  compiles `OPENLUA_NO_PGF` stubs in the PSP build; host and opt-in builds keep
+  the real PGF loader. PNG (`font.new`) and SFont fonts are unaffected.
+- Added `tools/bootprobe`, a minimal diagnostic EBOOT packaged as
+  `PSP/GAME/OpenLuaProbe` and released as `openlua-probe-<version>.EBOOT.PBP`.
+  It distinguishes a console/CFW that cannot run homebrew from a main EBOOT with
+  an unresolved import, and writes `openlua_probe.txt` with the optional-module
+  load results.
 - The generated 5x7 font sheet now draws `N` with a left-to-right diagonal
   instead of a mirrored glyph, so `OPENLUA` and other generated text read
   correctly at every scale. `assets/font.png`, `assets/sfont.png` and the

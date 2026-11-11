@@ -41,8 +41,13 @@ Outputs:
 - `EBOOT.PBP` — deploy to `PSP/GAME/OpenLua/`
 - `openlua.elf` — intermediate ELF
 
-The PGF font path links the PSPSDK's `-lpspfont` and loads a system font such as
-`flash0:/font/ltn0.pgf` at runtime; no Sony PGF asset is bundled.
+The PGF font path uses the PSPSDK's `sceLibFont` and loads a system font such
+as `flash0:/font/ltn0.pgf` at runtime; no Sony PGF asset is bundled. The
+standard PSP build defines `OPENLUA_NO_PGF` and does **not** link `-lpspfont`:
+on real hardware `sceLibFont` comes from the per-game user module
+`libfont.prx`, so a static import fails at boot with `8002013C`. Host builds
+and opt-in PSP builds compile `engine/font/pgf.c` without that define to keep
+the real implementation.
 
 Do not run `bash docker/build.sh clean all` in one invocation: the PSPSDK
 makefile parallelises them and the link can race.

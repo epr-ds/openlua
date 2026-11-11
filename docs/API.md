@@ -116,6 +116,17 @@ into a cached RGBA atlas, and returns a 1-based handle. No PGF file is bundled
 with OpenLua; use a system font such as `flash0:/font/ltn0.pgf`. A failed load
 returns `nil` rather than raising a Lua error.
 
+> **PSP limitation.** The standard PSP EBOOT is built with `OPENLUA_NO_PGF` and
+> does not link `sceLibFont`. On real hardware `sceLibFont` is exported by the
+> per-game user module `libfont.prx` (`USRDIR/module/libfont.prx`), not by a
+> flash0 kernel module, so a static import makes the firmware refuse to start
+> the EBOOT with `8002013C` (`SCE_KERNEL_ERROR_LIBRARY_NOTFOUND`). In the
+> standard build `font.load(path)` therefore returns `nil` and the `font.*`
+> PGF calls are no-ops. `font.new`/`sfont` (PNG and sheet fonts) are unaffected.
+> PGF remains enabled in host builds and in opt-in PSP builds compiled without
+> `-DOPENLUA_NO_PGF` (for example, a build that ships and loads `libfont.prx`).
+
+
 | Function | Description |
 |---|---|
 | `font.load(path)` | Load a PGF system font. Returns a handle or nil. |
@@ -151,10 +162,12 @@ loads a PNG sheet with `cellW` x `cellH` cells, glyphs starting at space
 | `font.textwidth(handle, text)` or `font.textwidth(text, handle)` | Measure a string. |
 | `font.free(handle)` | Release the handle and its surface. |
 
-For new code, prefer `font.load("flash0:/font/ltn0.pgf")` with the PSP system
-font, or keep `font.new(path, cellW, cellH)` for a bundled PNG. Existing code
-that calls `font.load(path, cellW, cellH)` keeps working unchanged. A
-one-argument `font.load` now means PGF; it does not auto-detect PNG files.
+For new code, prefer `font.new(path, cellW, cellH)` with a bundled PNG. On host
+builds and opt-in PGF builds, `font.load("flash0:/font/ltn0.pgf")` uses the PSP
+system font. Existing code that calls `font.load(path, cellW, cellH)` keeps
+working unchanged. A one-argument `font.load` means PGF; it does not auto-detect
+PNG files. In the standard PSP build generic PGF loading returns `nil` (see the
+limitation above).
 
 ### Classic variable-width SFont (`sfont`)
 

@@ -8,6 +8,73 @@
 
 #include "engine/font/pgf.h"
 
+#ifdef OPENLUA_NO_PGF
+
+/* Standard PSP builds omit the static sceLibFont import.  On a real PSP,
+ * sceLibFont is provided by the per-game user module libfont.prx
+ * (USRDIR/module/libfont.prx), not by a flash0 kernel module, so a static
+ * import makes the kernel fail to start the EBOOT with 8002013C
+ * (SCE_KERNEL_ERROR_LIBRARY_NOTFOUND).  PPSSPP emulates sceFont in HLE, which
+ * is why it used to work there.  PGF support stays available for host builds
+ * and for opt-in PSP builds compiled without -DOPENLUA_NO_PGF. */
+
+OL_PgfFont *pgf_load(const char *path)
+{
+    (void)path;
+    return NULL;
+}
+
+void pgf_free(OL_PgfFont *font)
+{
+    (void)font;
+}
+
+int pgf_nchars(const OL_PgfFont *font)
+{
+    (void)font;
+    return 0;
+}
+
+int pgf_cellw(const OL_PgfFont *font)
+{
+    (void)font;
+    return 0;
+}
+
+int pgf_cellh(const OL_PgfFont *font)
+{
+    (void)font;
+    return 0;
+}
+
+void pgf_draw_glyph(OL_PgfFont *font, int x, int y, unsigned char c,
+                    unsigned int tint)
+{
+    (void)font;
+    (void)x;
+    (void)y;
+    (void)c;
+    (void)tint;
+}
+
+int pgf_draw_text(OL_PgfFont *font, int x, int y, const char *text,
+                  unsigned int tint)
+{
+    (void)font;
+    (void)text;
+    (void)tint;
+    return x;
+}
+
+int pgf_textwidth(OL_PgfFont *font, const char *text)
+{
+    (void)font;
+    (void)text;
+    return 0;
+}
+
+#else /* !OPENLUA_NO_PGF */
+
 #include <pspfont.h>
 
 #include <malloc.h>
@@ -303,3 +370,5 @@ int pgf_textwidth(OL_PgfFont *font, const char *text)
     }
     return pgf_pen_px(pen);
 }
+
+#endif /* !OPENLUA_NO_PGF */

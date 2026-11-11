@@ -9,15 +9,16 @@ On every push to `main`, the [`Build`](../.github/workflows/build.yml)
 workflow:
 
 1. runs the full host suite and repository hygiene check,
-2. builds `EBOOT.PBP` in the PSPSDK container,
+2. builds `EBOOT.PBP` and the optional `8002013C` boot probe in the PSPSDK container,
 3. resolves the next version, and
 4. publishes a GitHub Release with:
 
 | Asset | Contents |
 |---|---|
-| `openlua-tester-<version>.zip` | `PSP/GAME/OpenLua/{EBOOT.PBP,script.lua,assets/}`, `README.txt`, `VERSION` |
-| `openlua-<version>.EBOOT.PBP` | standalone EBOOT |
-| `SHA256SUMS.txt` | checksums for the two files above |
+| `openlua-tester-<version>.zip` | `PSP/GAME/OpenLua/{EBOOT.PBP,script.lua,assets/}`, `PSP/GAME/OpenLuaProbe/EBOOT.PBP`, `README.txt`, `VERSION` |
+| `openlua-<version>.EBOOT.PBP` | standalone tester EBOOT |
+| `openlua-probe-<version>.EBOOT.PBP` | standalone minimal boot probe |
+| `SHA256SUMS.txt` | checksums for the files above |
 
 The release is skipped for pull requests and non-`main` branches, and it only
 runs after the host tests and PSP build succeed. GitHub also attaches the
@@ -75,12 +76,14 @@ duplicate version.
 To reproduce the release zip locally:
 
 ```bash
-bash docker/build.sh
+bash docker/build.sh all probe
 OPENLUA_VERSION=v0.1.0 bash tools/package_tester.sh
 cd out/tester-package && zip -r ../openlua-tester-v0.1.0.zip PSP README.txt VERSION
 ```
 
-`OPENLUA_VERSION` defaults to `dev` for local packaging.
+`OPENLUA_VERSION` defaults to `dev` for local packaging. `OPENLUA_PROBE_EBOOT`
+can point at a probe built elsewhere; if `tools/bootprobe/EBOOT.PBP` is absent,
+the probe is simply omitted from the package.
 
 ## Verification scope
 

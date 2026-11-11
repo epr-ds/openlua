@@ -95,11 +95,14 @@ as a field. Handles are 1-based integers into fixed-size global arrays
 ### Fonts
 
 `engine/font/font.c` keeps up to eight font handles and dispatches three
-loaders. `font.load(path)` opens a PGF through `sceLibFont` (`pgf.c`),
-`font.new(path, cellW, cellH)` describes a fixed cell grid from a PNG, and
-`sfont.load` accepts a classic SFont strip with magenta top-row separators and
-variable advances (or a fixed 95-cell sheet as a fallback). All three share the
-same handle table, print/textwidth path and `gfx_blit` renderer.
+loaders. `font.load(path)` opens a PGF through `sceLibFont` (`pgf.c`) in host
+and opt-in PSP builds; the standard PSP build defines `OPENLUA_NO_PGF`, because
+`sceLibFont` comes from a per-game user module and a static import makes the
+firmware reject the EBOOT with `8002013C`. `font.new(path, cellW, cellH)`
+describes a fixed cell grid from a PNG, and `sfont.load` accepts a classic
+SFont strip with magenta top-row separators and variable advances (or a fixed
+95-cell sheet as a fallback). All three share the same handle table,
+print/textwidth path and `gfx_blit` renderer.
 
 PGF loading asks the system library for printable ASCII (`0x20`..`0x7E`)
 glyph metrics and 4-bit coverage bitmaps, packs those bitmaps into a <=512 px
@@ -511,7 +514,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/core` | boot, Lua registration | `color`, `screen.clear/flip` |
 | `engine/gfx` | surfaces, GE, primitives, splash screens | `draw.*`, `splash.*` |
 | `engine/img` | image decode (file and memory), blits, transforms | `image.*` |
-| `engine/font` | PGF via `sceLibFont`, PNG/SFont loaders, atlas packer | `font.*`, `sfont.*`, `screen.print` |
+| `engine/font` | PGF via `sceLibFont` (host/opt-in), PNG/SFont loaders, atlas packer | `font.*`, `sfont.*`, `screen.print` |
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |

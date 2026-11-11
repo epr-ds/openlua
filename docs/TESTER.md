@@ -47,6 +47,7 @@ The output defaults to `out/tester-package/`:
 PSP/GAME/OpenLua/EBOOT.PBP
 PSP/GAME/OpenLua/script.lua
 PSP/GAME/OpenLua/assets/
+PSP/GAME/OpenLuaProbe/EBOOT.PBP   (when the probe was built)
 README.txt
 ```
 
@@ -54,13 +55,36 @@ Copy that `PSP/` directory to the root of a Memory Stick (`ms0:`) or the PSP Go
 internal storage (`ef0:`) and launch **OpenLua** from the Game menu. You can
 also copy the three items by hand instead of running the script.
 
+## Boot probe (8002013C)
+
+`tools/bootprobe` builds a deliberately minimal EBOOT (`PSP/GAME/OpenLuaProbe`)
+that imports only the core display/input/IO libraries. It asks the firmware to
+load the optional net, AV codec, USB camera and IrDA modules, then writes
+`openlua_probe.txt` next to itself and to `ms0:/` and `ef0:/`.
+
+Use it when the main EBOOT reports `8002013C`
+(`SCE_KERNEL_ERROR_LIBRARY_NOTFOUND`):
+
+- **Probe runs, tester does not** — the console can run homebrew; the tester
+  still imports a library this firmware cannot resolve. Send the probe log.
+- **Probe also fails to start** — the problem is the CFW/HEN or the launcher,
+  not the OpenLua build.
+
+Build it locally with `bash docker/build.sh all probe` (or `make probe` inside
+the PSPDEV environment). `tools/package_tester.sh` includes it automatically
+when `tools/bootprobe/EBOOT.PBP` exists; override with `OPENLUA_PROBE_EBOOT`.
+
 The menu needs no bundled system font. It tries, in order:
 
-1. `flash0:/font/ltn0.pgf` through the PGF loader,
+1. `flash0:/font/ltn0.pgf` through the PGF loader (opt-in builds only; the
+   standard EBOOT is built with `OPENLUA_NO_PGF`, so this step returns `nil`),
 2. `assets/font.png` as a fixed-cell font,
 3. a built-in 5x7 bitmap font.
 
-The third fallback keeps the menu readable even if the assets are missing.
+The standard PSP build does not link `sceLibFont`: on real hardware it is
+provided by the per-game user module `libfont.prx`, and a static import makes
+the firmware reject the EBOOT with `8002013C`. The PNG and built-in fallbacks
+therefore keep the menu readable without PGF.
 
 ## Controls
 
@@ -157,18 +181,19 @@ the app exits.
 ## Current PPSSPP result
 
 The full START batch on PPSSPP v1.20.4 (SDL offscreen + Mesa llvmpipe OpenGL)
-produced:
+produced, with the standard PGF-disabled PSP build:
 
 ```text
-TOTAL 230 checks: 191 pass, 0 fail, 21 info, 18 skip
+TOTAL 225 checks: 185 pass, 0 fail, 21 info, 19 skip
 ```
 
 `INFO` items are values PPSSPP cannot emulate (for example `ef0:` absent,
 UMD metadata, kernel-only hardware IDs, battery capacity/voltage). `SKIP`
-items are interactive-only tests (including camera init/begin/render) and the
-deliberately unrun destructive calls. Zero `FAIL` confirms that every module's
-non-interactive surface works in the emulator; it does **not** prove
-real-hardware behaviour.
+items are interactive-only tests (including camera init/begin/render), the
+deliberately unrun destructive calls, and `FONT.LOAD PGF` (the standard build
+does not link `sceLibFont`; an opt-in PGF build adds the remaining checks).
+Zero `FAIL` confirms that every module's non-interactive surface works in the
+emulator; it does **not** prove real-hardware behaviour.
 
 Things PPSSPP cannot verify and that need a real PSP:
 
@@ -180,7 +205,8 @@ Things PPSSPP cannot verify and that need a real PSP:
 - The GO! CAM accessory and real camera frames.
 - WLAN profiles, access points, adhoc peers and an actual connection.
 - Infrared and serial hardware (the user-mode build is a documented stub).
-- PGF rendering from the real `flash0:` font.
+- PGF rendering from the real `flash0:` font (PGF is disabled in the standard
+  build; use an opt-in `OPENLUA_NO_PGF`-less build that loads `libfont.prx`).
 - PMF playback and the OSK cancel/confirm variants (PPSSPP's OSK HLE has no
   cancel control).
 - `power.lock`/`unlock` on firmware where PSPSDK HLE is missing in PPSSPP.

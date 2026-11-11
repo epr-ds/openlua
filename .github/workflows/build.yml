@@ -43,13 +43,20 @@ jobs:
           key: ccache-${{ runner.os }}-${{ hashFiles('docker/Dockerfile') }}-${{ github.run_id }}
           restore-keys: |
             ccache-${{ runner.os }}-${{ hashFiles('docker/Dockerfile') }}-
-      - name: Build EBOOT.PBP
-        run: bash docker/build.sh
+      - name: Build EBOOT.PBP and boot probe
+        run: bash docker/build.sh all probe
       - name: Upload EBOOT.PBP
         uses: actions/upload-artifact@v4
         with:
           name: openlua-eboot
           path: EBOOT.PBP
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload boot probe
+        uses: actions/upload-artifact@v4
+        with:
+          name: openlua-probe
+          path: tools/bootprobe/EBOOT.PBP
           if-no-files-found: error
           retention-days: 7
 
@@ -75,6 +82,12 @@ jobs:
         with:
           name: openlua-eboot
           path: release-input
+
+      - name: Download boot probe
+        uses: actions/download-artifact@v4
+        with:
+          name: openlua-probe
+          path: release-probe
 
       - name: Resolve version
         id: version
@@ -115,6 +128,7 @@ jobs:
       - name: Package tester
         env:
           OPENLUA_EBOOT: ${{ github.workspace }}/release-input/EBOOT.PBP
+          OPENLUA_PROBE_EBOOT: ${{ github.workspace }}/release-probe/EBOOT.PBP
           OPENLUA_VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
@@ -126,6 +140,7 @@ jobs:
 
           (cd out/tester-package && zip -qr "$dist/openlua-tester-${version}.zip" PSP README.txt VERSION)
           cp release-input/EBOOT.PBP "$dist/openlua-${version}.EBOOT.PBP"
+          cp release-probe/EBOOT.PBP "$dist/openlua-probe-${version}.EBOOT.PBP"
           (cd "$dist" && sha256sum ./* > SHA256SUMS.txt)
 
           ls -lh "$dist"
@@ -156,13 +171,20 @@ jobs:
 
           - \`openlua-tester-$VERSION.zip\` — full package: EBOOT.PBP, script.lua and assets/
           - \`openlua-$VERSION.EBOOT.PBP\` — standalone EBOOT
-          - \`SHA256SUMS.txt\` — checksums for both
+          - \`openlua-probe-$VERSION.EBOOT.PBP\` — minimal 8002013C boot probe
+          - \`SHA256SUMS.txt\` — checksums for all files
 
           ### Install
 
           1. Extract the \`PSP/\` folder from the zip to the root of a Memory Stick (\`ms0:\`) or the PSP Go internal storage (\`ef0:\`).
           2. Launch **OpenLua** from the Game menu.
           3. Press **SELECT** to match your model, then **START** to run the batch and write \`test_report.txt\`.
+
+          If **OpenLua** fails to start with \`8002013C\`, launch **OpenLuaProbe**
+          (also included in the zip) and send back \`openlua_probe.txt\`. If the
+          probe runs but the tester does not, the console can run homebrew and
+          the remaining problem is an unresolved library import. If the probe
+          also fails, check the CFW/HEN and launcher first.
 
           ### Verification
 

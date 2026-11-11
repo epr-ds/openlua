@@ -3,6 +3,10 @@
  * PGF fonts are the system font format used by OneLua's `font` module.
  * The loader renders the printable ASCII range into a cached RGBA atlas
  * once, then reuses the normal gfx_blit path for text drawing.
+ *
+ * The standard PSP build defines OPENLUA_NO_PGF (see pgf.c): sceLibFont is a
+ * per-game user module there, so only host and opt-in builds link the real
+ * implementation.  The stubs return NULL/0 and draw nothing.
  */
 
 #ifndef OL_PGF_H

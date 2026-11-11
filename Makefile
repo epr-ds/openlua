@@ -87,7 +87,7 @@ OBJS = engine/core/main.o \
 
 INCDIR = . $(LUADIR) $(STBDIR)
 
-CFLAGS = -O2 -G0 -Wall
+CFLAGS = -O2 -G0 -Wall -DOPENLUA_NO_PGF
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -L.
 
@@ -98,7 +98,7 @@ LDFLAGS = -L.
 # would scan them twice and split their stub blocks ("stubs out of order"), so
 # this list only carries the libraries the SDK does not add automatically.
 LIBS = -lpspgu -lpspgum -lpspaudio -lpspmpeg -lpsppower -lpsprtc \
-       -lpsputility -lpspreg -lpsphprm -lpspfont -lpspusbcam -lpspusb \
+       -lpsputility -lpspreg -lpsphprm -lpspusbcam -lpspusb \
        -lpspumd \
        -lpspnet_adhocctl -lpspnet_adhocmatching -lpspnet_adhoc \
        -lpspwlan \
@@ -108,3 +108,10 @@ EXTRA_TARGETS = EBOOT.PBP
 
 PSPSDK = $(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
+
+# Diagnostic EBOOT used to triage 8002013C on real hardware.  It is packaged
+# next to the main tester so users can tell a missing library apart from a
+# launcher/CFW problem.
+probe:
+	$(MAKE) -C tools/bootprobe
+

@@ -188,9 +188,10 @@ jobs:
 
           ### Verification
 
-          The menu is verified on PPSSPP only. Real PSP-1000/2000/3000/E1000/Go
-          results are welcome. See \`docs/TESTER.md\` for controls, safety rules and
-          the report format.
+          The menu is verified on PPSSPP v1.20.4 and on a real PSP-1000
+          (firmware 6.61, \`ms0:\`), both reporting 225 checks with 0 fail.
+          PSP-2000/3000/E1000/Go results are welcome. See \`docs/TESTER.md\`
+          for controls, safety rules and the report format.
           EOF
 
           files=( out/dist/* )

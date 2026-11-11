@@ -202,6 +202,17 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   networking) to the project board.
 
 ### Fixed
+- The hardware test menu no longer re-runs a page action on every frame. The
+  live-demo pages (GRAPHICS, FONTS, GAME, 3D, CAMERA) restarted their demo
+  immediately after Circle/O exited it, so O looked like a no-op and never
+  reached the menu. Actions now run only on a real key press, the menu-open key
+  is not re-dispatched to the page in the same frame, and the live demos start
+  only on X (START/SELECT no longer launch them). The FONTS demo also loads its
+  SFont once instead of every frame, so repeated visits no longer exhaust the
+  eight font slots. Verified with a host navigation simulation covering every
+  page opened with both X and O, and in PPSSPP v1.20.4 for all five demo pages
+  (demo starts, first O returns to the page, second O returns to the menu).
+  Real-hardware retest is pending.
 - The PSP build no longer statically imports `pspUsbDevice` and
   `sceUsbstorBoot`. On a normal CFW boot where `_usbdevice.prx` is not running,
   those imports made the EBOOT refuse to launch with `8002013C`

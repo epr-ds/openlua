@@ -1254,6 +1254,8 @@ local function graphics_demo()
 end
 
 local function fonts_demo()
+    -- Load the SFont once: loading it every frame exhausts the 8 font slots.
+    local sf = select(2, pcall(sfont.load, "assets/sfont.png"))
     local angle = 0
     while true do
         screen.clear(dark)
@@ -1272,7 +1274,6 @@ local function fonts_demo()
         else
             txt(20, 92, "fixed font not found", grey)
         end
-        local sf = select(2, pcall(sfont.load, "assets/sfont.png"))
         if sf then
             sfont.print(sf, 20, 124, "SFONT assets/sfont.png - variable width!")
         else
@@ -1288,6 +1289,7 @@ local function fonts_demo()
         if bit_has(p, __CIRCLE) then break end
         os.delay(16)
     end
+    if sf then pcall(font.free, sf) end
 end
 
 local function three_d_demo()
@@ -1587,14 +1589,16 @@ local function network_action(pressed, page)
     end
 end
 
-local function camera_action()
-    camera_demo()
+-- Live demos run a nested loop until Circle/O.  Only X starts them, so
+-- pressing START/SELECT on a page cannot accidentally open a demo.
+local function camera_action(pressed)
+    if bit_has(pressed, __CROSS) then camera_demo() end
 end
 
-local function graphics_action() graphics_demo() end
-local function fonts_action() fonts_demo() end
-local function three_d_action() three_d_demo() end
-local function game_action() game_demo() end
+local function graphics_action(pressed) if bit_has(pressed, __CROSS) then graphics_demo() end end
+local function fonts_action(pressed) if bit_has(pressed, __CROSS) then fonts_demo() end end
+local function three_d_action(pressed) if bit_has(pressed, __CROSS) then three_d_demo() end end
+local function game_action(pressed) if bit_has(pressed, __CROSS) then game_demo() end end
 
 -- ------------------------------------------------------------ page table ---
 local pages = {
@@ -1807,7 +1811,10 @@ local function handle_page(pressed)
         page.scroll = math.min(most, (page.scroll or 1) + 1)
         return
     end
-    if page.action then
+    -- Action pages own a nested loop (live demos, camera, splash).  Only
+    -- call the action on an actual press: calling it every frame re-entered
+    -- the demo immediately after O exited it, so O looked like a no-op.
+    if page.action and pressed ~= 0 then
         page.action(pressed, page)
     elseif bit_has(pressed, __CROSS) and page.run then
         page.results = safe_run(page.run)
@@ -1872,7 +1879,9 @@ while true do
     local pressed = new_press(mask)
     last_new = pressed
 
-    if mode == "menu" then
+    local was_menu = (mode == "menu")
+
+    if was_menu then
         if handle_menu(pressed) == "runall" then
             run_all()
         end
@@ -1880,7 +1889,12 @@ while true do
     end
 
     if mode == "page" and current then
-        handle_page(pressed)
+        -- The key that opened the page (X/O) must not also act on it in the
+        -- same frame; otherwise O would open and instantly close it, and X
+        -- would open a page and start its live demo at once.
+        if not was_menu then
+            handle_page(pressed)
+        end
         if mode == "menu" then
             draw_menu()
         elseif current then

@@ -97,6 +97,12 @@ therefore keep the menu readable without PGF.
 | SELECT | cycle the declared model (saved to `tester.cfg`) |
 | START | run all non-interactive checks and write `test_report.txt` |
 
+The key used to open a page is consumed by the menu and does not act on the
+page in the same frame. On a live-demo page (GRAPHICS, FONTS, GAME, 3D,
+CAMERA), press **X** to start the demo, then **O** to leave the demo and
+return to the page, then **O** again to return to the menu. On a result page,
+**O** returns to the menu directly. START and SELECT do not start a live demo.
+
 Every test call is wrapped in `pcall`, so a broken module shows a `FAIL` line
 instead of taking the menu down.
 

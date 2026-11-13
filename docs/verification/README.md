@@ -129,6 +129,26 @@ cross-volume move fallback itself is covered on the host by
 `test/host/test_olfs.c` (`/tmp` vs `/dev/shm`). No PSP Go, M2 card or `ef0:`
 hardware was available.
 
+On a separate desktop run (PPSSPP v1.19.3 on Windows), the standard
+`OPENLUA_NO_PGF` EBOOT was copied next to **Halo Zero Infinity PSP** and booted
+from its own folder. The game's `script.lua` uses OneLua compound assignment and
+its PGF fonts (`halo-ltn0`, `halo5-ltn0`) resolve through the sibling `.png`
+atlases. Verified:
+
+- the “PRESS START” splash with the Halo title and button glyph;
+- the six-entry main menu, with one d-pad Down moving exactly one row
+  (PLAY → FORGE → MULTIPLAYER);
+- Settings (LANGUAGE/SFX/MUSIC/CONTROLS/DEFAULT/SAVE with the description
+  panel and Accept/Back footer), the bindings table reached through CONTROLS,
+  and the Forge and Credits scenes;
+- Play (map/difficulty/start rows) and the match intro;
+- live platform gameplay with camera scrolling, sprites, platforms and HUD,
+  including a 1.5 s walk to the right.
+
+`crash.log` stayed absent throughout. This is emulator verification only; the
+game has not yet been run on a real PSP, where FAT case-insensitivity and
+PPSSPP's uppercase traceback paths still need confirmation.
+
 [#19]: https://github.com/epr-ds/openlua/issues/19
 [#20]: https://github.com/epr-ds/openlua/issues/20
 [#36]: https://github.com/epr-ds/openlua/issues/36

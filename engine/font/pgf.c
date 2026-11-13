@@ -73,6 +73,35 @@ int pgf_textwidth(OL_PgfFont *font, const char *text)
     return 0;
 }
 
+void pgf_draw_glyph_scaled(OL_PgfFont *font, int x, int y, unsigned char c,
+                           unsigned int tint, float scale)
+{
+    (void)font;
+    (void)x;
+    (void)y;
+    (void)c;
+    (void)tint;
+    (void)scale;
+}
+
+int pgf_draw_text_scaled(OL_PgfFont *font, int x, int y, const char *text,
+                         unsigned int tint, float scale)
+{
+    (void)font;
+    (void)text;
+    (void)tint;
+    (void)scale;
+    return x;
+}
+
+int pgf_textwidth_scaled(OL_PgfFont *font, const char *text, float scale)
+{
+    (void)font;
+    (void)text;
+    (void)scale;
+    return 0;
+}
+
 #else /* !OPENLUA_NO_PGF */
 
 #include <pspfont.h>
@@ -134,6 +163,20 @@ static void pgf_blit_glyph(OL_PgfFont *f, int pen, int yTop, int idx,
              f->atlasX[idx], f->atlasY[idx],
              f->glyphW[idx], f->glyphH[idx],
              255, 0, 0, 0.0f, 1.0f, 1.0f, 0, tint);
+}
+
+/* Scaled blit used by the OneLua `size` argument. (x,y) is already in
+ * pixels and includes the glyph bearing. */
+static void pgf_blit_glyph_scaled(OL_PgfFont *f, float x, float y, int idx,
+                                  unsigned int tint, float scale)
+{
+    if (f->glyphW[idx] <= 0 || f->glyphH[idx] <= 0)
+        return;
+    gfx_blit(f->sheet,
+             (int)(x + 0.5f), (int)(y + 0.5f),
+             f->atlasX[idx], f->atlasY[idx],
+             f->glyphW[idx], f->glyphH[idx],
+             255, 0, 0, 0.0f, scale, scale, 0, tint);
 }
 
 OL_PgfFont *pgf_load(const char *path)
@@ -369,6 +412,59 @@ int pgf_textwidth(OL_PgfFont *font, const char *text)
             pen += font->advance[(int)ch - PGF_FIRST];
     }
     return pgf_pen_px(pen);
+}
+
+void pgf_draw_glyph_scaled(OL_PgfFont *font, int x, int y, unsigned char c,
+                           unsigned int tint, float scale)
+{
+    if (!font || !font->sheet || c < PGF_FIRST || c > PGF_LAST)
+        return;
+    if (scale <= 0.0f)
+        scale = 1.0f;
+    int idx = (int)c - PGF_FIRST;
+    float gx = (float)x + (float)(font->shiftX[idx] >> 6) * scale;
+    float gy = (float)(y + font->ascent) -
+               (float)(font->shiftY[idx] >> 6) * scale;
+    pgf_blit_glyph_scaled(font, gx, gy, idx, tint, scale);
+}
+
+/* Keep the pen in 26.6 units so advances stay exact, but scale the pixels. */
+int pgf_draw_text_scaled(OL_PgfFont *font, int x, int y, const char *text,
+                         unsigned int tint, float scale)
+{
+    if (!font || !font->sheet || !text)
+        return x;
+    if (scale <= 0.0f)
+        scale = 1.0f;
+
+    int pen = x << 6;
+    int lineY = y;
+
+    for (size_t i = 0; text[i]; i++) {
+        unsigned char ch = (unsigned char)text[i];
+        if (ch == '\n') {
+            lineY += (int)((float)font->lineH * scale + 0.5f);
+            pen = x << 6;
+        } else if (ch == '\t') {
+            pen += (int)((float)font->spaceAdv * 4.0f * scale + 0.5f);
+        } else if (ch >= PGF_FIRST && ch <= PGF_LAST) {
+            int idx = (int)ch - PGF_FIRST;
+            float gx = (float)(pen >> 6) +
+                       (float)(font->shiftX[idx] >> 6) * scale;
+            float gy = (float)(lineY + font->ascent) -
+                       (float)(font->shiftY[idx] >> 6) * scale;
+            pgf_blit_glyph_scaled(font, gx, gy, idx, tint, scale);
+            pen += (int)((float)font->advance[idx] * scale + 0.5f);
+        }
+    }
+    return pgf_pen_px(pen);
+}
+
+int pgf_textwidth_scaled(OL_PgfFont *font, const char *text, float scale)
+{
+    if (scale <= 0.0f)
+        scale = 1.0f;
+    return (int)((float)pgf_textwidth(font, text) * scale + 0.5f);
 }
 
 #endif /* !OPENLUA_NO_PGF */

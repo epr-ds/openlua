@@ -5,6 +5,10 @@ shown in the form they are actually parsed by the C bindings. If something
 here disagrees with a demo, the demo is a bug.
 
 - Lua 5.1, one global table per module.
+- OneLua compound assignment is accepted: `a += b`, `a -= b`, `a *= b`,
+  `a /= b`, `a %= b` and `a ^= b` expand to the matching binary operation on
+  the target (including table fields and indexed expressions). `table.unpack`
+  is an alias for `unpack`.
 - Screen is 480x272.
 - Colours are 32-bit **ABGR** integers: `0xAABBGGRR` (alpha high byte, red low
   byte). `color.new` builds them for you.
@@ -21,6 +25,13 @@ local c = color.new(r, g, b [, a])   -- a defaults to 255
 
 Returns an ABGR integer.
 
+OneLua palettes are also provided as direct ABGR values: `color.transparent`,
+`color.black`, `color.white`, `color.red`, `color.green`, `color.blue`,
+`color.yellow`, `color.cyan`, `color.magenta`, `color.orange`, `color.gray` /
+`color.grey`, `color.lightgray` / `color.lightgrey` and `color.darkgray` /
+`color.darkgrey`. `color.loadpalette()` is accepted for compatibility and does
+nothing, because OpenLua colours are already concrete ABGR words.
+
 ## screen
 
 | Function | Description |
@@ -30,12 +41,37 @@ Returns an ABGR integer.
 | `screen.font([handle])` | Set/get the default font handle. |
 | `screen.setcolor([abgr])` | Set/get the default text tint. |
 | `screen.print(x, y, text [, handle [, tint]])` | Draw text, returns the final cursor X. Requires a default or explicit font. |
-| `screen.textwidth(text [, handle])` | Measure text in pixels. |
+| `screen.print(x, y, text [, size [, color [, shadow [, align]]]])` | OneLua text-first form using the default font. |
+| `screen.print(font, x, y, text [, size [, color [, shadow [, align]]]])` | OneLua font-first form. |
+| `screen.textwidth(text [, handle])` | Legacy OpenLua form: measure text in pixels. |
+| `screen.textwidth(text [, size])` | OneLua form: measure with the default font at `size`. |
+| `screen.textwidth(font, text [, size])` | OneLua form with an explicit font. |
+| `screen.textheight([font [, size]])` | Measure the line height at `size` (default 1.0). |
+| `screen.textheight(size)` | Measure the default font's line height at `size`. |
+
+`size` is a scale factor (`1.0` is the font's native cell height). `color` is
+an ABGR tint, `shadow` is an ABGR shadow colour (a 1 px offset scaled with the
+text) and `align` accepts `__ALEFT`, `__ACENTER`, `__ARIGHT` or `__AFULL`.
+Centred and right-aligned text is positioned per line. The OneLua shadow-style
+constants `__SLEFT`, `__SRIGHT`, `__STHROUGH` and `__SSEESAW` are registered for
+source compatibility; OpenLua always draws one shadow per glyph.
+
+The first font a script loads becomes the default automatically, which matches
+OneLua's built-in default font. Calling `font.setdefault`/`screen.font`
+explicitly overrides it. `screen.print` raises an error only when no font has
+been loaded at all.
+
+> **Ambiguity note.** The legacy `(x, y, text, handle [, tint])` and OneLua
+> `(x, y, text, size [, colour ...])` forms share a shape. When the fourth
+> argument is an integral number that matches a currently loaded font handle,
+> OpenLua treats it as a legacy handle. OneLua code should pass a fractional
+> size (for example `0.5`) or use the font-first form when that matters.
 
 ```lua
 local f = font.new("assets/font.png", 8, 16)
 screen.font(f)
 screen.print(20, 20, "Hello PSP")
+screen.print(f, 240, 100, "Centered", 0.7, color.white, color.black, __ACENTER)
 ```
 
 ## image
@@ -81,6 +117,7 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 | `image.rotate(img, degrees)` | Rotation in degrees. |
 | `image.scale(img [, uniform])` | Set uniform scale. |
 | `image.scale(img, sx, sy)` | Set per-axis scale. |
+| `image.resize(img, w, h)` | OneLua form: set the target draw size. Implemented as scale factors (`w / img.w`, `h / img.h`) because OpenLua scales at blit time. |
 | `image.pivot(img [, x, y])` | Set rotation pivot; omit coordinates to reset to the current frame centre. |
 | `image.zindex(img [, z])` | Set/get the depth value passed to the GE. |
 | `image.tint(img [, abgr])` | Set/get colour modulation. `0xFFFFFFFF` means no tint; the tint alpha multiplies the blit alpha. |
@@ -102,9 +139,9 @@ flip, pivot and tint compose in one quad. Reset them between sprites.
 | `draw.line(x1, y1, x2, y2, color)` | Line. |
 | `draw.rect(x, y, w, h, color)` | Outlined rectangle. |
 | `draw.fillrect(x, y, w, h, color)` | Filled rectangle. |
+| `draw.gradrect(x, y, w, h, tl, tr, br, bl)` | Filled rectangle with a colour per corner (ABGR). Missing corners default clockwise; an all-transparent call draws nothing. |
 | `draw.circle(x, y, radius, color [, sections])` | Outlined circle; `sections` defaults to 30. |
-
-`draw.gradrect` is not implemented.
+| `draw.print(x, y, text [, color])` | Draw text with the current default font at scale 1.0; returns the final cursor X. |
 
 ## font / sfont
 
@@ -121,10 +158,18 @@ returns `nil` rather than raising a Lua error.
 > per-game user module `libfont.prx` (`USRDIR/module/libfont.prx`), not by a
 > flash0 kernel module, so a static import makes the firmware refuse to start
 > the EBOOT with `8002013C` (`SCE_KERNEL_ERROR_LIBRARY_NOTFOUND`). In the
-> standard build `font.load(path)` therefore returns `nil` and the `font.*`
-> PGF calls are no-ops. `font.new`/`sfont` (PNG and sheet fonts) are unaffected.
-> PGF remains enabled in host builds and in opt-in PSP builds compiled without
-> `-DOPENLUA_NO_PGF` (for example, a build that ships and loads `libfont.prx`).
+> standard build `font.load(path)` therefore cannot decode the PGF itself and
+> `font.*` PGF calls are no-ops. PGF remains enabled in host builds and in
+> opt-in PSP builds compiled without `-DOPENLUA_NO_PGF` (for example, a build
+> that ships and loads `libfont.prx`).
+>
+> **Atlas fallback.** When a `.pgf` cannot be decoded, `font.load(path)` looks
+> for a sibling `.png` with the same stem (`assets/font/halo5-ltn0.pgf` →
+> `assets/font/halo5-ltn0.png`) and loads it with the SFont loader. This makes
+> games that ship custom PGF fonts run on the standard build without Sony's
+> library; the PNG must be baked from the same font so advances and glyphs
+> match. `font.load` returns `nil` only when neither the PGF nor the atlas can
+> be loaded.
 
 
 | Function | Description |
@@ -166,8 +211,17 @@ For new code, prefer `font.new(path, cellW, cellH)` with a bundled PNG. On host
 builds and opt-in PGF builds, `font.load("flash0:/font/ltn0.pgf")` uses the PSP
 system font. Existing code that calls `font.load(path, cellW, cellH)` keeps
 working unchanged. A one-argument `font.load` means PGF; it does not auto-detect
-PNG files. In the standard PSP build generic PGF loading returns `nil` (see the
-limitation above).
+arbitrary PNG files, but in the standard PSP build it does fall back to a
+same-stem `.png` atlas next to the `.pgf` (see the atlas-fallback note above).
+
+### Default font adoption
+
+The first font loaded through `font.load`, `font.new` or `sfont.load` becomes
+the default used by `screen.print`, `screen.textwidth`, `draw.print` and
+`font.print` when no handle is passed. This mirrors OneLua, whose engine always
+has a built-in default font. An explicit `font.setdefault(handle)` or
+`screen.font(handle)` replaces it. `font.setdefault()` with no arguments still
+returns the current handle.
 
 ### Classic variable-width SFont (`sfont`)
 
@@ -195,16 +249,35 @@ cells) and `assets/sfont.png` (classic separators). Regenerate both with
 ## buttons
 
 ```lua
+buttons.read()
 local mask, lx, ly = buttons.read()
 ```
 
-`mask` is a `sceCtrl` bitmask; `lx`/`ly` are the analog stick values.
+`buttons.read()` polls the pad once per frame. It fills the global `buttons`
+table with OneLua's stateful booleans — `buttons.select`, `buttons.start`,
+`buttons.up`, `buttons.down`, `buttons.left`, `buttons.right`, `buttons.l`,
+`buttons.r`, `buttons.triangle`, `buttons.circle`, `buttons.cross`,
+`buttons.square`, `buttons.hold` and `buttons.note` — each true only on the
+frame the button is pressed (edge trigger). It also fills two sub-tables:
+
+- `buttons.held` — buttons currently held this frame.
+- `buttons.released` — buttons released this frame.
+
+The analog stick is available as `buttons.analogx` / `buttons.analogy`
+(`-128..127`). For compatibility, `read()` still returns the raw `sceCtrl`
+bitmask and the `0..255` stick values, so existing OpenLua code keeps working.
 
 Global constants: `__SELECT`, `__START`, `__UP`, `__DOWN`, `__LEFT`,
 `__RIGHT`, `__L`, `__R`, `__TRIANGLE`, `__CIRCLE`, `__CROSS`, `__SQUARE`,
 `__NOTE`, `__HOLD`.
 
-`buttons.waitforkey` / `buttons.interval` are not implemented.
+| Function | Description |
+|---|---|
+| `buttons.interval([delay, interval])` | Enable d-pad/shoulder autorepeat: `delay` frames before the first repeat, then one repeat every `interval` frames. With no arguments, disable it. |
+| `buttons.analogtodpad([deadzone])` | Merge analog-stick movement into the d-pad state; `0` (default) disables it. |
+| `buttons.waitforkey([mask])` | Block until a button is pressed. With a mask, returns when any masked button is hit; without one, returns the pressed bitmask. |
+| `buttons.homepopup(mode)` | Accepted for compatibility; the user-mode build does not control the HOME popup. |
+| `buttons.assign()` | Returns `1`, reporting Cross as the accept button. |
 
 ## timers
 
@@ -219,8 +292,22 @@ t:reset(500)                -- restart at 500 ms
 Methods: `start`, `time`, `gettime`, `stoptime`, `reset`, `startreset`.
 `time`/`gettime` return elapsed milliseconds; `stoptime` freezes the value
 and returns the same result on repeated calls. `start` and `reset` restart the
-timer and return its new value. There is no `timers.start(t)` function; use the
-method form.
+timer and return its new value.
+
+OneLua's module-level `timer` table is also registered, with the same timer as
+the first argument:
+
+```lua
+local clock = timer.new()
+timer.start(clock)
+local ms = timer.time(clock)
+timer.stoptime(clock)
+timer.reset(clock, 0)
+```
+
+`timer.new`/`timers.new`, `timer.start`/`timers` methods, `timer.time` and
+`timer.gettime`, `timer.stoptime`, and `timer.reset`/`timer.startreset` are
+equivalent. The `timers` table is kept for existing OpenLua scripts.
 
 ## math
 
@@ -1195,3 +1282,7 @@ implemented yet.
 | Hardware LED | `hw.led()` is present but returns `-1` because `sceSysconCtrlLED` is kernel-only | #36 |
 | Hardware volume/mute | Uses `/CONFIG/SYSTEM/SOUND`; PPSSPP 1.20.4 lacks that registry category, so the session fallback `27`/`0` is reported and writes are not applied to the emulator mixer | #36 |
 | Hardware audio route | `hw.audioout(mode)` uses `sceAudioRoutingSetMode`; PPSSPP 1.20.4's `GetMode` HLE always returns `0` | #36 |
+| Compound assignment | OpenLua's vendored Lua 5.1 lexer/parser accepts OneLua's `+=`, `-=`, `*=`, `/=`, `%=` and `^=`. This is a source-language extension, not a new runtime module | — |
+| PGF without `libfont.prx` | The standard build cannot decode PGF natively; custom fonts must ship a same-stem `.png` atlas and are loaded through the SFont path. Native PGF metrics require an opt-in build with Sony's `libfont.prx` | — |
+| Default font | OneLua ships a built-in default font; OpenLua adopts the first font loaded by the script. Scripts that never load a font still need to pass a handle or call `font.setdefault` | — |
+| `screen.print` scale default | OneLua defaults the size argument to `0.7`; OpenLua defaults to `1.0` to preserve the existing OpenLua behaviour. Pass an explicit size for OneLua-identical output | — |

@@ -11,6 +11,7 @@
 #include "engine/fs/files.h"
 #include "engine/fs/ini.h"
 #include "engine/data/json.h"
+#include "engine/core/color.h"
 #include "engine/font/font.h"
 #include "engine/gfx/splash.h"
 #include "engine/img/image.h"
@@ -54,6 +55,7 @@ int main(int argc, char **argv)
     files_api_register(L);
     ini_api_register(L);
     json_api_register(L);
+    color_api_register(L);
 
     /* The PSP core creates `screen` before the font hooks are installed.
      * Mirror that here so screen.print / screen.textwidth are testable. */

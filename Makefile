@@ -37,6 +37,7 @@ LUAOBJS = \
 
 OBJS = engine/core/main.o \
 	engine/core/olreg.o \
+	engine/core/color.o \
 	engine/core/stb_impl.o \
 	engine/net/net.o \
 	engine/gfx/gfx.o \

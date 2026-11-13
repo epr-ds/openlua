@@ -282,6 +282,13 @@ static const luaL_Reg tab_funcs[] = {
 
 LUALIB_API int luaopen_table (lua_State *L) {
   luaL_register(L, LUA_TABLIBNAME, tab_funcs);
+  /* OneLua scripts written for Lua 5.2+ expect table.unpack. The 5.1 base
+   * library already provides an identical `unpack`, so alias it. */
+  lua_getglobal(L, "unpack");
+  if (lua_isfunction(L, -1))
+    lua_setfield(L, -2, "unpack");
+  else
+    lua_pop(L, 1);
   return 1;
 }
 

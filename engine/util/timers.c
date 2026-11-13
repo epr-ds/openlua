@@ -156,6 +156,20 @@ static const luaL_Reg timers_funcs[] = {
     { NULL, NULL }
 };
 
+/* OneLua exposes `timer.new/start/time` as module-level functions, while
+ * OpenLua has always used `timers`. The functions already take the timer as
+ * their first argument, so they can be shared between both tables. */
+static const luaL_Reg timer_funcs[] = {
+    { "new",       l_new },
+    { "start",     l_start },
+    { "stoptime",  l_stop },
+    { "time",      l_gettime },
+    { "gettime",   l_gettime },
+    { "startreset", l_reset },
+    { "reset",     l_reset },
+    { NULL, NULL }
+};
+
 void timers_api_register(lua_State *L)
 {
     luaL_newmetatable(L, OL_TIMER);
@@ -167,4 +181,8 @@ void timers_api_register(lua_State *L)
     lua_createtable(L, 0, 1);
     ol_setfuncs(L, timers_funcs);
     lua_setglobal(L, "timers");
+
+    lua_createtable(L, 0, 6);
+    ol_setfuncs(L, timer_funcs);
+    lua_setglobal(L, "timer");
 }

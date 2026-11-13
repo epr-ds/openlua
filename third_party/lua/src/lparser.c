@@ -1221,6 +1221,63 @@ static void funcstat (LexState *ls, int line) {
 }
 
 
+/*
+** OneLua compound assignment:  lv += e, lv -= e, lv *= e, lv /= e
+** (plus %= and ^=).  It is lowered to `lv = lv OP (e)` while keeping a
+** stable copy of the table and key, so a side effect in `e` cannot change
+** the slot that is written back (OneLua/C semantics).
+*/
+static void compoundstat (LexState *ls, struct LHS_assign *lh, BinOpr op) {
+  FuncState *fs = ls->fs;
+  expdesc value, target, e;
+  check_condition(ls, VLOCAL <= lh->v.k && lh->v.k <= VINDEXED,
+                  "syntax error");
+  if (lh->v.k == VINDEXED) {
+    int t, k, vreg, base;
+    int hasreg = !ISK(lh->v.u.s.aux);
+    base = fs->freereg;
+    luaK_reserveregs(fs, 1 + hasreg);
+    t = base;
+    luaK_codeABC(fs, OP_MOVE, t, lh->v.u.s.info, 0);
+    if (hasreg) {
+      k = base + 1;
+      luaK_codeABC(fs, OP_MOVE, k, lh->v.u.s.aux, 0);
+    }
+    else
+      k = lh->v.u.s.aux;
+    vreg = fs->freereg;
+    luaK_reserveregs(fs, 1);
+    luaK_codeABC(fs, OP_GETTABLE, vreg, t, k);
+    init_exp(&value, VNONRELOC, vreg);
+    target.k = VINDEXED;
+    target.u.s.info = t;
+    target.u.s.aux = k;
+  }
+  else {
+    value = lh->v;
+    target = lh->v;
+  }
+  luaK_infix(fs, op, &value);
+  luaX_next(ls);                       /* skip the compound token */
+  expr(ls, &e);
+  luaK_posfix(fs, op, &value, &e);
+  luaK_storevar(fs, &target, &value);
+}
+
+
+static BinOpr compound_binop (int token) {
+  switch (token) {
+    case TK_ADDEQ: return OPR_ADD;
+    case TK_SUBEQ: return OPR_SUB;
+    case TK_MULEQ: return OPR_MUL;
+    case TK_DIVEQ: return OPR_DIV;
+    case TK_MODEQ: return OPR_MOD;
+    case TK_POWEQ: return OPR_POW;
+    default: return OPR_NOBINOPR;
+  }
+}
+
+
 static void exprstat (LexState *ls) {
   /* stat -> func | assignment */
   FuncState *fs = ls->fs;
@@ -1229,8 +1286,12 @@ static void exprstat (LexState *ls) {
   if (v.v.k == VCALL)  /* stat -> func */
     SETARG_C(getcode(fs, &v.v), 1);  /* call statement uses no results */
   else {  /* stat -> assignment */
+    BinOpr op = compound_binop(ls->t.token);
     v.prev = NULL;
-    assignment(ls, &v, 1);
+    if (op != OPR_NOBINOPR)
+      compoundstat(ls, &v, op);
+    else
+      assignment(ls, &v, 1);
   }
 }
 

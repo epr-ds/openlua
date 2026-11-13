@@ -6,6 +6,7 @@
 #include "draw.h"
 #include "gfx.h"
 #include "../core/olreg.h"
+#include "../font/font.h"
 
 #include <lauxlib.h>
 #include <lualib.h>
@@ -134,11 +135,53 @@ void ol_fill_circle(int x, int y, int radius, unsigned int color, int sections)
     draw_circle_impl(x, y, radius, color, sections, 1);
 }
 
+/* Four-corner gradient quad (OneLua `draw.gradrect`). Colors are ABGR and
+ * keep their alpha so an all-transparent call draws nothing. */
+void ol_grad_rect(int x, int y, int w, int h,
+                  unsigned int tl, unsigned int tr,
+                  unsigned int br, unsigned int bl)
+{
+    if (w <= 0 || h <= 0)
+        return;
+
+    /* Treat an RGB value with a zero alpha byte as opaque, but leave a fully
+     * transparent black (0) transparent. */
+    if ((tl & 0xFF000000u) == 0 && (tl & 0x00FFFFFFu)) tl |= 0xFF000000u;
+    if ((tr & 0xFF000000u) == 0 && (tr & 0x00FFFFFFu)) tr |= 0xFF000000u;
+    if ((br & 0xFF000000u) == 0 && (br & 0x00FFFFFFu)) br |= 0xFF000000u;
+    if ((bl & 0xFF000000u) == 0 && (bl & 0x00FFFFFFu)) bl |= 0xFF000000u;
+
+    if (((tl | tr | br | bl) & 0xFF000000u) == 0)
+        return; /* fully transparent */
+
+    if (!gfx_gu_started())
+        return;
+
+    sceGuStart(GU_DIRECT, gfx_list());
+    sceGuDisable(GU_TEXTURE_2D);
+    sceGuShadeModel(GU_SMOOTH);
+
+    VertC *v = alloc_verts(4);
+    v[0].color = tl; v[0].x = (short)x;         v[0].y = (short)y;         v[0].z = 0;
+    v[1].color = tr; v[1].x = (short)(x + w);   v[1].y = (short)y;         v[1].z = 0;
+    v[2].color = br; v[2].x = (short)(x + w);   v[2].y = (short)(y + h);   v[2].z = 0;
+    v[3].color = bl; v[3].x = (short)x;         v[3].y = (short)(y + h);   v[3].z = 0;
+
+    sceGuDrawArray(GU_TRIANGLE_FAN,
+                   GU_COLOR_8888 | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 4, 0, v);
+
+    sceGuShadeModel(GU_FLAT);
+    sceGuFinish();
+    sceGuSync(0, 0);
+}
+
 /* Forward declarations for luaL_Reg array */
 static int l_line(lua_State *L);
 static int l_rect(lua_State *L);
 static int l_fillrect(lua_State *L);
 static int l_circle(lua_State *L);
+static int l_gradrect(lua_State *L);
+static int l_print(lua_State *L);
 
 static int l_line(lua_State *L)
 {
@@ -173,11 +216,42 @@ static int l_circle(lua_State *L)
     return 0;
 }
 
+static int l_gradrect(lua_State *L)
+{
+    int x = (int)luaL_checkinteger(L, 1);
+    int y = (int)luaL_checkinteger(L, 2);
+    int w = (int)luaL_checkinteger(L, 3);
+    int h = (int)luaL_checkinteger(L, 4);
+    unsigned int tl = (unsigned int)luaL_checkinteger(L, 5);
+    unsigned int tr = (unsigned int)luaL_optinteger(L, 6, (lua_Integer)tl);
+    unsigned int br = (unsigned int)luaL_optinteger(L, 7, (lua_Integer)tr);
+    unsigned int bl = (unsigned int)luaL_optinteger(L, 8, (lua_Integer)tl);
+    ol_grad_rect(x, y, w, h, tl, tr, br, bl);
+    return 0;
+}
+
+/* OneLua `draw.print(x, y, text [, color])` draws with the current default
+ * font at 1.0 scale. Returns the final X cursor. */
+static int l_print(lua_State *L)
+{
+    int x = (int)luaL_checkinteger(L, 1);
+    int y = (int)luaL_checkinteger(L, 2);
+    const char *text = luaL_checkstring(L, 3);
+    unsigned int color = 0xFFFFFFFFu;
+    if (!lua_isnoneornil(L, 4))
+        color = (unsigned int)luaL_checkinteger(L, 4);
+    lua_pushinteger(L, font_draw_text_scaled(font_default(), x, y, text,
+                                             color, 1.0f));
+    return 1;
+}
+
 static const luaL_Reg draw_funcs[] = {
     { "line",     l_line },
     { "rect",     l_rect },
     { "fillrect", l_fillrect },
+    { "gradrect", l_gradrect },
     { "circle",   l_circle },
+    { "print",    l_print },
     { NULL, NULL }
 };
 

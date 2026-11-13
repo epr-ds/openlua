@@ -6,6 +6,38 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua compatibility layer for running unmodified OneLua games, verified by
+  booting and playing `halo-zero-infinity-psp` in PPSSPP from start screen
+  through menu navigation, Settings, Play and live gameplay:
+  - The vendored Lua 5.1 lexer/parser now accepts OneLua compound assignment
+    (`+=`, `-=`, `*=`, `/=`, `%=`, `^=`), including table fields and indexed
+    targets, and `table.unpack` aliases the existing `unpack`.
+  - `screen.print` accepts the OneLua text-first and font-first signatures with
+    `size`, text colour, shadow colour and `__ALEFT`/`__ACENTER`/`__ARIGHT`/
+    `__AFULL` alignment (applied per line). `screen.textwidth` and the new
+    `screen.textheight` accept the OneLua `(font, text, size)` / `(text, size)`
+    forms while keeping the legacy `(text, handle)` form.
+  - `font.load`/`font.new`/`sfont.load` adopt the first loaded font as the
+    `screen.print` default, mirroring OneLua's built-in default font.
+  - A `.pgf` that cannot be decoded falls back to a sibling `.png` atlas with
+    the same stem, loaded through the SFont path. This lets games with custom
+    PGF Halo fonts run in the standard `OPENLUA_NO_PGF` EBOOT without Sony's
+    `libfont.prx`; advances stay proportional because baked atlases use
+    magenta separator runs.
+  - `color` gained `loadpalette` and the OneLua named palette (`white`,
+    `black`, `red`, `green`, `blue`, `yellow`, `cyan`, `magenta`, `orange`,
+    `gray`/`grey`, `lightgray`, `darkgray`, `transparent`).
+  - `draw.gradrect` and `draw.print`, and `image.resize` (implemented as
+    per-axis scale factors because OpenLua scales at blit time).
+  - `buttons.read` now fills OneLua's stateful booleans (`buttons.start`,
+    `buttons.cross`, ...), the `held`/`released` sub-tables and
+    `analogx`/`analogy`, while still returning the legacy bitmask and analog
+    values. Added `buttons.interval`, `waitforkey`, `analogtodpad`,
+    `homepopup` and `assign`.
+  - The module-level `timer` table (`timer.new/start/time/gettime/stoptime/
+    reset/startreset`) is registered alongside the original `timers` table.
+  - `test/host/test_compat.lua` (57 assertions) covers the added surface; the
+    full host suite now runs 601 C checks and 966 Lua assertions.
 - Automated GitHub Releases in the `Build` workflow: pushes to `main` run the
   host suite and PSP build, bump the patch version from the latest `v*` tag,
   tag the commit and publish `openlua-tester-<version>.zip`,

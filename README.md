@@ -13,11 +13,13 @@ Portable, built with PSPSDK.
 OpenLua runs a single `script.lua` on the PSP and exposes game-oriented Lua
 modules on top of the hardware:
 
-- Lua 5.1 interpreter (vendored, unmodified).
+- Lua 5.1 interpreter (vendored; accepts OneLua's `+=`/`-=`/`*=`/`/=`/`%=`/`^=`
+  compound assignment and provides `table.unpack`).
 - GE sprite renderer: PNG loading, frames, flips, scale, rotation, tint.
 - OneLua PGF system fonts with `font.load`/`font.setdefault`, plus fixed-cell
   PNG and classic variable-width SFont text with `font`/`sfont` and
-  `screen.print`.
+  `screen.print`. A `.pgf` that cannot be decoded falls back to a same-stem
+  `.png` atlas, so custom OneLua fonts work without Sony's `libfont.prx`.
 - OneLua 3D subset: `amg` scene control, `cam3d` cameras, `texture3d` textures
   and `model3d` OBJ/MTL models rendered through the GE.
 - Start-up splash screens with `splash.show`, `splash.old` and
@@ -69,7 +71,7 @@ published automatically by GitHub Actions on every push to `main`; see
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 506 C checks + 815 Lua assertions
+bash test/host/run.sh              # 601 C checks + 966 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -116,7 +118,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | UMD + USB storage (`umd`, `usb`) | Implemented; host-tested; UMD present/type and USB flags PPSSPP-verified; game-disc metadata and USB flash modes need real hardware/CFW ([#44]) |
 | Serial + IR (`sio`, `ir`) | API registered; documented as unavailable in the user-mode build; raw access needs a kernel driver ([#44]) |
 | Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
-| Buttons | Implemented (`waitforkey` pending) |
+| Buttons | Implemented; OneLua stateful booleans, `held`/`released`, analog, `interval`, `waitforkey`, `analogtodpad` |
 | Timers | Implemented; elapsed-time fix [#21] |
 | OneLua math helpers | Implemented; host-tested and PPSSPP-verified ([#32]) |
 | Battery telemetry | Implemented; host-tested and PPSSPP-verified ([#33]) |
@@ -200,17 +202,17 @@ for a local toolchain build, host tests and debugging.
 
 | OneLua module | OpenLua | Notes |
 |---|---|---|
-| `screen` | `clear`, `flip`, `print`, `font`, `setcolor`, `textwidth` | Implemented |
-| `image` | `load`, `new`, `blit`, `blitsprite`, `fliph`, `flipv`, transforms | Implemented; method + module-call forms; [#19]/[#20] device pending |
-| `draw` | `line`, `rect`, `fillrect`, `circle` | `gradrect` pending |
-| `buttons` | `read` + button constants | `waitforkey`/`interval` pending |
-| `timers` | `timers.new([initial_ms])` + methods | Implemented; host-tested ([#21]) |
+| `screen` | `clear`, `flip`, `print`, `font`, `setcolor`, `textwidth`, `textheight` | Implemented; legacy and OneLua text-first/font-first forms, size/colour/shadow/alignment |
+| `image` | `load`, `new`, `blit`, `blitsprite`, `fliph`, `flipv`, `resize`, transforms | Implemented; method + module-call forms; [#19]/[#20] device pending |
+| `draw` | `line`, `rect`, `fillrect`, `gradrect`, `circle`, `print` | Implemented; `gradrect` takes per-corner colours |
+| `buttons` | `read`, `interval`, `waitforkey`, `analogtodpad`, `homepopup`, `assign`, constants | Implemented; `read` fills OneLua booleans plus `held`/`released`/`analogx`/`analogy`, and still returns the legacy mask |
+| `timers` / `timer` | `new`, `start`, `time`, `gettime`, `stoptime`, `reset`, `startreset` | Implemented; module-level `timer` table plus the original `timers` table ([#21]) |
 | `math` | `minmax`, `bitnot`, `bitand`, `bitor` | Extends Lua 5.1 `math`; 32-bit signed bitwise results; host-tested ([#32]) |
 | `batt` | `exists`, `charging`, `lifepercent`, `lifetime`, `temp`, `volt`, `remaincap`, `fullcap`, `low` | Read-only telemetry; serial/mode/EEPROM operations are safe no-ops ([#33]) |
 | `power` | `plugged`, `suspend`, `lock`, `unlock`, `tick`, `off` | Implemented; `off` requests standby because PSPSDK lacks software shutdown; PPSSPP 1.20.4 lacks lock/unlock HLE; host-tested ([#34]) |
 | `os` | `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`, `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt`, `restart`, dialogs/PRX | Extends stock Lua `os`; host-tested and PPSSPP-verified; password/CFW and dialog/PRX limits documented ([#35]) |
 | `hw` | `getmodel`, `firmware`, `region`, `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`, `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`, `mute`, `headphone`, `audioout`, `led` | Host-tested and PPSSPP-verified; ID/fuse/NAND/LED values need kernel mode and return documented fallbacks; volume/mute use the sound registry with a session fallback; audio routing uses `sceAudioRouting` ([#36]) |
-| `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF system fonts (host/opt-in builds only; the standard PSP EBOOT omits `sceLibFont` so real firmware does not fail with `8002013C`); fixed-cell PNG and classic variable-width sheets still supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
+| `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF system fonts when built with `sceLibFont`; the standard PSP EBOOT falls back to a same-stem `.png` atlas so custom `.pgf` fonts still render. Fixed-cell PNG and classic variable-width sheets remain supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
 | `amg` / `cam3d` / `texture3d` / `model3d` | Scene control, camera, textures, OBJ/MTL models | Static textured models with depth testing; lighting, animation and transparent passes are not implemented ([#39]) |
 | `splash` | `show`, `old`, `oldschool` | Single images or slideshows, timing and skip input, built-in missing-asset fallback ([#41]) |
 | `osk` | `init` | Normal/numeric keyboard, length/line/language options, blocking edit/confirm and `nil` cancel; restores GE/display state ([#42]) |

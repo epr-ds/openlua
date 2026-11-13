@@ -243,6 +243,18 @@ static int l_scale(lua_State *L)
     return 0;
 }
 
+/* OneLua `image.resize(img, w, h)` sets the target draw size. OpenLua scales
+ * at blit time, so convert the requested size into scale factors. */
+static int l_resize(lua_State *L)
+{
+    OL_Surface *s = to_surface(L, 1);
+    int w = (int)luaL_checkinteger(L, 2);
+    int h = (int)luaL_checkinteger(L, 3);
+    s->scaleX = (s->w > 0) ? (float)w / (float)s->w : 1.0f;
+    s->scaleY = (s->h > 0) ? (float)h / (float)s->h : 1.0f;
+    return 0;
+}
+
 static int l_zindex(lua_State *L)
 {
     OL_Surface *s = to_surface(L, 1);
@@ -367,6 +379,7 @@ static const luaL_Reg image_funcs[] = {
     { "center",      l_center },
     { "rotate",      l_rotate },
     { "scale",       l_scale },
+    { "resize",      l_resize },
     { "zindex",      l_zindex },
     { "tint",        l_tint },
     { "pivot",       l_pivot },
@@ -392,6 +405,7 @@ static const luaL_Reg image_methods[] = {
     { "center",      l_center },
     { "rotate",      l_rotate },
     { "scale",       l_scale },
+    { "resize",      l_resize },
     { "zindex",      l_zindex },
     { "tint",        l_tint },
     { "pivot",       l_pivot },

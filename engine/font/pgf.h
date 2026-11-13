@@ -30,11 +30,22 @@ int pgf_cellh(const OL_PgfFont *font);
 void pgf_draw_glyph(OL_PgfFont *font, int x, int y, unsigned char c,
                     unsigned int tint);
 
+/** Scaled variant of pgf_draw_glyph. scale <= 0 is treated as 1. */
+void pgf_draw_glyph_scaled(OL_PgfFont *font, int x, int y, unsigned char c,
+                           unsigned int tint, float scale);
+
 /** Draw a string. Returns the final X cursor. */
 int pgf_draw_text(OL_PgfFont *font, int x, int y, const char *text,
                   unsigned int tint);
 
+/** Scaled variant of pgf_draw_text. Returns the final X cursor. */
+int pgf_draw_text_scaled(OL_PgfFont *font, int x, int y, const char *text,
+                         unsigned int tint, float scale);
+
 /** Pixel width of a string using the font's advances. */
 int pgf_textwidth(OL_PgfFont *font, const char *text);
+
+/** Scaled variant of pgf_textwidth. */
+int pgf_textwidth_scaled(OL_PgfFont *font, const char *text, float scale);
 
 #endif /* OL_PGF_H */

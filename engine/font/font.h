@@ -49,14 +49,28 @@ int font_cellh(int h);
  *  tint = ABGR color to modulate glyph pixels (0xFFFFFFFF = no tint). */
 void font_draw_glyph(int h, int dx, int dy, char c, unsigned int tint);
 
+/** Same as font_draw_glyph, but scales the glyph by `scale` around its
+ *  top-left corner (OneLua `screen.print` size argument). scale <= 0 is
+ *  treated as 1. */
+void font_draw_glyph_scaled(int h, int dx, int dy, char c, unsigned int tint,
+                            float scale);
+
 /** Draw a string starting at (x0,y0); advances cursor per glyph.
  *  Handles '\n' (wrap to x0, y += cellH) and '\t' (indent 4 cells).
  *  tint = ABGR color or 0xFFFFFFFF for no tint.
  *  Returns the final X cursor position. */
 int font_draw_text(int h, int x0, int y0, const char *text, unsigned int tint);
 
+/** Scaled variant of font_draw_text (advances and line height follow
+ *  `scale`). Returns the final X cursor position. */
+int font_draw_text_scaled(int h, int x0, int y0, const char *text,
+                          unsigned int tint, float scale);
+
 /** Pixel width of a string (each cell advances by cellW). */
 int font_textwidth(const char *text, int h);
+
+/** Scaled variant of font_textwidth. */
+int font_textwidth_scaled(const char *text, int h, float scale);
 
 /** Release a font handle and free its VRAM sheet. */
 void font_free(int h);

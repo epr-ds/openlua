@@ -40,6 +40,7 @@ const char *const luaX_tokens [] = {
     "in", "local", "nil", "not", "or", "repeat",
     "return", "then", "true", "until", "while",
     "..", "...", "==", ">=", "<=", "~=",
+    "+=", "-=", "*=", "/=", "%=", "^=",
     "<number>", "<name>", "<string>", "<eof>",
     NULL
 };
@@ -342,6 +343,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case '-': {
         next(ls);
+        if (ls->current == '=') { next(ls); return TK_SUBEQ; }
         if (ls->current != '-') return '-';
         /* else is a comment */
         next(ls);
@@ -367,6 +369,31 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         }
         else if (sep == -1) return '[';
         else luaX_lexerror(ls, "invalid long string delimiter", TK_STRING);
+      }
+      case '+': {
+        next(ls);
+        if (ls->current != '=') return '+';
+        else { next(ls); return TK_ADDEQ; }
+      }
+      case '*': {
+        next(ls);
+        if (ls->current != '=') return '*';
+        else { next(ls); return TK_MULEQ; }
+      }
+      case '/': {
+        next(ls);
+        if (ls->current != '=') return '/';
+        else { next(ls); return TK_DIVEQ; }
+      }
+      case '%': {
+        next(ls);
+        if (ls->current != '=') return '%';
+        else { next(ls); return TK_MODEQ; }
+      }
+      case '^': {
+        next(ls);
+        if (ls->current != '=') return '^';
+        else { next(ls); return TK_POWEQ; }
       }
       case '=': {
         next(ls);

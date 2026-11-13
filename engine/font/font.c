@@ -97,11 +97,43 @@ int font_alloc(const char *path, int cellW, int cellH)
     return handle;
 }
 
+static int has_pgf_ext(const char *p)
+{
+    size_t n = strlen(p);
+    if (n < 4)
+        return 0;
+    p += n - 4;
+    return p[0] == '.' &&
+           (p[1] == 'p' || p[1] == 'P') &&
+           (p[2] == 'g' || p[2] == 'G') &&
+           (p[3] == 'f' || p[3] == 'F');
+}
+
 int font_alloc_pgf(const char *path)
 {
     OL_PgfFont *pgf = pgf_load(path);
-    if (!pgf)
+
+    if (!pgf) {
+        /* Atlas fallback: a PGF that cannot be decoded (the standard
+         * PSP build has no sceLibFont) falls back to a sibling PNG
+         * atlas, e.g. assets/font/halo-ltn0.pgf -> halo-ltn0.png.
+         * font_alloc_sfont handles both classic SFont sheets and
+         * 95-cell fixed grids. */
+        if (path && has_pgf_ext(path)) {
+            char alt[256];
+            size_t n = strlen(path);
+            if (n < sizeof(alt)) {
+                memcpy(alt, path, n + 1);
+                alt[n - 3] = 'p';
+                alt[n - 2] = 'n';
+                alt[n - 1] = 'g';
+                int h = font_alloc_sfont(alt);
+                if (h > 0)
+                    return h;
+            }
+        }
         return 0;
+    }
 
     int handle = font_claim(path);
     if (handle <= 0) {
@@ -484,6 +516,124 @@ int font_draw_text(int h, int x0, int y0, const char *text, unsigned int tint)
     return x;
 }
 
+/* =====================================================================
+ * Scaled drawing (OneLua `size` argument)
+ *
+ * `scale` is a multiplier around each glyph's top-left corner, so
+ * size 1.0 keeps the legacy pixel metrics, 0.5 halves them, etc.
+ * ===================================================================*/
+
+void font_draw_glyph_scaled(int h, int dx, int dy, char c, unsigned int tint,
+                            float scale)
+{
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
+        return;
+    if (!(scale > 0.0f))
+        scale = 1.0f;
+
+    int i = h - 1;
+    if (g_fonts[i].kind == FONT_KIND_PGF) {
+        pgf_draw_glyph_scaled(g_fonts[i].pgf, dx, dy, (unsigned char)c, tint,
+                              scale);
+        return;
+    }
+    if (g_fonts[i].kind == FONT_KIND_SFONT) {
+        int idx = (int)(unsigned char)c - 33;
+        if (idx < 0 || idx >= g_fonts[i].nChars)
+            return;
+        if (!ensure_sheet(h))
+            return;
+        gfx_blit(g_fonts[i].sheet,
+                 dx, dy,
+                 g_fonts[i].glyphAtlasX[idx], g_fonts[i].glyphAtlasY[idx],
+                 g_fonts[i].glyphW[idx], g_fonts[i].cellH,
+                 255, 0, 0, 0.0f, scale, scale, 0, tint);
+        return;
+    }
+
+    if ((unsigned int)(c - ' ') >= (unsigned int)g_fonts[i].nChars)
+        return;
+    if (!ensure_sheet(h))
+        return;
+
+    int cellW = g_fonts[i].cellW;
+    int cellH = g_fonts[i].cellH;
+    int sheetCols = g_fonts[i].atlasCols;
+    if (sheetCols < 1) sheetCols = 1;
+    int idx = (int)(unsigned char)(c - ' ');
+    int col = idx % sheetCols;
+    int row = idx / sheetCols;
+
+    gfx_blit(g_fonts[i].sheet,
+             dx, dy,
+             col * cellW, row * cellH,
+             cellW, cellH,
+             255, 0, 0, 0.0f, scale, scale, 0, tint);
+}
+
+int font_draw_text_scaled(int h, int x0, int y0, const char *text,
+                          unsigned int tint, float scale)
+{
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used || !text)
+        return x0;
+    if (!(scale > 0.0f))
+        scale = 1.0f;
+
+    int i = h - 1;
+    if (g_fonts[i].kind == FONT_KIND_PGF)
+        return pgf_draw_text_scaled(g_fonts[i].pgf, x0, y0, text, tint, scale);
+
+    int cellH = g_fonts[i].cellH;
+    int lineStep = (int)((float)cellH * scale + 0.5f);
+    if (lineStep < 1) lineStep = 1;
+    float x = (float)x0;
+    int y = y0;
+
+    if (g_fonts[i].kind == FONT_KIND_SFONT) {
+        for (size_t n = 0; text[n]; n++) {
+            unsigned char ch = (unsigned char)text[n];
+            if (ch == '\n') {
+                y += lineStep;
+                x = (float)x0;
+            } else if (ch == '\t') {
+                x += (float)g_fonts[i].spaceW * 4.0f * scale;
+            } else if (ch == ' ') {
+                x += (float)g_fonts[i].spaceW * scale;
+            } else if (ch >= 33 &&
+                       (unsigned int)(ch - 33) < (unsigned int)g_fonts[i].nChars) {
+                int idx = (int)ch - 33;
+                font_draw_glyph_scaled(h, (int)(x + 0.5f), y, (char)ch, tint,
+                                       scale);
+                x += (float)g_fonts[i].glyphAdv[idx] * scale;
+            }
+        }
+        return (int)(x + 0.5f);
+    }
+
+    int cellW = g_fonts[i].cellW;
+    for (size_t n = 0; text[n]; n++) {
+        unsigned char ch = (unsigned char)text[n];
+        if (ch >= 32 && (unsigned int)(ch - 32) < (unsigned int)g_fonts[i].nChars) {
+            font_draw_glyph_scaled(h, (int)(x + 0.5f), y, (char)ch, tint,
+                                   scale);
+            x += (float)cellW * scale;
+        } else if (ch == '\n') {
+            y += lineStep;
+            x = (float)x0;
+        } else if (ch == '\t') {
+            x += (float)cellW * 4.0f * scale;
+        }
+    }
+    return (int)(x + 0.5f);
+}
+
+int font_textwidth_scaled(const char *text, int h, float scale)
+{
+    if (!(scale > 0.0f))
+        scale = 1.0f;
+    return (int)((float)font_textwidth(text, h) * scale + 0.5f);
+}
+
 int font_textwidth(const char *text, int h)
 {
     if (!text || h < 1 || h > FONT_MAX || !g_fonts[h - 1].used)
@@ -527,6 +677,15 @@ int  font_default(void)      { return g_defaultFont; }
 void font_set_tint(unsigned int abgr) { g_defaultTint = abgr; }
 unsigned int font_tint(void)          { return g_defaultTint; }
 
+/* OneLua ships a built-in default font, so `screen.print` always has one.
+ * OpenLua has no bundled font, so adopt the first font a script loads as the
+ * default. Scripts that call font.setdefault() explicitly still win. */
+static void adopt_default(int h)
+{
+    if (h > 0 && (g_defaultFont <= 0 || !g_fonts[g_defaultFont - 1].used))
+        font_set_default(h);
+}
+
 /* =====================================================================
  * Lua bindings
  *
@@ -559,6 +718,7 @@ static int l_font_new(lua_State *L)
     if (h <= 0) {
         lua_pushnil(L);
     } else {
+        adopt_default(h);
         lua_pushinteger(L, h);
     }
     return 1;
@@ -578,8 +738,10 @@ static int l_font_load(lua_State *L)
     }
     if (h <= 0)
         lua_pushnil(L);
-    else
+    else {
+        adopt_default(h);
         lua_pushinteger(L, h);
+    }
     return 1;
 }
 
@@ -673,8 +835,10 @@ static int l_sfont_load(lua_State *L)
     int h = font_alloc_sfont(path);
     if (h <= 0)
         lua_pushnil(L);
-    else
+    else {
+        adopt_default(h);
         lua_pushinteger(L, h);
+    }
     return 1;
 }
 
@@ -725,34 +889,190 @@ static int l_screen_setcolor(lua_State *L)
     return 0;
 }
 
+/* OneLua alignment / shadow-style constants. */
+enum {
+    OL_ALIGN_LEFT   = 0,
+    OL_ALIGN_CENTER = 1,
+    OL_ALIGN_RIGHT  = 2,
+    OL_ALIGN_FULL   = 3
+};
+
+static int ol_is_font_handle(lua_State *L, int idx)
+{
+    if (!lua_isnumber(L, idx))
+        return 0;
+    lua_Number n = lua_tonumber(L, idx);
+    int h = (int)n;
+    if ((lua_Number)h != n)
+        return 0;
+    return h >= 1 && h <= FONT_MAX && g_fonts[h - 1].used;
+}
+
+/* Draw a (possibly multi-line) string with per-line alignment. */
+static int print_block(int h, const char *text, int x, int y,
+                       unsigned int tint, float scale, int align)
+{
+    int step = (int)((float)font_cellh(h) * scale + 0.5f);
+    if (step < 1)
+        step = 1;
+
+    char stackbuf[256];
+    const char *p = text;
+    int lineY = y;
+    int endX = x;
+
+    for (;;) {
+        const char *nl = strchr(p, '\n');
+        size_t len = nl ? (size_t)(nl - p) : strlen(p);
+
+        /* Keep the common short-line case allocation-free, but do not
+         * truncate long lines: measure/draw the whole line. */
+        char *buf = stackbuf;
+        if (len >= sizeof(stackbuf)) {
+            buf = (char *)malloc(len + 1);
+            if (!buf) {
+                /* Out of memory: draw the unaligned remainder rather than
+                 * dropping text. */
+                endX = font_draw_text_scaled(h, x, lineY, p, tint, scale);
+                break;
+            }
+        }
+        memcpy(buf, p, len);
+        buf[len] = '\0';
+
+        int lx = x;
+        if (align == OL_ALIGN_CENTER || align == OL_ALIGN_RIGHT) {
+            int w = font_textwidth_scaled(buf, h, scale);
+            lx -= (align == OL_ALIGN_CENTER) ? w / 2 : w;
+        }
+
+        int ex = font_draw_text_scaled(h, lx, lineY, buf, tint, scale);
+        if (lx == x)
+            endX = ex;
+
+        if (buf != stackbuf)
+            free(buf);
+
+        if (!nl)
+            break;
+        p = nl + 1;
+        lineY += step;
+    }
+    return endX;
+}
+
 static int l_screen_print(lua_State *L)
 {
-    int x    = (int)luaL_checkinteger(L, 1);
-    int y    = (int)luaL_checkinteger(L, 2);
-    const char *text = luaL_checkstring(L, 3);
+    int top = lua_gettop(L);
+    int x, y, h = 0, first;
+    const char *text;
 
-    int h = g_defaultFont;
-    if (lua_isnumber(L, 4))
-        h = (int)luaL_checkinteger(L, 4);
+    /* OneLua font-first form:
+     *   screen.print(font, x, y, text [, size [, color [, shadow [, align]]]])
+     * Legacy OpenLua form:
+     *   screen.print(x, y, text [, handle [, tint]]) */
+    if (top >= 4 && lua_type(L, 1) == LUA_TNUMBER &&
+        lua_type(L, 4) == LUA_TSTRING) {
+        h = (int)luaL_checkinteger(L, 1);
+        x = (int)luaL_checkinteger(L, 2);
+        y = (int)luaL_checkinteger(L, 3);
+        text = luaL_checkstring(L, 4);
+        first = 5;
+    } else {
+        x = (int)luaL_checkinteger(L, 1);
+        y = (int)luaL_checkinteger(L, 2);
+        text = luaL_checkstring(L, 3);
+        first = 4;
+    }
+
+    float scale = 1.0f;
+    unsigned int tint = g_defaultTint;
+    unsigned int shadow = 0;
+    int align = OL_ALIGN_LEFT;
+
+    if (h <= 0 && top >= first && ol_is_font_handle(L, first) &&
+        top <= first + 1) {
+        /* Legacy: handle, optionally followed by a tint. */
+        h = (int)luaL_checkinteger(L, first);
+        if (top >= first + 1 && lua_isnumber(L, first + 1))
+            tint = (unsigned int)luaL_checkinteger(L, first + 1);
+    } else {
+        if (top >= first && lua_isnumber(L, first))
+            scale = (float)lua_tonumber(L, first);
+        if (top >= first + 1 && lua_isnumber(L, first + 1))
+            tint = (unsigned int)luaL_checkinteger(L, first + 1);
+        if (top >= first + 2 && lua_isnumber(L, first + 2))
+            shadow = (unsigned int)luaL_checkinteger(L, first + 2);
+        if (top >= first + 3 && lua_isnumber(L, first + 3))
+            align = (int)luaL_checkinteger(L, first + 3);
+    }
+
+    if (h <= 0)
+        h = g_defaultFont;
     if (h <= 0)
         return luaL_error(L, "screen.print: no font set (call screen.font(h) or pass a font handle)");
+    if (!(scale > 0.0f))
+        scale = 1.0f;
 
-    unsigned int tint = g_defaultTint;
-    if (lua_isnumber(L, 5))
-        tint = (unsigned int)luaL_checkinteger(L, 5);
+    if (shadow != 0) {
+        int off = (int)(scale + 0.5f);
+        if (off < 1)
+            off = 1;
+        print_block(h, text, x + off, y + off, shadow, scale, align);
+    }
 
-    int endX = font_draw_text(h, x, y, text, tint);
+    int endX = print_block(h, text, x, y, tint, scale, align);
     lua_pushinteger(L, endX);
     return 1;
 }
 
 static int l_screen_textwidth(lua_State *L)
 {
-    const char *text = luaL_checkstring(L, 1);
+    int top = lua_gettop(L);
+    const char *text;
     int h = g_defaultFont;
-    if (lua_isnumber(L, 2))
-        h = (int)luaL_checkinteger(L, 2);
-    lua_pushinteger(L, font_textwidth(text, h));
+    float scale = 1.0f;
+
+    if (lua_type(L, 1) == LUA_TNUMBER && top >= 2 &&
+        lua_type(L, 2) == LUA_TSTRING) {
+        /* OneLua: screen.textwidth(font, text [, size]) */
+        h = (int)luaL_checkinteger(L, 1);
+        text = luaL_checkstring(L, 2);
+        if (top >= 3 && lua_isnumber(L, 3))
+            scale = (float)lua_tonumber(L, 3);
+    } else {
+        text = luaL_checkstring(L, 1);
+        if (top >= 2 && lua_isnumber(L, 2)) {
+            if (ol_is_font_handle(L, 2))
+                h = (int)luaL_checkinteger(L, 2);   /* legacy text, handle */
+            else
+                scale = (float)lua_tonumber(L, 2);  /* OneLua text, size */
+        }
+    }
+
+    lua_pushinteger(L, font_textwidth_scaled(text, h, scale));
+    return 1;
+}
+
+static int l_screen_textheight(lua_State *L)
+{
+    int top = lua_gettop(L);
+    int h = g_defaultFont;
+    float scale = 1.0f;
+
+    if (top >= 2 && lua_type(L, 1) == LUA_TNUMBER && lua_isnumber(L, 2)) {
+        /* OneLua: screen.textheight(font, size) */
+        h = (int)luaL_checkinteger(L, 1);
+        scale = (float)lua_tonumber(L, 2);
+    } else if (top >= 1 && lua_isnumber(L, 1)) {
+        /* OneLua: screen.textheight(font) or screen.textheight(size) */
+        if (ol_is_font_handle(L, 1))
+            h = (int)luaL_checkinteger(L, 1);
+        else
+            scale = (float)lua_tonumber(L, 1);
+    }
+
+    lua_pushinteger(L, (int)((float)font_cellh(h) * scale + 0.5f));
     return 1;
 }
 
@@ -782,6 +1102,7 @@ static const luaL_Reg screen_font_funcs[] = {
     { "setcolor",     l_screen_setcolor },
     { "print",        l_screen_print },
     { "textwidth",    l_screen_textwidth },
+    { "textheight",   l_screen_textheight },
     { NULL,           NULL }
 };
 
@@ -805,4 +1126,18 @@ void font_api_register(lua_State *L)
     }
     ol_setfuncs(L, screen_font_funcs);
     lua_pop(L, 1);
+
+    /* OneLua alignment constants (used as the last screen.print argument). */
+    lua_pushinteger(L, OL_ALIGN_LEFT);   lua_setglobal(L, "__ALEFT");
+    lua_pushinteger(L, OL_ALIGN_CENTER); lua_setglobal(L, "__ACENTER");
+    lua_pushinteger(L, OL_ALIGN_RIGHT);  lua_setglobal(L, "__ARIGHT");
+    lua_pushinteger(L, OL_ALIGN_FULL);   lua_setglobal(L, "__AFULL");
+
+    /* OneLua shadow-style constants.  OpenLua treats the shadow argument
+     * as a color, so these remain available for scripts that reference
+     * them but have no geometric meaning here. */
+    lua_pushinteger(L, 0); lua_setglobal(L, "__SLEFT");
+    lua_pushinteger(L, 1); lua_setglobal(L, "__SRIGHT");
+    lua_pushinteger(L, 2); lua_setglobal(L, "__STHROUGH");
+    lua_pushinteger(L, 3); lua_setglobal(L, "__SSEESAW");
 }

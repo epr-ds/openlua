@@ -48,6 +48,7 @@
 #include "engine/3d/model3d.h"
 #include "engine/3d/texture3d.h"
 #include "engine/core/olreg.h"
+#include "engine/core/color.h"
 PSP_MODULE_INFO("OpenLua", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(20000);
@@ -104,16 +105,6 @@ static int setup_callbacks(void)
     return thid;
 }
 
-static int l_color_new(lua_State *L)
-{
-    unsigned int r = (unsigned int)(luaL_checkinteger(L, 1) & 0xFF);
-    unsigned int g = (unsigned int)(luaL_checkinteger(L, 2) & 0xFF);
-    unsigned int b = (unsigned int)(luaL_checkinteger(L, 3) & 0xFF);
-    unsigned int a = (lua_gettop(L) > 3) ? (unsigned int)(luaL_checkinteger(L, 4) & 0xFF) : 255;
-    lua_pushinteger(L, (lua_Integer)((a << 24) | (b << 16) | (g << 8) | r));
-    return 1;
-}
-
 static int l_screen_clear(lua_State *L)
 {
     gfx_set_clear_color((unsigned int)luaL_checkinteger(L, 1));
@@ -130,11 +121,6 @@ static int l_screen_flip(lua_State *L)
     return 0;
 }
 
-static const luaL_Reg color_funcs[] = {
-    { "new", l_color_new },
-    { NULL,  NULL }
-};
-
 static const luaL_Reg screen_funcs[] = {
     { "clear", l_screen_clear },
     { "flip",  l_screen_flip },
@@ -143,10 +129,8 @@ static const luaL_Reg screen_funcs[] = {
 
 static void register_api(lua_State *L)
 {
-    /* color.new */
-    lua_newtable(L);
-    ol_setfuncs(L, color_funcs);
-    lua_setglobal(L, "color");
+    /* color.new / color.loadpalette + OneLua named colors */
+    color_api_register(L);
 
     /* screen.clear / screen.flip */
     lua_newtable(L);

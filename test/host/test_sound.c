@@ -91,7 +91,39 @@ static int write_vma(const char *path, uint32_t samples)
     return rc;
 }
 
-int main(void)
+static int write_big_mp3(const char *src, const char *dst, long target)
+{
+    FILE *in = fopen(src, "rb");
+    if (!in)
+        return -1;
+    fseek(in, 0, SEEK_END);
+    long n = ftell(in);
+    fseek(in, 0, SEEK_SET);
+    if (n <= 0) { fclose(in); return -1; }
+
+    unsigned char *buf = (unsigned char *)malloc((size_t)n);
+    if (!buf || fread(buf, 1, (size_t)n, in) != (size_t)n) {
+        free(buf);
+        fclose(in);
+        return -1;
+    }
+    fclose(in);
+
+    FILE *out = fopen(dst, "wb");
+    if (!out) { free(buf); return -1; }
+    long written = 0;
+    int ok = 1;
+    while (written < target) {
+        if (fwrite(buf, 1, (size_t)n, out) != (size_t)n) { ok = 0; break; }
+        written += n;
+    }
+    free(buf);
+    if (fclose(out) != 0)
+        ok = 0;
+    return ok ? 0 : -1;
+}
+
+int main(int argc, char **argv)
 {
     char tmp[] = "/tmp/openlua-sound-XXXXXX";
     char path[1024];
@@ -209,10 +241,43 @@ int main(void)
     sound_free(h2);
     sound_free(h1);
 
+    /* ---- MP3 streaming ------------------------------------------------ */
+    if (argc < 2) {
+        fprintf(stderr, "sound: missing MP3 fixture path\n");
+        return 1;
+    }
+    const char *mp3_fixture = argv[1];
+    int hm = sound_alloc(mp3_fixture);
+    check(hm > 0, "mp3 loads");
+    check(sound_rate(hm) == 22050, "mp3 output is normalised to 22050");
+    check(sound_channels(hm) == 2, "mp3 stereo source reported");
+    check(sound_play(hm) == 0, "mp3 play reserves a channel");
+    check(sound_playing(hm) == 1, "mp3 playing after start");
+    for (int i = 0; i < 1000 && !sound_endstream(hm); i++)
+        sound_pump();
+    check(sound_endstream(hm) == 1, "mp3 stream reaches end");
+    check(sound_playing(hm) == 0, "finished mp3 not playing");
+    check(sound_play(hm) == 0, "mp3 replays after rewind");
+    check(sound_playing(hm) == 1, "mp3 playing after replay");
+    sound_stop(hm);
+    sound_free(hm);
+
+    snprintf(path, sizeof(path), "%s/bogus.mp3", tmp);
+    check(write_bytes(path, "not an mp3 at all", 17) == 0, "write bogus mp3");
+    check(sound_alloc(path) == 0, "invalid mp3 rejected");
+
+    snprintf(path, sizeof(path), "%s/big.mp3", tmp);
+    check(write_big_mp3(mp3_fixture, path, 9L * 1024 * 1024) == 0,
+          "write 9 MB mp3");
+    int hb = sound_alloc(path);
+    check(hb > 0, "9 MB mp3 streams past the 8 MB wav cap");
+    check(hb <= 0 || sound_rate(hb) == 22050, "large mp3 rate");
+    sound_free(hb);
+
     const char *files[] = {
         "one.bin", "two.bin", "three.bin", "four.bin", "mono.wav",
         "stereo.wav", "tiny-rate.wav", "huge-chunk.wav", "valid.vma",
-        "short.vma", "mismatch.vma", "valid2.vma"
+        "short.vma", "mismatch.vma", "valid2.vma", "bogus.mp3", "big.mp3"
     };
     for (size_t i = 0; i < sizeof(files) / sizeof(files[0]); i++) {
         snprintf(path, sizeof(path), "%s/%s", tmp, files[i]);

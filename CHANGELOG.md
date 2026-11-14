@@ -17,8 +17,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
     `__AFULL` alignment (applied per line). `screen.textwidth` and the new
     `screen.textheight` accept the OneLua `(font, text, size)` / `(text, size)`
     forms while keeping the legacy `(text, handle)` form.
-  - `font.load`/`font.new`/`sfont.load` adopt the first loaded font as the
-    `screen.print` default, mirroring OneLua's built-in default font.
+  - `oneFont.pgf` beside the EBOOT (or its baked `oneFont.png` in the standard
+    `OPENLUA_NO_PGF` build) is loaded as the startup default for
+    `screen.print`/`draw.print`, matching OneLua's built-in font. Loading a
+    font no longer changes the default implicitly.
   - A `.pgf` that cannot be decoded falls back to a sibling `.png` atlas with
     the same stem, loaded through the SFont path. This lets games with custom
     PGF Halo fonts run in the standard `OPENLUA_NO_PGF` EBOOT without Sony's
@@ -37,7 +39,17 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   - The module-level `timer` table (`timer.new/start/time/gettime/stoptime/
     reset/startreset`) is registered alongside the original `timers` table.
   - `test/host/test_compat.lua` (57 assertions) covers the added surface; the
-    full host suite now runs 601 C checks and 966 Lua assertions.
+    full host suite now runs 615 C checks and 966 Lua assertions.
+- MP3 audio streaming through the vendored minimp3 decoder (CC0, `MINIMP3_NO_SIMD`).
+  `sound.load` detects `.mp3`, ID3v2 tags or a raw MPEG frame sync, keeps the
+  compressed file on storage and decodes one frame per pump, downmixing to mono
+  and resampling to 22050 Hz with a fractional position carried across frame
+  boundaries. Replay, loop and `sound.free` rewind/close the stream. This makes
+  OneLua games whose music is multi-megabyte MP3 (for example
+  `halo-zero-infinity-psp`'s 16-track menu playlist) work without the 8 MB WAV
+  in-RAM cap; verified in PPSSPP with the decoded stream active on a hardware
+  channel. The host sound test grew to 62 checks with a real 44.1 kHz stereo
+  fixture, an invalid-MP3 case, replay and a 9 MB stream.
 - Automated GitHub Releases in the `Build` workflow: pushes to `main` run the
   host suite and PSP build, bump the patch version from the latest `v*` tag,
   tag the commit and publish `openlua-tester-<version>.zip`,
@@ -235,6 +247,11 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   networking) to the project board.
 
 ### Fixed
+- Text and primitive drawing no longer force every colour opaque. `set_vert`
+  keeps the caller's alpha, so OneLua's translucent dimmer
+  (`color.new(0, 0, 0, 140)`) blends over the scene instead of painting a black
+  rectangle over the Settings/Play/Forge backgrounds. Colours with no alpha byte
+  but a non-zero RGB value stay opaque, and a fully zero word stays transparent.
 - `hw.getmodel()` no longer reports a non-Go PSP as a Go when its firmware
   exposes an empty `ef0:` stub. Model detection now requires non-zero `ef0:`
   capacity, matching `os.infoef0()`. A real PSP-1000 with CFW was reported as

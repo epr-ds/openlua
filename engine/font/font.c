@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /* stb_image implementation lives in engine/core/stb_impl.o */
 #include "third_party/stb/stb_image.h"
@@ -677,13 +678,36 @@ int  font_default(void)      { return g_defaultFont; }
 void font_set_tint(unsigned int abgr) { g_defaultTint = abgr; }
 unsigned int font_tint(void)          { return g_defaultTint; }
 
-/* OneLua ships a built-in default font, so `screen.print` always has one.
- * OpenLua has no bundled font, so adopt the first font a script loads as the
- * default. Scripts that call font.setdefault() explicitly still win. */
-static void adopt_default(int h)
+/* OneLua ships a built-in default font: `oneFont.pgf` beside the EBOOT,
+ * loaded before the first script runs.  OpenLua follows the same convention
+ * so `screen.print`/`draw.print` have a font without an explicit handle.
+ *
+ * The standard PSP build has no sceLibFont, so `font_alloc_pgf` falls back to
+ * the sibling `oneFont.png` atlas baked from the PGF.  Loading is only
+ * attempted when the file actually exists, which keeps host tests and
+ * non-OneLua apps at a nil default until they call `font.setdefault`. */
+static void load_default_font(void)
 {
-    if (h > 0 && (g_defaultFont <= 0 || !g_fonts[g_defaultFont - 1].used))
-        font_set_default(h);
+    static const char *pgf = "oneFont.pgf";
+    static const char *png = "oneFont.png";
+
+    FILE *f = fopen(pgf, "rb");
+    if (f) {
+        fclose(f);
+        int h = font_alloc_pgf(pgf);
+        if (h > 0) {
+            font_set_default(h);
+            return;
+        }
+    }
+
+    f = fopen(png, "rb");
+    if (f) {
+        fclose(f);
+        int h = font_alloc_sfont(png);
+        if (h > 0)
+            font_set_default(h);
+    }
 }
 
 /* =====================================================================
@@ -718,7 +742,6 @@ static int l_font_new(lua_State *L)
     if (h <= 0) {
         lua_pushnil(L);
     } else {
-        adopt_default(h);
         lua_pushinteger(L, h);
     }
     return 1;
@@ -739,7 +762,6 @@ static int l_font_load(lua_State *L)
     if (h <= 0)
         lua_pushnil(L);
     else {
-        adopt_default(h);
         lua_pushinteger(L, h);
     }
     return 1;
@@ -836,7 +858,6 @@ static int l_sfont_load(lua_State *L)
     if (h <= 0)
         lua_pushnil(L);
     else {
-        adopt_default(h);
         lua_pushinteger(L, h);
     }
     return 1;
@@ -1117,6 +1138,9 @@ void font_api_register(lua_State *L)
     lua_newtable(L);
     ol_setfuncs(L, sfont_funcs);
     lua_setglobal(L, "sfont");
+
+    /* OneLua-style built-in default: oneFont.pgf beside the EBOOT. */
+    load_default_font();
 
     /* ---- hooks onto existing `screen` table ---- */
     lua_getglobal(L, "screen");

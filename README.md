@@ -39,7 +39,7 @@ modules on top of the hardware:
 - `sio` and `ir` are registered with their documented signatures; the
   user-mode build reports them as unavailable because raw serial/IR access
   needs a kernel driver.
-- Native WAV/VMA audio, pumped from `screen.flip()`.
+- Native WAV/VMA/MP3 audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
 - Read-only battery telemetry through the OneLua `batt` table.
 - Power management through the OneLua `power` table.
@@ -117,7 +117,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | USB camera (`cam`) | Implemented; host-tested; active path PPSSPP-verified with dummy frames; real GO! CAM hardware pending ([#43]) |
 | UMD + USB storage (`umd`, `usb`) | Implemented; host-tested; UMD present/type and USB flags PPSSPP-verified; game-disc metadata and USB flash modes need real hardware/CFW ([#44]) |
 | Serial + IR (`sio`, `ir`) | API registered; documented as unavailable in the user-mode build; raw access needs a kernel driver ([#44]) |
-| Sound (WAV/VMA) | Implemented; host-tested ([#25]) |
+| Sound (WAV/VMA/MP3) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented; OneLua stateful booleans, `held`/`released`, analog, `interval`, `waitforkey`, `analogtodpad` |
 | Timers | Implemented; elapsed-time fix [#21] |
 | OneLua math helpers | Implemented; host-tested and PPSSPP-verified ([#32]) |
@@ -145,7 +145,7 @@ engine/
   gfx/    GE surfaces, blits, draw primitives, splash screens
   img/    image loader and Lua bindings
   font/   PGF, fixed-cell and SFont loader/renderer
-  snd/    WAV/VMA decoder and PSP audio
+  snd/    WAV/VMA/MP3 decoder and PSP audio
   input/  controller polling
   util/   timers, OneLua math helpers
   fs/     portable VFS, files, INI
@@ -212,7 +212,7 @@ for a local toolchain build, host tests and debugging.
 | `power` | `plugged`, `suspend`, `lock`, `unlock`, `tick`, `off` | Implemented; `off` requests standby because PSPSDK lacks software shutdown; PPSSPP 1.20.4 lacks lock/unlock HLE; host-tested ([#34]) |
 | `os` | `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`, `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt`, `restart`, dialogs/PRX | Extends stock Lua `os`; host-tested and PPSSPP-verified; password/CFW and dialog/PRX limits documented ([#35]) |
 | `hw` | `getmodel`, `firmware`, `region`, `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`, `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`, `mute`, `headphone`, `audioout`, `led` | Host-tested and PPSSPP-verified; ID/fuse/NAND/LED values need kernel mode and return documented fallbacks; volume/mute use the sound registry with a session fallback; audio routing uses `sceAudioRouting` ([#36]) |
-| `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF system fonts when built with `sceLibFont`; the standard PSP EBOOT falls back to a same-stem `.png` atlas so custom `.pgf` fonts still render. Fixed-cell PNG and classic variable-width sheets remain supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
+| `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF system fonts when built with `sceLibFont`; the standard PSP EBOOT falls back to a same-stem `.png` atlas so custom `.pgf` fonts still render. `oneFont.pgf` (or its baked `oneFont.png`) beside the EBOOT is loaded as the startup default like OneLua. Fixed-cell PNG and classic variable-width sheets remain supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
 | `amg` / `cam3d` / `texture3d` / `model3d` | Scene control, camera, textures, OBJ/MTL models | Static textured models with depth testing; lighting, animation and transparent passes are not implemented ([#39]) |
 | `splash` | `show`, `old`, `oldschool` | Single images or slideshows, timing and skip input, built-in missing-asset fallback ([#41]) |
 | `osk` | `init` | Normal/numeric keyboard, length/line/language options, blocking edit/confirm and `nil` cancel; restores GE/display state ([#42]) |
@@ -222,7 +222,7 @@ for a local toolchain build, host tests and debugging.
 | `usb` | `mstick`, `umd`, `flash0`-`flash3`, `stop`, `isconnected`, `isactive` | USB mass storage; only the standard memory-stick mode is built in, because a static `_usbdevice.prx` import makes the EBOOT fail with `8002013C`; shares the USB port with `cam` ([#44]) |
 | `sio` | `init`, `baud`, `available`, `read`, `write`, `print`, `putstring`, `term` | Registered for compatibility; user-mode PSPSDK has no safe SIO syscall, so `init` is `0`, `read` is `-1` and sending is a no-op ([#44]) |
 | `ir` | `init`, `baud`, `state`, `get`, `put`, `read`, `write`, `term` | Registered for compatibility; raw IR needs a kernel SIRC/IrDA driver, so `init` is `0`, `get` is `-1`, `read` is `nil` and `write` is `-1` ([#44]) |
-| `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA; host-tested ([#25]) |
+| `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA plus streamed MP3 via minimp3; host-tested ([#25]) |
 | `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
 | `ini` | `read`, `write` | Implemented; host-tested |
 | `savedata` | `data.save/load/delete` | Plain-text slots |

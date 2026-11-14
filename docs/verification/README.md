@@ -144,6 +144,13 @@ atlases. Verified:
 - Play (map/difficulty/start rows) and the match intro;
 - live platform gameplay with camera scrolling, sprites, platforms and HUD,
   including a 1.5 s walk to the right.
+- the menu body text drawn with the game's bundled `oneFont.pgf` (loaded as the
+  startup default, through the baked `oneFont.png` atlas in the
+  `OPENLUA_NO_PGF` build), while titles keep the explicitly passed Halo fonts;
+- the Settings, Play and Forge backgrounds visible under OneLua's translucent
+  dimmer instead of a black overlay;
+- menu music: the MP3 stream stayed active on a hardware channel with
+  `streaming=1`, `orig_rate=48000` and 22050 Hz output.
 
 `crash.log` stayed absent throughout. This is emulator verification only; the
 game has not yet been run on a real PSP, where FAT case-insensitivity and

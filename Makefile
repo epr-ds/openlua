@@ -53,6 +53,7 @@ OBJS = engine/core/main.o \
 	engine/font/font.o \
 	engine/font/pgf.o \
 	engine/snd/sound.o \
+	engine/snd/minimp3_impl.o \
 	engine/fs/olfs.o \
 	engine/fs/files.o \
 	engine/fs/ini.o \

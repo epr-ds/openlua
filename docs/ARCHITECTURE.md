@@ -14,7 +14,7 @@ engine/core/main.c ── register_api() ─────────────
     │            splash)                                             │
     ├── img/     PNG/JPEG/BMP decode via stb_image   (image)        │
     ├── font/    PGF + SFont atlas renderer          (font, sfont)  │
-    ├── snd/     WAV/VMA decode + PSP audio          (sound)        │
+    ├── snd/     WAV/VMA decode, MP3 stream + PSP    (sound)        │
     ├── input/   sceCtrl polling                     (buttons)      │
     ├── util/    timers + OneLua math helpers         (timers, math) │
     ├── fs/      portable VFS, files, ini            (files, ini)   │
@@ -319,10 +319,14 @@ Bluetooth or real-LAN hardware was available.
 
 `engine/snd/sound.c`
 
-1. `sound.load` reads the whole file (8 MB cap) and parses:
+1. `sound.load` either decodes the whole file (8 MB cap) or opens a stream:
    - WAV: PCM 16-bit, mono/stereo, any sample rate;
-   - VMA/VOX: 4-byte sample count + 22050 Hz mono PCM.
-2. Stereo is downmixed; non-22050 rates are linearly resampled.
+   - VMA/VOX: 4-byte sample count + 22050 Hz mono PCM;
+   - MP3: detected by extension/ID3/frame sync and streamed through minimp3
+     (`third_party/minimp3` + `engine/snd/minimp3_impl.c`), so long music
+     tracks never sit in RAM.
+2. Stereo is downmixed; non-22050 rates are linearly resampled. MP3 does this
+   per decoded frame with a fractional read position carried across frames.
 3. `sound.play` reserves a hardware channel (`sceAudioChReserve`); explicit
    channels 1..8 and automatic next-free allocation share the same path.
 4. `sound_pump` runs once per `screen.flip()`. When the channel buffer drains
@@ -487,7 +491,9 @@ covered by `test/host/test_hardware.lua`.
 - Images are capped at 1024x1024 and padded to power-of-two dimensions.
 - Fonts: 8 slots, cells up to 256x256. Decoded sheets are repacked into
   atlases no wider than 512 px, the PSP GE texture limit.
-- Sounds: 8 slots, 8 MB source file cap.
+- Sounds: 8 slots, 8 MB in-RAM cap for fully decoded WAV/VMA. MP3 streams
+  bypass it: only a 64 KB compressed window and one staging buffer per sound
+  are resident.
 - Maps: 8 slots, tileset anchored via the Lua registry until `map.free`.
 - INI: 512-byte parse lines, 256 KB file cap.
 

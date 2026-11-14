@@ -8,7 +8,7 @@ This document explains the phases and maps the remaining work to issues.
 | Phase | Scope | State |
 |---|---|---|
 | **P1: Core Engine** | Lua host, GE pipeline, sprites, input, timers | Implemented; #19/#20 fixed and PPSSPP-verified (PSP hardware pending) |
-| **S2: Font + Sound** | PGF, SFont, `sfont`, `screen.print`, WAV/VMA audio, 3D models | Implemented; host-tested and PPSSPP-verified (#25, #37, #38, #39) |
+| **S2: Font + Sound** | PGF, SFont, `sfont`, `screen.print`, WAV/VMA/MP3 audio, 3D models | Implemented; host-tested and PPSSPP-verified (#25, #37, #38, #39) |
 | **S3: Maps + Splash + PMF** | Tilemaps, OS stubs, splash, PMF video | Maps host-tested (#4, #26); splash implemented and PPSSPP-verified (#41); PMF implemented and PPSSPP-verified (#5) |
 | **S4: Files + INI + Savedata** | `files`, `ini`, save slots | Implemented; hardening #24 |
 | **S5: Network + Adhoc** | WiFi, HTTP, sockets, FTP, adhoc | Documented subsets implemented and host-tested with loopback servers (#45); real WiFi/adhoc hardware, TLS and background transfers remain |

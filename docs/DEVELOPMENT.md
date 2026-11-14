@@ -158,7 +158,7 @@ engine/
   img/    image.c/h (Lua image module, stb decode), image_mem.c (in-memory
           decode for extracted data)
   font/   font.c/h (handles + fixed-cell/SFont), pgf.c/h (sceLibFont PGF)
-  snd/    sound.c/h (WAV/VMA + PSP audio)
+  snd/    sound.c/h (WAV/VMA/MP3 + PSP audio), minimp3_impl.c
   input/  buttons.c/h
   util/   timers.c/h, olmath.c/h (OneLua math helpers)
   fs/     olfs.c/h (platform VFS), files.c/h, ini.c/h

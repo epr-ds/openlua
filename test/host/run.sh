@@ -116,10 +116,12 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
 
 run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/test/host/test_sound.c" \
-    "$ROOT/engine/snd/sound.c" "$ROOT/engine/core/olreg.c" \
+    "$ROOT/engine/snd/sound.c" \
+    "$ROOT/engine/snd/minimp3_impl.c" \
+    "$ROOT/engine/core/olreg.c" \
     "${OBJS[@]}" \
     -lm -o "$BUILD/sound_test"
-"$BUILD/sound_test"
+"$BUILD/sound_test" "$ROOT/test/host/test.mp3"
 
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     -I"$ROOT/third_party/stb" \
@@ -157,6 +159,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/core/stb_impl.c" \
     "$ROOT/test/host/font_stub.c" "$ROOT/test/host/pspfont_stub.c" \
     "$ROOT/engine/snd/sound.c" \
+    "$ROOT/engine/snd/minimp3_impl.c" \
     "$ROOT/engine/sys/savedata.c" \
     "$ROOT/engine/sys/battery.c" \
     "$ROOT/engine/sys/power.c" \

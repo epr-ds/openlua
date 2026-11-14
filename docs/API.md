@@ -56,10 +56,12 @@ Centred and right-aligned text is positioned per line. The OneLua shadow-style
 constants `__SLEFT`, `__SRIGHT`, `__STHROUGH` and `__SSEESAW` are registered for
 source compatibility; OpenLua always draws one shadow per glyph.
 
-The first font a script loads becomes the default automatically, which matches
-OneLua's built-in default font. Calling `font.setdefault`/`screen.font`
-explicitly overrides it. `screen.print` raises an error only when no font has
-been loaded at all.
+OpenLua loads OneLua's built-in default font from `oneFont.pgf` beside the
+EBOOT at startup (falling back to a baked `oneFont.png` when PGF decoding is
+unavailable). `screen.print` therefore has a default font without any setup;
+`font.load`/`font.new`/`sfont.load` do **not** replace it. Calling
+`font.setdefault`/`screen.font` explicitly overrides it. `screen.print` raises
+an error only when no default font exists and no handle is passed.
 
 > **Ambiguity note.** The legacy `(x, y, text, handle [, tint])` and OneLua
 > `(x, y, text, size [, colour ...])` forms share a shape. When the fourth
@@ -214,14 +216,18 @@ working unchanged. A one-argument `font.load` means PGF; it does not auto-detect
 arbitrary PNG files, but in the standard PSP build it does fall back to a
 same-stem `.png` atlas next to the `.pgf` (see the atlas-fallback note above).
 
-### Default font adoption
+### Default font
 
-The first font loaded through `font.load`, `font.new` or `sfont.load` becomes
-the default used by `screen.print`, `screen.textwidth`, `draw.print` and
-`font.print` when no handle is passed. This mirrors OneLua, whose engine always
-has a built-in default font. An explicit `font.setdefault(handle)` or
-`screen.font(handle)` replaces it. `font.setdefault()` with no arguments still
-returns the current handle.
+At startup OpenLua looks for `oneFont.pgf` in the working directory (the EBOOT
+directory) and loads it as the default for `screen.print`, `screen.textwidth`,
+`screen.textheight` and `draw.print`. The standard PSP build cannot decode PGF
+without Sony's `libfont.prx`, so it uses the sibling `oneFont.png` atlas baked
+from the same font; a lone `oneFont.png` is also accepted. If neither file is
+present — for example in host tests or apps that ship their own fonts — the
+default stays unset until `font.setdefault(handle)` or `screen.font(handle)` is
+called. Loading a font with `font.load`, `font.new` or `sfont.load` never
+changes the default implicitly. `font.setdefault()` with no arguments returns
+the current handle.
 
 ### Classic variable-width SFont (`sfont`)
 
@@ -522,7 +528,7 @@ local phones = hw.headphone() == 1
 
 | Function | Description |
 |---|---|
-| `sound.load(path)` | Load WAV (PCM16) or VMA/VOX. Returns a handle or nil. |
+| `sound.load(path)` | Load WAV (PCM16), VMA/VOX, or stream MP3. Returns a handle or nil. |
 | `sound.play(handle [, channel])` | Start. Channel is 1..8; omit for auto. |
 | `sound.pause(handle [, mode])` | `-1` toggle, `0` resume, `1` pause. |
 | `sound.stop(handle)` | Stop and mark end-of-stream. |
@@ -537,6 +543,14 @@ local phones = hw.headphone() == 1
 Audio is pumped by `screen.flip()`. Channels 1..8 are reserved explicitly and
 released by `sound.stop`, `sound.free`, or natural end of playback; omit the
 channel (or pass `0`) to reserve the next free channel.
+
+WAV and VMA are decoded fully into RAM at load time (the WAV path caps at
+8 MB). MP3 is detected from the `.mp3` extension, an `ID3v2` tag, or a raw MPEG
+frame sync, and is streamed: the compressed file stays on the memory stick and
+one frame is decoded per pump. MP3 sources of any sample rate are downmixed to
+mono and resampled to 22050 Hz like WAV; `sound.rate` always reports the output
+rate. This keeps multi-megabyte music tracks usable without loading them into
+RAM.
 
 ## files
 
@@ -1284,5 +1298,6 @@ implemented yet.
 | Hardware audio route | `hw.audioout(mode)` uses `sceAudioRoutingSetMode`; PPSSPP 1.20.4's `GetMode` HLE always returns `0` | #36 |
 | Compound assignment | OpenLua's vendored Lua 5.1 lexer/parser accepts OneLua's `+=`, `-=`, `*=`, `/=`, `%=` and `^=`. This is a source-language extension, not a new runtime module | — |
 | PGF without `libfont.prx` | The standard build cannot decode PGF natively; custom fonts must ship a same-stem `.png` atlas and are loaded through the SFont path. Native PGF metrics require an opt-in build with Sony's `libfont.prx` | — |
-| Default font | OneLua ships a built-in default font; OpenLua adopts the first font loaded by the script. Scripts that never load a font still need to pass a handle or call `font.setdefault` | — |
+| Default font | OpenLua loads `oneFont.pgf` beside the EBOOT (or its baked `oneFont.png` on the standard build) as the default at startup, matching OneLua. Apps without those files keep a nil default until `font.setdefault` is called | — |
+| MP3 audio | Streamed through the vendored minimp3 decoder (CC0), resampled to 22050 Hz mono; S3M/other tracker formats are still unsupported | — |
 | `screen.print` scale default | OneLua defaults the size argument to `0.7`; OpenLua defaults to `1.0` to preserve the existing OpenLua behaviour. Pass an explicit size for OneLua-identical output | — |

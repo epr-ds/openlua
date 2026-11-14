@@ -5,6 +5,9 @@
  *   - sound.load()  decodes 16-bit PCM WAV (mono or stereo, any rate)
  *     and PSP VMA/VOX (22050 Hz mono, 4-byte sample-count header),
  *     normalising to the fixed 22050 Hz mono hardware output rate.
+ *     MP3 (`.mp3`, ID3v2, or an MPEG frame sync) is streamed through
+ *     minimp3 instead of being decoded up front: menu music is 3-10 MB,
+ *     so holding whole files in RAM (and the 8 MB WAV cap) is not viable.
  *   - sound.play()  reserves a hardware channel and starts pumping.
  *   - sound_pump()  is the per-frame driver (hooked into screen.flip()):
  *     feeds one 1024-sample chunk whenever the channel buffer has drained
@@ -59,6 +62,7 @@ static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return 0; }
 #include <limits.h>
 #include <stdio.h>
 #include "engine/core/olreg.h"
+#include "third_party/minimp3/minimp3.h"
 #if !defined(__PSP__)
 #include <errno.h>
 #endif
@@ -82,6 +86,14 @@ static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return 0; }
 #define CHUNK      1024              /* samples per sceAudioOutput call (~46 ms) */
 #define CHUNK_ALIGN 64               /* PSP_AUDIO_SAMPLE_ALIGN granularity */
 
+/* MP3 streaming: a compressed input buffer plus a staging buffer holding
+ * already-resampled 22050 Hz mono samples.  One decoded MPEG1 frame is at
+ * most 1152 samples/channel; at the lowest MP3 rate (8 kHz) resampling to
+ * 22050 yields ~3176 samples, so 8192 leaves room for one frame on top of
+ * a partially-consumed chunk. */
+#define MP3_IN_BUF  (64 * 1024)
+#define MP3_STAGE   8192
+
 typedef struct {
     int      used;
     int      channel;      /* reserved PSP audio channel (-1 = none)   */
@@ -95,6 +107,23 @@ typedef struct {
     int      vol;          /* 0..100 (0xF = unset default -> 100)      */
     int      channels;     /* original channel count (1 or 2)          */
     int      orig_rate;    /* source sample rate (Hz)                  */
+
+    /* Streaming MP3 state.  pcm/len/pos stay unused for streams. */
+    int            streaming;
+    FILE          *fp;         /* kept open on the memory stick          */
+    mp3dec_t      *mp3;
+    unsigned char *inbuf;
+    int            in_len;
+    int            in_pos;
+    int            eof;        /* input file exhausted                   */
+    int            stream_end; /* decoder produced its last frame        */
+    int16_t       *stage;      /* resampled 22050 mono staging           */
+    int            stage_len;
+    int            stage_pos;
+    int16_t       *frame;      /* one decoded frame, downmixed mono      */
+    int16_t        rs_prev;    /* last source sample of previous frame   */
+    int            rs_have_prev;
+    double         rs_pos;     /* fractional position in current frame   */
 } OLS_Sound;
 
 static OLS_Sound g_s[SND_MAX];
@@ -276,6 +305,279 @@ static int resample_m(const int16_t *src, int n, int src_rate,
 }
 
 /* ----------------------------------------------------------------- */
+/* MP3 streaming decode (minimp3)                                     */
+
+static int has_mp3_ext(const char *p)
+{
+    size_t n = strlen(p);
+    if (n < 4)
+        return 0;
+    p += n - 4;
+    return p[0] == '.' &&
+           (p[1] == 'm' || p[1] == 'M') &&
+           (p[2] == 'p' || p[2] == 'P') &&
+           (p[3] == '3');
+}
+
+/* Rewind to the first MPEG frame, skipping an ID3v2 tag if present. */
+static int mp3_seek_start(OLS_Sound *s)
+{
+    if (!s->fp)
+        return -1;
+    if (fseek(s->fp, 0, SEEK_SET) != 0)
+        return -1;
+
+    unsigned char id3[10];
+    size_t n = fread(id3, 1, sizeof(id3), s->fp);
+    if (n == sizeof(id3) && memcmp(id3, "ID3", 3) == 0) {
+        unsigned long size = ((unsigned long)(id3[6] & 0x7f) << 21) |
+                             ((unsigned long)(id3[7] & 0x7f) << 14) |
+                             ((unsigned long)(id3[8] & 0x7f) << 7) |
+                             ((unsigned long)(id3[9] & 0x7f));
+        if (size > 0 && size < (1UL << 30))
+            fseek(s->fp, (long)(10 + size), SEEK_SET);
+        else
+            fseek(s->fp, 0, SEEK_SET);
+    } else {
+        fseek(s->fp, 0, SEEK_SET);
+    }
+
+    mp3dec_init(s->mp3);
+    s->in_len     = 0;
+    s->in_pos     = 0;
+    s->eof        = 0;
+    s->stream_end = 0;
+    s->stage_len  = 0;
+    s->stage_pos  = 0;
+    s->rs_prev    = 0;
+    s->rs_have_prev = 0;
+    s->rs_pos     = 0.0;
+    return 0;
+}
+
+static void mp3_close(OLS_Sound *s)
+{
+    if (s->fp) {
+        fclose(s->fp);
+        s->fp = NULL;
+    }
+    free(s->mp3);   s->mp3   = NULL;
+    free(s->inbuf); s->inbuf = NULL;
+    free(s->stage); s->stage = NULL;
+    free(s->frame); s->frame = NULL;
+}
+
+/* Compact consumed input and read another block. */
+static void mp3_feed(OLS_Sound *s)
+{
+    if (s->eof)
+        return;
+    if (s->in_pos > 0) {
+        memmove(s->inbuf, s->inbuf + s->in_pos,
+                (size_t)(s->in_len - s->in_pos));
+        s->in_len -= s->in_pos;
+        s->in_pos = 0;
+    }
+    if (s->in_len >= MP3_IN_BUF)
+        return;
+    size_t n = fread(s->inbuf + s->in_len, 1,
+                     (size_t)(MP3_IN_BUF - s->in_len), s->fp);
+    if (n == 0)
+        s->eof = 1;
+    s->in_len += (int)n;
+}
+
+/* Decode the next audio frame into s->frame, downmixed to mono.
+ * Returns the number of samples per channel, or 0 at end of stream. */
+static int mp3_decode_mono(OLS_Sound *s)
+{
+    for (;;) {
+        if (s->in_pos >= s->in_len) {
+            mp3_feed(s);
+            if (s->in_pos >= s->in_len)
+                return 0;
+        }
+
+        int avail = s->in_len - s->in_pos;
+        mp3dec_frame_info_t info;
+        memset(&info, 0, sizeof(info));
+        int samples = mp3dec_decode_frame(s->mp3, s->inbuf + s->in_pos,
+                                          avail, s->frame, &info);
+        if (samples > 0) {
+            s->in_pos += info.frame_bytes;
+            if (info.hz > 0)
+                s->orig_rate = info.hz;
+            s->channels = info.channels;
+            if (info.channels == 2) {
+                for (int i = 0; i < samples; i++) {
+                    int a = s->frame[i * 2];
+                    int b = s->frame[i * 2 + 1];
+                    s->frame[i] = (int16_t)((a + b) / 2);
+                }
+            }
+            return samples;
+        }
+
+        if (info.frame_bytes > 0 && info.frame_bytes < avail) {
+            /* junk or an ID3v1 trailer before the next frame */
+            s->in_pos += info.frame_bytes;
+            continue;
+        }
+
+        if (info.frame_bytes >= avail) {
+            /* No complete frame in what is buffered. */
+            if (s->eof)
+                return 0;
+            if (avail >= MP3_IN_BUF) {
+                /* Corrupt / non-MPEG data: drop most of the window and
+                 * resynchronise without scanning it byte by byte. */
+                s->in_pos += avail - 1024;
+                continue;
+            }
+            int before = avail;
+            mp3_feed(s);
+            if (s->in_len - s->in_pos <= before && s->eof)
+                return 0;
+            continue;
+        }
+
+        /* frame_bytes == 0: an incomplete frame at the buffer start. */
+        int before = avail;
+        mp3_feed(s);
+        if (s->in_len - s->in_pos <= before && s->eof)
+            return 0;
+    }
+}
+
+/* Append one decoded mono frame to the staging buffer, resampling to
+ * HW_RATE with linear interpolation.  rs_pos/rs_prev carry the fractional
+ * position and last sample across frame boundaries. */
+static void mp3_append_resampled(OLS_Sound *s, int n)
+{
+    if (n <= 0)
+        return;
+
+    if (s->orig_rate <= 0)
+        s->orig_rate = HW_RATE;
+
+    if (s->orig_rate == HW_RATE || n < 2) {
+        int space = MP3_STAGE - s->stage_len;
+        if (n > space)
+            n = space;
+        memcpy(s->stage + s->stage_len, s->frame,
+               (size_t)n * sizeof(int16_t));
+        s->stage_len += n;
+        s->rs_prev = s->frame[n - 1];
+        s->rs_have_prev = 1;
+        s->rs_pos = 0.0;
+        return;
+    }
+
+    double step = (double)s->orig_rate / (double)HW_RATE;
+    if (!s->rs_have_prev) {
+        s->rs_prev = s->frame[0];
+        s->rs_have_prev = 1;
+        s->rs_pos = 0.0;
+    }
+
+    while (s->rs_pos < (double)(n - 1) && s->stage_len < MP3_STAGE) {
+        int i0 = (int)s->rs_pos;
+        if ((double)i0 > s->rs_pos)
+            i0--;                         /* floor() for negative carry */
+        double t = s->rs_pos - (double)i0;
+        int a = (i0 < 0) ? s->rs_prev : s->frame[i0];
+        int b = s->frame[i0 + 1];         /* 0 <= i0+1 <= n-1 */
+        s->stage[s->stage_len++] =
+            (int16_t)(a + (int)((b - a) * t + (t >= 0 ? 0.5 : -0.5)));
+        s->rs_pos += step;
+    }
+
+    s->rs_prev = s->frame[n - 1];
+    s->rs_pos -= (double)n;
+}
+
+/* Ensure `need` staged samples are available (or the stream has ended).
+ * Returns the number of staged samples remaining. */
+static int mp3_fill(OLS_Sound *s, int need)
+{
+    for (;;) {
+        int avail = s->stage_len - s->stage_pos;
+        if (avail >= need || s->stream_end)
+            return avail;
+
+        if (s->stage_pos > 0) {
+            if (avail > 0)
+                memmove(s->stage, s->stage + s->stage_pos,
+                        (size_t)avail * sizeof(int16_t));
+            s->stage_len = avail;
+            s->stage_pos = 0;
+        }
+
+        int n = mp3_decode_mono(s);
+        if (n <= 0) {
+            s->stream_end = 1;
+            return s->stage_len;
+        }
+        mp3_append_resampled(s, n);
+    }
+}
+
+/* Takes ownership of `f`; returns a 1-based handle or 0. */
+static int mp3_sound_alloc(FILE *f)
+{
+    int slot = -1;
+    for (int i = 0; i < SND_MAX; i++) {
+        if (!g_s[i].used) {
+            slot = i;
+            break;
+        }
+    }
+    if (slot < 0) {
+        fclose(f);
+        return 0;
+    }
+
+    OLS_Sound *s = &g_s[slot];
+    memset(s, 0, sizeof(*s));
+    s->channel = -1;
+    s->vol     = 100;
+
+    s->mp3   = (mp3dec_t *)calloc(1, sizeof(mp3dec_t));
+    s->inbuf = (unsigned char *)malloc(MP3_IN_BUF);
+    s->stage = (int16_t *)malloc(MP3_STAGE * sizeof(int16_t));
+    s->frame = (int16_t *)malloc(MINIMP3_MAX_SAMPLES_PER_FRAME *
+                                 sizeof(int16_t));
+    if (!s->mp3 || !s->inbuf || !s->stage || !s->frame) {
+        fclose(f);
+        free(s->mp3);
+        free(s->inbuf);
+        free(s->stage);
+        free(s->frame);
+        memset(s, 0, sizeof(*s));
+        return 0;
+    }
+
+    s->used      = 1;
+    s->streaming = 1;
+    s->fp        = f;
+
+    if (mp3_seek_start(s) != 0) {
+        sound_free(slot + 1);
+        return 0;
+    }
+
+    /* Prime the first frame so a non-MP3 file is rejected at load time and
+     * the sample rate is known before playback. */
+    int n = mp3_decode_mono(s);
+    if (n <= 0) {
+        sound_free(slot + 1);
+        return 0;
+    }
+    mp3_append_resampled(s, n);
+    return slot + 1;
+}
+
+/* ----------------------------------------------------------------- */
 /* public API                                                         */
 
 int sound_alloc(const char *path)
@@ -287,7 +589,23 @@ int sound_alloc(const char *path)
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
-    if (fsize <= 0 || fsize > (8L * 1024 * 1024))
+    if (fsize <= 0)
+    { fclose(f); return 0; }
+
+    /* MP3 streams; everything else is decoded fully into RAM.  Sniff the
+     * extension, an ID3v2 tag, or a raw MPEG frame sync so renamed files
+     * still work.  The 8 MB cap below does not apply to streams. */
+    unsigned char probe[4] = {0};
+    size_t probe_n = fread(probe, 1, sizeof(probe), f);
+    fseek(f, 0, SEEK_SET);
+    int is_mp3 = has_mp3_ext(path) ||
+                 (probe_n >= 3 && memcmp(probe, "ID3", 3) == 0) ||
+                 (probe_n >= 2 && probe[0] == 0xFF &&
+                  (probe[1] & 0xE0) == 0xE0);
+    if (is_mp3)
+        return mp3_sound_alloc(f);
+
+    if (fsize > (8L * 1024 * 1024))
     { fclose(f); return 0; }
 
     unsigned char *buf = malloc((size_t)fsize);
@@ -382,7 +700,14 @@ int sound_play_channel(int h, int ch)
         s->channel = rc;
     }
 
-    s->pos      = 0;
+    if (s->streaming) {
+        if (mp3_seek_start(s) != 0) {
+            release_channel(s);
+            return -1;
+        }
+    } else {
+        s->pos = 0;
+    }
     s->playing  = 1;
     s->paused   = 0;
     s->finished = 0;
@@ -465,7 +790,10 @@ void sound_free(int h)
     OLS_Sound *s = get(h);
     if (!s) return;
     release_channel(s);
-    free(s->pcm);
+    if (s->streaming)
+        mp3_close(s);
+    else
+        free(s->pcm);
     memset(s, 0, sizeof(*s));
 }
 
@@ -481,6 +809,48 @@ void sound_pump(void)
         int rest = sceAudioGetChannelRestLen(s->channel);
         if (rest < 0)
             continue;                        /* channel error: skip    */
+
+        if (s->streaming) {
+            while (rest < CHUNK) {
+                int avail = mp3_fill(s, CHUNK);
+                if (avail <= 0) {
+                    if (s->loop && mp3_seek_start(s) == 0)
+                        avail = mp3_fill(s, CHUNK);
+                    if (avail <= 0) {
+                        s->playing  = 0;
+                        s->finished = 1;
+                        release_channel(s);
+                        break;
+                    }
+                }
+
+                int n = (avail < CHUNK) ? avail : CHUNK;
+                int16_t *ptr = s->stage + s->stage_pos;
+                if (n < CHUNK) {
+                    /* end of stream: pad the final chunk with silence */
+                    static int16_t tail[CHUNK];
+                    memcpy(tail, ptr, (size_t)n * sizeof(int16_t));
+                    memset(tail + n, 0, (size_t)(CHUNK - n) * sizeof(int16_t));
+                    ptr = tail;
+                }
+
+                int r = sceAudioOutput(s->channel, vol_hw(s->vol), (void *)ptr);
+                if (r < 0)
+                    break;
+
+                s->stage_pos += n;
+                rest += CHUNK;
+                if (n < CHUNK) {
+                    if (s->loop && mp3_seek_start(s) == 0)
+                        continue;            /* refill from the top      */
+                    s->playing  = 0;
+                    s->finished = 1;
+                    release_channel(s);
+                    break;
+                }
+            }
+            continue;
+        }
 
         /* feed exactly one chunk when the buffer has drained below   */
         /* the chunk size; self-limiting so a slow UI loop cannot    */

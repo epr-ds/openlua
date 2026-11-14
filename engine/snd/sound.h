@@ -3,6 +3,7 @@
  * OneLua-compatible sound module built on the native PSP audio path:
  *
  *   local s = sound.load("assets/beep.wav") -- load 16-bit PCM (WAV / VMA)
+ *   local m = sound.load("music.mp3")      -- stream MP3 (minimp3)
  *   sound.play(s)                          -- play (auto channel)
  *   sound.play(s, 2)                       -- play on channel group 2
  *   sound.loop(s)                          -- toggle loop, returns state
@@ -19,9 +20,9 @@
  * not call a sound pump manually.
  *
  * Supported formats: 16-bit PCM WAV (mono/stereo, any sample rate; resampled
- * to 22050 Hz mono on load) and PSP VMA (22050 Hz mono, raw PCM16 after a
- * 4-byte sample-count header).  MP3 / S3M decoding is a future extension
- * (see issue #3).
+ * to 22050 Hz mono on load), PSP VMA (22050 Hz mono, raw PCM16 after a
+ * 4-byte sample-count header), and MP3 (streamed and resampled to 22050 Hz
+ * mono; files are not held in RAM, so long music tracks are fine).
  */
 
 #ifndef OL_SOUND_H

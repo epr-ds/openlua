@@ -42,7 +42,13 @@ static VertC *alloc_verts(int n)
 
 static void set_vert(VertC *v, int x, int y, unsigned int color)
 {
-    v->color = color | 0xFF000000;
+    /* Preserve the caller's alpha so translucent fills/rects blend over the
+     * scene (e.g. OneLua's `color.new(0, 0, 0, 140)` menu dimmer).  A value
+     * with no alpha byte but a non-zero RGB component is an old-style opaque
+     * color; a fully zero word stays fully transparent. */
+    if ((color & 0xFF000000u) == 0 && (color & 0x00FFFFFFu) != 0)
+        color |= 0xFF000000u;
+    v->color = color;
     v->x = (short)x;
     v->y = (short)y;
     v->z = 0;

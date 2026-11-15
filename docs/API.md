@@ -112,6 +112,15 @@ left-to-right, top-to-bottom order.
 Transforms are stored on the surface and apply to later blits. Scale, rotation,
 flip, pivot and tint compose in one quad. Reset them between sprites.
 
+Flips also apply to sub-rect blits: `image.fliph(img, 1)` followed by
+`image.blit(img, x, y, sx, sy, w, h)` mirrors that cell in place, so a
+spritesheet only needs its right-facing frames and the opposite facing is
+derived at draw time. This is the recommended replacement for baking a second
+`_left` sheet. The flag is state on the image handle, so set it (rather than
+toggle it) immediately before each draw when the same handle is used for both
+facings. The explicit `set` argument is an OpenLua extension; OneLua's
+`image.fliph(img)` takes no argument and always toggles.
+
 | Function | Description |
 |---|---|
 | `image.fliph(img [, set])` | Set horizontal flip; omit `set` to toggle. `flipx` is an alias. |

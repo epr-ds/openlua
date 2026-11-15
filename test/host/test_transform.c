@@ -71,6 +71,31 @@ int main(void)
     }
     p.flipY = 0;
 
+    /* A flipped sub-rectangle: sprite-sheet cells are sampled with an
+     * offset source rect, and flipX must swap only that cell's U range.
+     * This is the one-sheet Spartan case (48/64 px cells at srcX > 0). */
+    p.flipX = 1;
+    p.srcX = 128;
+    {
+        float xs[4] = {10, 74, 74, 10};
+        float ys[4] = {20, 20, 84, 84};
+        float us[4] = {0.75f, 0.5f, 0.5f, 0.75f};
+        float vs[4] = {0, 0, 1, 1};
+        expect("flipX-src-offset", &p, xs, ys, us, vs);
+    }
+
+    p.flipY = 1;
+    {
+        float xs[4] = {10, 74, 74, 10};
+        float ys[4] = {20, 20, 84, 84};
+        float us[4] = {0.75f, 0.5f, 0.5f, 0.75f};
+        float vs[4] = {1, 1, 0, 0};
+        expect("flipXY-src-offset", &p, xs, ys, us, vs);
+    }
+    p.flipX = 0;
+    p.flipY = 0;
+    p.srcX = 64;
+
     p.x = 100.0f;
     p.y = 50.0f;
     p.scaleX = 2.0f;

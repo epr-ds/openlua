@@ -31,11 +31,22 @@ while true do
     image.fliph(img, 1)
     image.blitsprite(img, 200, 8, 3)
 
-    -- Bottom: explicit source rectangles.
-    image.reset(img)
+    -- Bottom: explicit source rectangles, flipped per frame. This is the
+    -- sprite-sheet path: each cell keeps its own source rectangle and the
+    -- flip swaps only that rectangle's UVs, so one atlas drives both sides.
+    image.fliph(img, 0)
+    image.flipv(img, 0)
     image.blit(img, 8, 80, 0, 0, 64, 64, 255)
+
+    image.fliph(img, 1)
     image.blit(img, 80, 80, 64, 0, 64, 64, 255)
+
+    image.fliph(img, 0)
+    image.flipv(img, 1)
     image.blit(img, 152, 80, 128, 0, 64, 64, 255)
+
+    image.fliph(img, 1)
+    image.blit(img, 224, 80, 192, 0, 64, 64, 255)
 
     -- Whole sheet using the method form; module-call form also works.
     img:blit(8, 160, 0, 0, img:getw(), img:geth(), 255)

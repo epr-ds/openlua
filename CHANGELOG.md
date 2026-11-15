@@ -29,6 +29,11 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   - `color` gained `loadpalette` and the OneLua named palette (`white`,
     `black`, `red`, `green`, `blue`, `yellow`, `cyan`, `magenta`, `orange`,
     `gray`/`grey`, `lightgray`, `darkgray`, `transparent`).
+  - Sub-rect `image.blit`/`image.blitsprite` honour `image.fliph`/`image.flipv`
+    per call, so one spritesheet drives both facings and the baked `_left`
+    mirror sheets are unnecessary. Verified with the Spartan `body.png` /
+    `battlerifle.png` atlases in PPSSPP and by a pixel-for-pixel comparison
+    against the old mirror sheets.
   - `draw.gradrect` and `draw.print`, and `image.resize` (implemented as
     per-axis scale factors because OpenLua scales at blit time).
   - `buttons.read` now fills OneLua's stateful booleans (`buttons.start`,
@@ -39,7 +44,7 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   - The module-level `timer` table (`timer.new/start/time/gettime/stoptime/
     reset/startreset`) is registered alongside the original `timers` table.
   - `test/host/test_compat.lua` (57 assertions) covers the added surface; the
-    full host suite now runs 615 C checks and 966 Lua assertions.
+    full host suite now runs 647 C checks and 966 Lua assertions.
 - MP3 audio streaming through the vendored minimp3 decoder (CC0, `MINIMP3_NO_SIMD`).
   `sound.load` detects `.mp3`, ID3v2 tags or a raw MPEG frame sync, keeps the
   compressed file on storage and decodes one frame per pump, downmixing to mono

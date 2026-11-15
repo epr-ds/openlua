@@ -71,15 +71,15 @@ URL/response parsing and loopback TCP/HTTP/FTP paths, Lua modules):
 bash test/host/run.sh
 ```
 
-Expected: `olfs: 47 checks, 0 failed`, `transform: 144 checks, 0 failed`,
+Expected: `olfs: 47 checks, 0 failed`, `transform: 176 checks, 0 failed`,
 `psmf: 20 checks, 0 failed`, `pbp: 53 checks, 0 failure(s)`,
 `obj: 26 checks, 0 failed`, `battery: 16 checks, 0 failed`,
 `cam: 23 checks, 0 failure(s)`, `umd: 12 checks, 0 failure(s)`,
 `net: 79 checks, 0 failure(s)`, `RESULT: 10 passed, 0 failed` for the OS C
-helpers, `RESULT: 54 passed, 0 failed` for the hardware helpers,
-`maps: 26 checks, 0 failed`, `sound: 48 checks, 0 failed`,
+helpers, `RESULT: 60 passed, 0 failed` for the hardware helpers,
+`maps: 26 checks, 0 failed`, `sound: 62 checks, 0 failed`,
 `sfont C: 20 checks, 0 failure(s)` and `pgf C: 17 checks, 0 failure(s)`
-(595 C checks total), then `RESULT: 46 passed, 0 failed`,
+(647 C checks total), then `RESULT: 46 passed, 0 failed`,
 `RESULT: 21 passed, 0 failed` for timers, `RESULT: 23 passed, 0 failed` for
 math, `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for
 JSON, `RESULT: 64 passed, 0 failed` for savedata,
@@ -93,7 +93,7 @@ the 3D handle/API surface, `splash Lua: 20 assertions, 0 failure(s)`,
 `game Lua: 46 assertions, 0 failure(s)`,
 `cam Lua: 90 assertions, 0 failure(s)`,
 `peripherals Lua: 89 assertions, 0 failure(s)` and
-`net Lua: 94 assertions, 0 failure(s)` (909 Lua assertions total). The PGF
+`net Lua: 94 assertions, 0 failure(s)` (966 Lua assertions total). The PGF
 tests use `test/host/pspfont_stub.c` in place of the PSP system library; real
 PGF rendering is checked separately in PPSSPP. The 3D host test exercises
 parse/load/transform/render bookkeeping only; GE output is checked in PPSSPP.

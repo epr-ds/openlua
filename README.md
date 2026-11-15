@@ -71,7 +71,7 @@ published automatically by GitHub Actions on every push to `main`; see
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 601 C checks + 966 Lua assertions
+bash test/host/run.sh              # 647 C checks + 966 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 

@@ -13,16 +13,17 @@
  *   sound.vol(s)                           -- get volume
  *   sound.playing(s)                       -- bool
  *   sound.endstream(s)                     -- bool: finished/stopped?
- *   sound.rate(s)                          -- sample rate Hz (22050 after resample)
+ *   sound.rate(s)                          -- sample rate Hz (44100 after resample)
  *
- * The audio pump runs automatically once per screen.flip() — match OneLua's
- * contract, where the game loop just needs to keep flipping.  Scripts do
- * not call a sound pump manually.
+ * OneLua pumps audio once per screen.flip(); OpenLua keeps that contract on
+ * host builds, while the PSP build runs a small output thread per sound so
+ * playback stays gapless.  Either way, scripts do not call a pump manually.
  *
  * Supported formats: 16-bit PCM WAV (mono/stereo, any sample rate; resampled
- * to 22050 Hz mono on load), PSP VMA (22050 Hz mono, raw PCM16 after a
- * 4-byte sample-count header), and MP3 (streamed and resampled to 22050 Hz
- * mono; files are not held in RAM, so long music tracks are fine).
+ * to 44100 Hz mono on load - the fixed rate of PSP hardware channels), PSP
+ * VMA (22050 Hz mono, raw PCM16 after a 4-byte sample-count header; also
+ * resampled to 44100), and MP3 (streamed and resampled to 44100 Hz mono;
+ * files are not held in RAM, so long music tracks are fine).
  */
 
 #ifndef OL_SOUND_H
@@ -49,11 +50,13 @@ int  sound_playing(int h);                    /* 0/1                         */
 int  sound_endstream(int h);                  /* 0/1 finished                */
 int  sound_rate(int h);                       /* Hz                          */
 int  sound_channels(int h);                   /* 1 or 2                      */
+int  sound_length(int h);                     /* resampled samples, 0 stream */
 
-/** Pump: feed one chunk to any playing sound whose channel buffer drained.
- *  Called once per screen.flip() from the core — scripts do not call it. */
+/** Pump: host builds feed one chunk to any playing sound whose channel
+ *  buffer drained.  On PSP each sound is fed by its own thread and this is
+ *  a no-op.  Called once per screen.flip() from the core — scripts do not
+ *  call it. */
 void sound_pump(void);
-void sound_update(void);                      /* pump: call once per frame   */
 
 /* ---- Lua bindings ---- */
 

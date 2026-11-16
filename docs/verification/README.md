@@ -150,7 +150,9 @@ atlases. Verified:
 - the Settings, Play and Forge backgrounds visible under OneLua's translucent
   dimmer instead of a black overlay;
 - menu music: the MP3 stream stayed active on a hardware channel with
-  `streaming=1`, `orig_rate=48000` and 22050 Hz output.
+  `streaming=1` and `orig_rate=48000`. (That run reported 22050 Hz output,
+  which was the pitch/speed bug fixed later; the current build resamples MP3
+  to the 44100 Hz hardware rate.)
 
 `crash.log` stayed absent throughout. This is emulator verification only; the
 game has not yet been run on a real PSP, where FAT case-insensitivity and

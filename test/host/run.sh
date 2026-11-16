@@ -31,6 +31,12 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
 "$BUILD/transform_test"
 
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
+    "$ROOT/engine/util/textwrap.c" \
+    "$ROOT/test/host/test_textwrap.c" \
+    -o "$BUILD/textwrap_test"
+"$BUILD/textwrap_test"
+
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     "$ROOT/engine/data/psmf.c" \
     "$ROOT/test/host/test_psmf.c" \
     -o "$BUILD/psmf_test"

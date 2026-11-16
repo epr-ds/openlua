@@ -50,6 +50,7 @@ OBJS = engine/core/main.o \
 	engine/input/buttons.o \
 	engine/util/olmath.o \
 	engine/util/timers.o \
+	engine/util/textwrap.o \
 	engine/font/font.o \
 	engine/font/pgf.o \
 	engine/snd/sound.o \

@@ -153,16 +153,18 @@ int main(int argc, char **argv)
     check(write_wav(path, 1, 11025, 100) == 0, "write mono wav");
     int h = sound_alloc(path);
     check(h > 0, "mono wav loads");
-    check(sound_rate(h) == 22050, "mono wav resampled rate");
+    check(sound_rate(h) == 44100, "mono wav resampled rate");
     check(sound_channels(h) == 1, "mono wav channel count");
+    check(sound_length(h) == 400, "mono 11025 Hz wav is 4x longer");
     sound_free(h);
 
     snprintf(path, sizeof(path), "%s/stereo.wav", tmp);
     check(write_wav(path, 2, 44100, 100) == 0, "write stereo wav");
     h = sound_alloc(path);
     check(h > 0, "stereo wav loads");
-    check(sound_rate(h) == 22050, "stereo wav resampled rate");
+    check(sound_rate(h) == 44100, "stereo wav resampled rate");
     check(sound_channels(h) == 2, "stereo wav channel count");
+    check(sound_length(h) == 100, "44100 Hz wav is not resampled");
     sound_free(h);
 
     snprintf(path, sizeof(path), "%s/tiny-rate.wav", tmp);
@@ -193,8 +195,9 @@ int main(int argc, char **argv)
     check(write_vma(path, 4) == 0, "write vma");
     int h1 = sound_alloc(path);
     check(h1 > 0, "vma loads");
-    check(sound_rate(h1) == 22050, "vma rate");
+    check(sound_rate(h1) == 44100, "vma rate");
     check(sound_channels(h1) == 1, "vma channel count");
+    check(sound_length(h1) == 8, "vma samples doubled to 44100");
 
     snprintf(path, sizeof(path), "%s/short.vma", tmp);
     check(write_bytes(path, "\x01\x00\x00", 3) == 0, "write short vma");
@@ -249,8 +252,9 @@ int main(int argc, char **argv)
     const char *mp3_fixture = argv[1];
     int hm = sound_alloc(mp3_fixture);
     check(hm > 0, "mp3 loads");
-    check(sound_rate(hm) == 22050, "mp3 output is normalised to 22050");
+    check(sound_rate(hm) == 44100, "mp3 output is normalised to 44100");
     check(sound_channels(hm) == 2, "mp3 stereo source reported");
+    check(sound_length(hm) == 0, "mp3 length unknown while streaming");
     check(sound_play(hm) == 0, "mp3 play reserves a channel");
     check(sound_playing(hm) == 1, "mp3 playing after start");
     for (int i = 0; i < 1000 && !sound_endstream(hm); i++)
@@ -271,7 +275,7 @@ int main(int argc, char **argv)
           "write 9 MB mp3");
     int hb = sound_alloc(path);
     check(hb > 0, "9 MB mp3 streams past the 8 MB wav cap");
-    check(hb <= 0 || sound_rate(hb) == 22050, "large mp3 rate");
+    check(hb <= 0 || sound_rate(hb) == 44100, "large mp3 rate");
     sound_free(hb);
 
     const char *files[] = {

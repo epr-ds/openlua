@@ -2,6 +2,7 @@
 #include <pspdisplay.h>
 #include <pspdebug.h>
 #include <pspgu.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,6 +18,7 @@
 #include "engine/input/buttons.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
+#include "engine/util/textwrap.h"
 
 #include "engine/font/font.h"
 #include "engine/fs/files.h"
@@ -236,14 +238,31 @@ static const char *find_script(int argc, char *argv[])
     return NULL;
 }
 
+/* The debug screen is a 60-column text grid. Wrap a little short of that
+ * so a long Lua traceback stays inside the 480-pixel display instead of
+ * running off the right edge. */
+#define FATAL_WRAP_COLS 58
+
 static void fatal_show(const char *err)
 {
+    char wrapped[2048];
+
     debug_note("boot: fatal");
     debug_note(err ? err : "(unknown)");
+
+    ol_text_wrap(err ? err : "(unknown Lua error)",
+                 FATAL_WRAP_COLS, wrapped, (int)sizeof(wrapped));
+
     sceGuTerm();
     pspDebugScreenInit();
-    pspDebugScreenPrintf("OpenLua 1.0\n");
-    pspDebugScreenPrintf("Fatal: %s\n", err ? err : "(unknown)");
+    debug_note("boot: fatal screen ready");
+    pspDebugScreenSetTextColor(0xFFFFFFFF);
+    pspDebugScreenPuts("OpenLua 1.0 - fatal error\n");
+    pspDebugScreenPuts("----------------------------------------------------------\n");
+    pspDebugScreenPuts(wrapped);
+    pspDebugScreenPuts("\nThe same text is written to openlua.log\n");
+    pspDebugScreenPuts("next to the EBOOT. Press HOME to exit.\n");
+
     while (1) {
         sceDisplayWaitVblankStart();
         sceKernelDelayThread(1000);
@@ -280,10 +299,16 @@ int main(int argc, char **argv)
 
     if (luaL_dofile(L, script) != 0) {
         const char *err = lua_tostring(L, -1);
+        /* Copy before lua_close(): `err` points into the Lua heap and is
+         * freed with the state. */
+        char message[2048];
+
+        snprintf(message, sizeof(message), "%s",
+                 err ? err : "(unknown Lua error)");
         debug_note("boot: lua error");
-        debug_note(err ? err : "(unknown Lua error)");
+        debug_note(message);
         lua_close(L);
-        fatal_show(err ? err : "(unknown Lua error)");
+        fatal_show(message);
     }
     debug_note("boot: script returned");
 

@@ -37,7 +37,7 @@ nothing, because OpenLua colours are already concrete ABGR words.
 | Function | Description |
 |---|---|
 | `screen.clear(color)` | Set the colour used to clear the next frame. It does not draw immediately. |
-| `screen.flip()` | Present the frame and pump audio. |
+| `screen.flip()` | Present the frame. (Audio runs on its own thread on PSP; host builds still pump it here.) |
 | `screen.font([handle])` | Set/get the default font handle. |
 | `screen.setcolor([abgr])` | Set/get the default text tint. |
 | `screen.print(x, y, text [, handle [, tint]])` | Draw text, returns the final cursor X. Requires a default or explicit font. |
@@ -546,20 +546,25 @@ local phones = hw.headphone() == 1
 | `sound.playing(handle)` | True while playing and not paused. |
 | `sound.endstream(handle)` | True after playback finished. |
 | `sound.vol(handle [, 0..100])` | Set/get volume. |
-| `sound.rate(handle)` | Output rate (always 22050). |
+| `sound.rate(handle)` | Output rate (always 44100: the PSP hardware rate). |
 | `sound.free(handle)` | Release the sound and its channel. |
 
-Audio is pumped by `screen.flip()`. Channels 1..8 are reserved explicitly and
-released by `sound.stop`, `sound.free`, or natural end of playback; omit the
-channel (or pass `0`) to reserve the next free channel.
+Audio on the PSP is fed by a small per-sound output thread, not by
+`screen.flip()`: software channels 0..7 always mix at 44100 Hz, so `sound_pump()`
+becomes a no-op in PSP builds and `screen.flip()` only matters as the frame
+clock. `sceAudioOutputBlocking()` paces the thread and, with two private
+buffers, keeps playback gapless without ever rewriting a buffer the hardware is
+still reading. Channels 1..8 are reserved explicitly and released by
+`sound.stop`, `sound.free`, or natural end of playback; omit the channel (or
+pass `0`) to reserve the next free channel.
 
 WAV and VMA are decoded fully into RAM at load time (the WAV path caps at
 8 MB). MP3 is detected from the `.mp3` extension, an `ID3v2` tag, or a raw MPEG
 frame sync, and is streamed: the compressed file stays on the memory stick and
-one frame is decoded per pump. MP3 sources of any sample rate are downmixed to
-mono and resampled to 22050 Hz like WAV; `sound.rate` always reports the output
-rate. This keeps multi-megabyte music tracks usable without loading them into
-RAM.
+one frame is decoded per output chunk. MP3 sources of any sample rate are
+downmixed to mono and resampled to 44100 Hz like WAV; `sound.rate` always
+reports the output rate. This keeps multi-megabyte music tracks usable without
+loading them into RAM.
 
 ## files
 
@@ -1125,7 +1130,7 @@ amg.init()
 amg.begin()
 amg.mode2d(0)                 -- back to 3D state
 amg.mode2d(1)                 -- disable depth, restore 2D state
-amg.update()                  -- present the 3D frame and pump audio
+amg.update()                  -- present the 3D frame
 amg.finish()                  -- restore the 2D defaults
 amg.perspective(fov)          -- 10..170 degrees
 amg.renderstyle(__TRIANGLES)
@@ -1308,5 +1313,5 @@ implemented yet.
 | Compound assignment | OpenLua's vendored Lua 5.1 lexer/parser accepts OneLua's `+=`, `-=`, `*=`, `/=`, `%=` and `^=`. This is a source-language extension, not a new runtime module | — |
 | PGF without `libfont.prx` | The standard build cannot decode PGF natively; custom fonts must ship a same-stem `.png` atlas and are loaded through the SFont path. Native PGF metrics require an opt-in build with Sony's `libfont.prx` | — |
 | Default font | OpenLua loads `oneFont.pgf` beside the EBOOT (or its baked `oneFont.png` on the standard build) as the default at startup, matching OneLua. Apps without those files keep a nil default until `font.setdefault` is called | — |
-| MP3 audio | Streamed through the vendored minimp3 decoder (CC0), resampled to 22050 Hz mono; S3M/other tracker formats are still unsupported | — |
+| MP3 audio | Streamed through the vendored minimp3 decoder (CC0), resampled to 44100 Hz mono (the PSP channel rate) by a per-sound output thread; S3M/other tracker formats are still unsupported | — |
 | `screen.print` scale default | OneLua defaults the size argument to `0.7`; OpenLua defaults to `1.0` to preserve the existing OpenLua behaviour. Pass an explicit size for OneLua-identical output | — |

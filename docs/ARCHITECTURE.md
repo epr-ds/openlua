@@ -325,14 +325,22 @@ Bluetooth or real-LAN hardware was available.
    - MP3: detected by extension/ID3/frame sync and streamed through minimp3
      (`third_party/minimp3` + `engine/snd/minimp3_impl.c`), so long music
      tracks never sit in RAM.
-2. Stereo is downmixed; non-22050 rates are linearly resampled. MP3 does this
-   per decoded frame with a fractional read position carried across frames.
+2. Stereo is downmixed; everything is linearly resampled to 44100 Hz. That is
+   not a choice: `sceAudioChReserve` takes no rate and channels 0..7 always mix
+   at the system rate. MP3 does this per decoded frame with a fractional read
+   position carried across frames.
 3. `sound.play` reserves a hardware channel (`sceAudioChReserve`); explicit
    channels 1..8 and automatic next-free allocation share the same path.
-4. `sound_pump` runs once per `screen.flip()`. When the channel buffer drains
-   below one 1024-sample chunk, it submits the next chunk. This keeps audio
-   paced by the hardware even if the frame loop slows down.
-5. Channels are released on stop, free, or natural end of playback.
+4. On PSP, `sound.play` also starts a per-sound output thread. It fills one of
+   two private 1024-sample buffers and hands it over with
+   `sceAudioOutputBlocking`, which paces the loop off the hardware clock. A
+   hardware channel holds one buffer and the driver reads it in place, so the
+   old flip-driven pump both gapped between chunks and, for MP3, rewrote the
+   staging buffer while it played. Host builds keep the `sound_pump` path
+   (`screen.flip()` feeds a chunk when the channel drains) so the suite can
+   exercise the mixer without threads.
+5. `sound.stop`/`sound.free` join the output thread and drain the channel
+   before releasing it; natural end of playback releases it from the thread.
 
 ## PMF playback
 

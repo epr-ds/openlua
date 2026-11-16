@@ -34,6 +34,10 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
     mirror sheets are unnecessary. Verified with the Spartan `body.png` /
     `battlerifle.png` atlases in PPSSPP and by a pixel-for-pixel comparison
     against the old mirror sheets.
+  - Script errors now draw a wrapped fatal screen: the Lua message (including
+    its traceback) is soft-wrapped to 58 columns instead of running off the
+    right edge, the same text is written to `openlua.log`, and the crash path
+    no longer reads the error string after `lua_close()`.
   - `draw.gradrect` and `draw.print`, and `image.resize` (implemented as
     per-axis scale factors because OpenLua scales at blit time).
   - `buttons.read` now fills OneLua's stateful booleans (`buttons.start`,
@@ -44,17 +48,18 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   - The module-level `timer` table (`timer.new/start/time/gettime/stoptime/
     reset/startreset`) is registered alongside the original `timers` table.
   - `test/host/test_compat.lua` (57 assertions) covers the added surface; the
-    full host suite now runs 647 C checks and 966 Lua assertions.
+    full host suite now runs 676 C checks and 966 Lua assertions.
 - MP3 audio streaming through the vendored minimp3 decoder (CC0, `MINIMP3_NO_SIMD`).
   `sound.load` detects `.mp3`, ID3v2 tags or a raw MPEG frame sync, keeps the
-  compressed file on storage and decodes one frame per pump, downmixing to mono
-  and resampling to 22050 Hz with a fractional position carried across frame
-  boundaries. Replay, loop and `sound.free` rewind/close the stream. This makes
+  compressed file on storage and decodes one frame per output chunk, downmixing
+  to mono and resampling to 44100 Hz with a fractional position carried across
+  frame boundaries. Replay, loop and `sound.free` rewind/close the stream. This makes
   OneLua games whose music is multi-megabyte MP3 (for example
   `halo-zero-infinity-psp`'s 16-track menu playlist) work without the 8 MB WAV
   in-RAM cap; verified in PPSSPP with the decoded stream active on a hardware
-  channel. The host sound test grew to 62 checks with a real 44.1 kHz stereo
-  fixture, an invalid-MP3 case, replay and a 9 MB stream.
+  channel. The host sound test grew to 66 checks with a real 44.1 kHz stereo
+  fixture, an invalid-MP3 case, replay, resample-length checks and a 9 MB
+  stream.
 - Automated GitHub Releases in the `Build` workflow: pushes to `main` run the
   host suite and PSP build, bump the patch version from the latest `v*` tag,
   tag the commit and publish `openlua-tester-<version>.zip`,
@@ -252,6 +257,18 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   networking) to the project board.
 
 ### Fixed
+- Sound now plays at the right pitch and without stutter or garbling on a PSP.
+  `sceAudioChReserve` has no rate argument: hardware channels 0..7 always mix
+  at 44100 Hz, while the module resampled everything to 22050 Hz, so music and
+  effects played an octave high and twice too fast. Everything (WAV, VMA, MP3)
+  is now resampled to 44100 Hz and `sound.rate` reports 44100. Feeding channels
+  from `screen.flip()` also left a silent gap between chunks, and the MP3 path
+  rewrote the staging buffer the driver was still reading, which garbled
+  streams. Each playing sound now owns a small output thread with two private,
+  64-byte-aligned buffers and `sceAudioOutputBlocking()`, so output is gapless
+  and an in-flight buffer is never modified; looping sounds wrap inside a chunk
+  instead of inserting silence, and stop/free join the thread before releasing
+  the channel. Host builds keep the per-flip pump for the test suite.
 - Text and primitive drawing no longer force every colour opaque. `set_vert`
   keeps the caller's alpha, so OneLua's translucent dimmer
   (`color.new(0, 0, 0, 140)`) blends over the scene instead of painting a black

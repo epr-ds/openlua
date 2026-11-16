@@ -45,7 +45,7 @@ write_vma(p2, 4)
 local h1 = sound.load(p1)
 local h2 = sound.load(p2)
 check(type(h1) == "number" and type(h2) == "number", "VMA fixtures load")
-check(sound.rate(h1) == 22050, "VMA output rate")
+check(sound.rate(h1) == 44100, "VMA output rate")
 
 check(pcall(sound.play, h1, 1), "explicit Lua channel 1 plays")
 check(not pcall(sound.play, h2, 1), "busy explicit channel raises")

@@ -72,14 +72,15 @@ bash test/host/run.sh
 ```
 
 Expected: `olfs: 47 checks, 0 failed`, `transform: 176 checks, 0 failed`,
-`psmf: 20 checks, 0 failed`, `pbp: 53 checks, 0 failure(s)`,
+`textwrap: 25 checks, 0 failed`, `psmf: 20 checks, 0 failed`,
+`pbp: 53 checks, 0 failure(s)`,
 `obj: 26 checks, 0 failed`, `battery: 16 checks, 0 failed`,
 `cam: 23 checks, 0 failure(s)`, `umd: 12 checks, 0 failure(s)`,
 `net: 79 checks, 0 failure(s)`, `RESULT: 10 passed, 0 failed` for the OS C
 helpers, `RESULT: 60 passed, 0 failed` for the hardware helpers,
-`maps: 26 checks, 0 failed`, `sound: 62 checks, 0 failed`,
+`maps: 26 checks, 0 failed`, `sound: 66 checks, 0 failed`,
 `sfont C: 20 checks, 0 failure(s)` and `pgf C: 17 checks, 0 failure(s)`
-(647 C checks total), then `RESULT: 46 passed, 0 failed`,
+(676 C checks total), then `RESULT: 46 passed, 0 failed`,
 `RESULT: 21 passed, 0 failed` for timers, `RESULT: 23 passed, 0 failed` for
 math, `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for
 JSON, `RESULT: 64 passed, 0 failed` for savedata,

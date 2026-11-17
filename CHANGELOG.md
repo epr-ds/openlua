@@ -269,6 +269,25 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   and an in-flight buffer is never modified; looping sounds wrap inside a chunk
   instead of inserting silence, and stop/free join the thread before releasing
   the channel. Host builds keep the per-flip pump for the test suite.
+- MP3 music no longer skips. The streaming wrapper could hand minimp3 a buffer
+  whose last frame was cut in half at the 64 KB window boundary; minimp3 then
+  resets its decoder state, including the Layer III bit reservoir, and every
+  frame referring back into it failed to decode. About 1% of a track was lost
+  (a 287 s menu track rendered 3.5 s short, with a constant resync drift), which
+  is what made long music sound broken. The wrapper now refills so only a real
+  end-of-file can truncate a frame. Verified by rendering the game's
+  `menu_15.mp3` through the real engine code: 11,969/11,969 frames, exactly
+  287.256 s, and a constant offset against an `ffmpeg` decode across the whole
+  track instead of a growing drift.
+- Sound effects no longer fall silent after the first few assets load. Sounds
+  lived in a fixed pool of 8 slots, so once a game cached its menu and first
+  effects, every later `sound.load` failed and callers that cached the nil
+  handle (a negative cache) never retried. `halo-zero-infinity-psp` lost
+  gameplay sounds this way (`spartan/walk`, `assault_rifle/shoot`, `dryfire`,
+  `jackal/dth` all failed to load). Loaded sounds now occupy a slot table that
+  grows on demand, so any number of sounds can stay resident; only the eight
+  hardware channels limit how many play at once. Covered by a new host check
+  that keeps 24 sounds loaded and playable.
 - Text and primitive drawing no longer force every colour opaque. `set_vert`
   keeps the caller's alpha, so OneLua's translucent dimmer
   (`color.new(0, 0, 0, 140)`) blends over the scene instead of painting a black

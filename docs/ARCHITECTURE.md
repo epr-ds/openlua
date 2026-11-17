@@ -64,9 +64,9 @@ void module_api_register(lua_State *L)
 ```
 
 `engine/core/olreg.c` is a tiny helper that pushes each C function and sets it
-as a field. Handles are 1-based integers into fixed-size global arrays
-(`FONT_MAX`, `SND_MAX`, `MAP_MAX`). Userdata is only used for `image` and
-`timers`, primarily to attach `__gc`.
+as a field. Handles are 1-based integers into global tables (`FONT_MAX`,
+`MAP_MAX`, and a sound slot table that grows on demand). Userdata is only used
+for `image` and `timers`, primarily to attach `__gc`.
 
 ## Rendering pipeline
 
@@ -329,9 +329,14 @@ Bluetooth or real-LAN hardware was available.
    not a choice: `sceAudioChReserve` takes no rate and channels 0..7 always mix
    at the system rate. MP3 does this per decoded frame with a fractional read
    position carried across frames.
-3. `sound.play` reserves a hardware channel (`sceAudioChReserve`); explicit
+3. MP3 input is fed to minimp3 from a 64 KB window, but a frame is never
+   handed over truncated (unless the file really ends there): minimp3 drops its
+   decoder state, including the Layer III bit reservoir, when the buffer ends
+   mid-frame, and every frame that refers back into it then fails. That cost
+   about 1% of a track before the refill guard was added.
+4. `sound.play` reserves a hardware channel (`sceAudioChReserve`); explicit
    channels 1..8 and automatic next-free allocation share the same path.
-4. On PSP, `sound.play` also starts a per-sound output thread. It fills one of
+5. On PSP, `sound.play` also starts a per-sound output thread. It fills one of
    two private 1024-sample buffers and hands it over with
    `sceAudioOutputBlocking`, which paces the loop off the hardware clock. A
    hardware channel holds one buffer and the driver reads it in place, so the
@@ -339,8 +344,12 @@ Bluetooth or real-LAN hardware was available.
    staging buffer while it played. Host builds keep the `sound_pump` path
    (`screen.flip()` feeds a chunk when the channel drains) so the suite can
    exercise the mixer without threads.
-5. `sound.stop`/`sound.free` join the output thread and drain the channel
+6. `sound.stop`/`sound.free` join the output thread and drain the channel
    before releasing it; natural end of playback releases it from the thread.
+7. Loaded sounds are not capped: games keep their whole SFX catalogue resident
+   and reuse the handles, so the slot table grows in small steps. Only eight
+   channels can play at once, which is a hardware limit, but any number of
+   sounds may be loaded.
 
 ## PMF playback
 

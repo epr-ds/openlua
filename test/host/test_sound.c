@@ -244,6 +244,37 @@ int main(int argc, char **argv)
     sound_free(h2);
     sound_free(h1);
 
+    /* ---- many resident sounds ---------------------------------------- */
+    /* A game caches one handle per sound for the whole session, so loading
+     * has to survive well past a handful of assets. */
+    {
+        enum { RESIDENT = 24 };
+        int handles[RESIDENT];
+        int loaded = 0;
+        for (int i = 0; i < RESIDENT; i++) {
+            handles[i] = sound_alloc(path);   /* reuse the VMA fixture */
+            if (handles[i] > 0)
+                loaded++;
+        }
+        check(loaded == RESIDENT, "24 sounds stay resident at once");
+        check(sound_length(handles[RESIDENT - 1]) == 16,
+              "the 24th resident sound holds its samples");
+
+        /* Distinct handles, and each one is playable. */
+        int distinct = 1;
+        for (int i = 0; i < RESIDENT && distinct; i++)
+            for (int j = i + 1; j < RESIDENT; j++)
+                if (handles[i] == handles[j])
+                    distinct = 0;
+        check(distinct, "resident handles are distinct");
+        check(sound_play_channel(handles[RESIDENT - 1], 3) == 0,
+              "the 24th resident sound plays");
+        sound_stop(handles[RESIDENT - 1]);
+
+        for (int i = 0; i < RESIDENT; i++)
+            sound_free(handles[i]);
+    }
+
     /* ---- MP3 streaming ------------------------------------------------ */
     if (argc < 2) {
         fprintf(stderr, "sound: missing MP3 fixture path\n");

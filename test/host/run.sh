@@ -129,6 +129,14 @@ run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
     -lm -o "$BUILD/sound_test"
 "$BUILD/sound_test" "$ROOT/test/host/test.mp3"
 
+run gcc "${HOST_CFLAGS[@]}" -I"$LUASRC" -I"$ROOT" \
+    "$ROOT/test/host/test_mp3_stream.c" \
+    "$ROOT/engine/snd/minimp3_impl.c" \
+    "$ROOT/engine/core/olreg.c" \
+    "${OBJS[@]}" \
+    -lm -o "$BUILD/mp3_stream_test"
+"$BUILD/mp3_stream_test" "$ROOT/test/host/test.mp3"
+
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     -I"$ROOT/third_party/stb" \
     "$ROOT/test/host/test_sfont.c" "$ROOT/test/host/font_stub.c" \

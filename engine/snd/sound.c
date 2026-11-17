@@ -88,7 +88,12 @@ static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return 0; }
 #define PSP_AUDIO_NEXT_CHANNEL (-1)
 #endif
 
-#define SND_MAX    8
+/* Loaded sounds live in slots that are created on demand: a game keeps its
+ * whole SFX catalogue resident and calls sound.play() on those same handles
+ * for the whole session, so there is no useful fixed ceiling.  Handles are
+ * stable 1-based slot indexes; a freed slot is reused by the next load and a
+ * failed allocation just fails that one load. */
+#define SND_GROW   8
 #define HW_RATE    44100             /* PSP system channel rate (fixed) */
 #define CHUNK      1024              /* samples per sceAudioOutput call (~23 ms) */
 #define CHUNK_ALIGN 64               /* PSP_AUDIO_SAMPLE_ALIGN granularity */
@@ -100,6 +105,11 @@ static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return 0; }
  * a partially-consumed chunk. */
 #define MP3_IN_BUF  (64 * 1024)
 #define MP3_STAGE   8192
+
+/* Largest possible MPEG frame (body + 4-byte header).  minimp3's
+ * MAX_FREE_FORMAT_FRAME_SIZE is 2304, and it needs the next header too, so
+ * keeping this many bytes in hand guarantees a whole frame before decoding. */
+#define MP3_MAX_FRAME  (2304 + 4)
 
 typedef struct {
     int      used;
@@ -142,7 +152,54 @@ typedef struct {
     double         rs_pos;     /* fractional position in current frame   */
 } OLS_Sound;
 
-static OLS_Sound g_s[SND_MAX];
+static OLS_Sound **g_s;        /* slot table; NULL entry = free */
+static int         g_cap;      /* slots in the table           */
+
+/* Allocate a zeroed sound in a free slot, growing the table when needed.
+ * Returns NULL when out of memory; the caller reports a failed load. */
+static OLS_Sound *slot_new(void)
+{
+    int idx = -1;
+    for (int i = 0; i < g_cap; i++) {
+        if (!g_s[i]) { idx = i; break; }
+    }
+    if (idx < 0) {
+        int cap = g_cap + SND_GROW;
+        OLS_Sound **grown = (OLS_Sound **)realloc(g_s,
+                                  (size_t)cap * sizeof(*g_s));
+        if (!grown)
+            return NULL;
+        for (int i = g_cap; i < cap; i++)
+            grown[i] = NULL;
+        g_s   = grown;
+        idx   = g_cap;
+        g_cap = cap;
+    }
+
+    OLS_Sound *s = (OLS_Sound *)calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
+    g_s[idx] = s;
+    return s;
+}
+
+/* 1-based handle for a live slot, or 0. */
+static int slot_handle(const OLS_Sound *s)
+{
+    for (int i = 0; i < g_cap; i++)
+        if (g_s[i] == s)
+            return i + 1;
+    return 0;
+}
+
+/* Free a torn-down sound and make its slot available again. */
+static void slot_drop(OLS_Sound *s)
+{
+    int h = slot_handle(s);
+    if (h > 0)
+        g_s[h - 1] = NULL;
+    free(s);
+}
 
 #if defined(__PSP__)
 /* Two hardware-sized buffers per sound; the output thread alternates them so
@@ -446,6 +503,19 @@ static int mp3_decode_mono(OLS_Sound *s)
                 return 0;
         }
 
+        /* minimp3 wipes its decoder state - including the Layer III bit
+         * reservoir - whenever the supplied buffer ends in the middle of a
+         * frame.  Every frame that then refers back into the missing
+         * reservoir fails to decode, which cost ~1% of a track (audible
+         * skips).  Refill first so only a real end-of-file can leave a frame
+         * truncated. */
+        while (!s->eof && s->in_len - s->in_pos < MP3_MAX_FRAME) {
+            int before = s->in_len - s->in_pos;
+            mp3_feed(s);
+            if (s->in_len - s->in_pos <= before)
+                break;              /* window is full: decode what we have */
+        }
+
         int avail = s->in_len - s->in_pos;
         mp3dec_frame_info_t info;
         memset(&info, 0, sizeof(info));
@@ -573,20 +643,13 @@ static int mp3_fill(OLS_Sound *s, int need)
 /* Takes ownership of `f`; returns a 1-based handle or 0. */
 static int mp3_sound_alloc(FILE *f)
 {
-    int slot = -1;
-    for (int i = 0; i < SND_MAX; i++) {
-        if (!g_s[i].used) {
-            slot = i;
-            break;
-        }
-    }
-    if (slot < 0) {
+    OLS_Sound *s = slot_new();
+    if (!s) {
         fclose(f);
         return 0;
     }
+    int handle = slot_handle(s);
 
-    OLS_Sound *s = &g_s[slot];
-    memset(s, 0, sizeof(*s));
     s->channel = -1;
 #if defined(__PSP__)
     s->thread  = -1;
@@ -613,7 +676,7 @@ static int mp3_sound_alloc(FILE *f)
         free(s->obuf_raw[0]);
         free(s->obuf_raw[1]);
 #endif
-        memset(s, 0, sizeof(*s));
+        slot_drop(s);
         return 0;
     }
 
@@ -622,7 +685,7 @@ static int mp3_sound_alloc(FILE *f)
     s->fp        = f;
 
     if (mp3_seek_start(s) != 0) {
-        sound_free(slot + 1);
+        sound_free(handle);
         return 0;
     }
 
@@ -630,11 +693,11 @@ static int mp3_sound_alloc(FILE *f)
      * the sample rate is known before playback. */
     int n = mp3_decode_mono(s);
     if (n <= 0) {
-        sound_free(slot + 1);
+        sound_free(handle);
         return 0;
     }
     mp3_append_resampled(s, n);
-    return slot + 1;
+    return handle;
 }
 
 /* ----------------------------------------------------------------- */
@@ -665,8 +728,10 @@ int sound_alloc(const char *path)
     if (is_mp3)
         return mp3_sound_alloc(f);
 
-    if (fsize > (8L * 1024 * 1024))
-    { fclose(f); return 0; }
+    if (fsize > (8L * 1024 * 1024)) {
+        fclose(f);
+        return 0;
+    }
 
     unsigned char *buf = malloc((size_t)fsize);
     if (!buf) { fclose(f); return 0; }
@@ -698,40 +763,42 @@ int sound_alloc(const char *path)
     }
     if (!final || flen <= 0) { free(final); return 0; }
 
-    for (int i = 0; i < SND_MAX; i++) {
-        if (!g_s[i].used) {
-            OLS_Sound *s = &g_s[i];
-#if defined(__PSP__)
-            if (snd_alloc_outbuf(s) != 0)
-                break;                 /* no buffers: report failure */
-#endif
-            s->used      = 1;
-            s->channel   = -1;
-            s->pcm       = final;
-            s->len       = flen;
-            s->pos       = 0;
-            s->loop      = 0;
-            s->paused    = 0;
-            s->playing   = 0;
-            s->finished  = 0;
-            s->vol       = 100;
-            s->channels  = raw.channels;
-            s->orig_rate = raw.rate;
-#if defined(__PSP__)
-            s->thread    = -1;
-#endif
-            return i + 1;          /* 1-based handle */
-        }
+    OLS_Sound *s = slot_new();
+    if (!s) {
+        free(final);
+        return 0;
     }
-    free(final);
-    return 0;                      /* all slots used */
+#if defined(__PSP__)
+    if (snd_alloc_outbuf(s) != 0) {
+        slot_drop(s);
+        free(final);
+        return 0;
+    }
+#endif
+    s->used      = 1;
+    s->channel   = -1;
+    s->pcm       = final;
+    s->len       = flen;
+    s->pos       = 0;
+    s->loop      = 0;
+    s->paused    = 0;
+    s->playing   = 0;
+    s->finished  = 0;
+    s->vol       = 100;
+    s->channels  = raw.channels;
+    s->orig_rate = raw.rate;
+#if defined(__PSP__)
+    s->thread    = -1;
+#endif
+    return slot_handle(s);
 }
 
 static OLS_Sound *get(int h)
 {
-    if (h < 1 || h > SND_MAX || !g_s[h - 1].used)
+    if (h < 1 || h > g_cap)
         return NULL;
-    return &g_s[h - 1];
+    OLS_Sound *s = g_s[h - 1];
+    return (s && s->used) ? s : NULL;
 }
 
 static void release_channel(OLS_Sound *s)
@@ -740,20 +807,6 @@ static void release_channel(OLS_Sound *s)
         sceAudioChRelease(s->channel);
     s->channel = -1;
 }
-
-#if defined(__PSP__)
-/* ----------------------------------------------------------------- */
-/* Output thread                                                     */
-/*
- * sceAudioChReserve() has no rate argument: channels 0..7 always play at
- * the system rate (44100 Hz), and each holds exactly one buffer which the
- * mixer reads straight out of our memory.  Feeding that from screen.flip()
- * left a silent gap between every chunk, and rewriting the staging buffer
- * while it played garbled MP3 streams.  A small per-sound thread with two
- * buffers fixes both: sceAudioOutputBlocking() waits for the previous
- * buffer to finish, which paces the loop and keeps the output gapless,
- * and the alternating buffer is never touched while it is playing.
- */
 
 /* Copy up to `want` samples of the next chunk into dst.
  * Returns the number copied, or 0 when the sound has ended.
@@ -810,10 +863,23 @@ static int snd_next_chunk(OLS_Sound *s, int16_t *dst, int want)
     return got;
 }
 
+#if defined(__PSP__)
+/* ----------------------------------------------------------------- */
+/* Output thread                                                     */
+/*
+ * sceAudioChReserve() has no rate argument: channels 0..7 always play at
+ * the system rate (44100 Hz), and each holds exactly one buffer which the
+ * mixer reads straight out of our memory.  Feeding that from screen.flip()
+ * left a silent gap between every chunk, and rewriting the staging buffer
+ * while it played garbled MP3 streams.  A small per-sound thread with two
+ * buffers fixes both: sceAudioOutputBlocking() waits for the previous
+ * buffer to finish, which paces the loop and keeps the output gapless,
+ * and the alternating buffer is never touched while it is playing.
+ */
+
 static int snd_thread(SceSize args, void *argp)
 {
-    int slot = *(int *)argp;
-    OLS_Sound *s = &g_s[slot];
+    OLS_Sound *s = *(OLS_Sound **)argp;
     int cur = 0;
 
     (void)args;
@@ -865,8 +931,6 @@ static int snd_thread(SceSize args, void *argp)
 
 static int snd_thread_start(OLS_Sound *s)
 {
-    int slot = (int)(s - g_s);
-
     s->quit   = 0;
     /* 32 KB: minimp3 decoding plus the kernel's syscall frames, and enough
      * headroom that a short stack can never clobber the saved return. */
@@ -874,7 +938,7 @@ static int snd_thread_start(OLS_Sound *s)
                                       0x10, 0x8000, 0, NULL);
     if (s->thread < 0)
         return -1;
-    if (sceKernelStartThread(s->thread, sizeof(slot), &slot) < 0) {
+    if (sceKernelStartThread(s->thread, sizeof(s), &s) < 0) {
         sceKernelDeleteThread(s->thread);
         s->thread = -1;
         return -1;
@@ -1063,6 +1127,7 @@ void sound_free(int h)
     free(s->obuf_raw[1]);
 #endif
     memset(s, 0, sizeof(*s));
+    slot_drop(s);
 }
 
 /* ----------------------------------------------------------------- */
@@ -1074,9 +1139,9 @@ void sound_pump(void)
      * screen.flip() has nothing to do. */
     return;
 #else
-    for (int i = 0; i < SND_MAX; i++) {
-        OLS_Sound *s = &g_s[i];
-        if (!s->used || !s->playing || s->paused || s->channel < 0)
+    for (int i = 0; i < g_cap; i++) {
+        OLS_Sound *s = g_s[i];
+        if (!s || !s->used || !s->playing || s->paused || s->channel < 0)
             continue;
 
         int rest = sceAudioGetChannelRestLen(s->channel);
@@ -1084,38 +1149,27 @@ void sound_pump(void)
             continue;                        /* channel error: skip    */
 
         if (s->streaming) {
+            /* Reuse the same chunking the PSP output thread uses, so the host
+             * suite exercises the real streaming path. */
+            static int16_t chunk[CHUNK];
             while (rest < CHUNK) {
-                int avail = mp3_fill(s, CHUNK);
-                if (avail <= 0) {
-                    if (s->loop && mp3_seek_start(s) == 0)
-                        avail = mp3_fill(s, CHUNK);
-                    if (avail <= 0) {
-                        s->playing  = 0;
-                        s->finished = 1;
-                        release_channel(s);
-                        break;
-                    }
+                int n = snd_next_chunk(s, chunk, CHUNK);
+                if (n <= 0) {
+                    s->playing  = 0;
+                    s->finished = 1;
+                    release_channel(s);
+                    break;
                 }
+                if (n < CHUNK)
+                    memset(chunk + n, 0,
+                           (size_t)(CHUNK - n) * sizeof(int16_t));
 
-                int n = (avail < CHUNK) ? avail : CHUNK;
-                int16_t *ptr = s->stage + s->stage_pos;
-                if (n < CHUNK) {
-                    /* end of stream: pad the final chunk with silence */
-                    static int16_t tail[CHUNK];
-                    memcpy(tail, ptr, (size_t)n * sizeof(int16_t));
-                    memset(tail + n, 0, (size_t)(CHUNK - n) * sizeof(int16_t));
-                    ptr = tail;
-                }
-
-                int r = sceAudioOutput(s->channel, vol_hw(s->vol), (void *)ptr);
+                int r = sceAudioOutput(s->channel, vol_hw(s->vol), (void *)chunk);
                 if (r < 0)
                     break;
 
-                s->stage_pos += n;
                 rest += CHUNK;
                 if (n < CHUNK) {
-                    if (s->loop && mp3_seek_start(s) == 0)
-                        continue;            /* refill from the top      */
                     s->playing  = 0;
                     s->finished = 1;
                     release_channel(s);

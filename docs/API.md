@@ -566,6 +566,11 @@ downmixed to mono and resampled to 44100 Hz like WAV; `sound.rate` always
 reports the output rate. This keeps multi-megabyte music tracks usable without
 loading them into RAM.
 
+Any number of sounds can be loaded at once: handles index a slot table that
+grows on demand, so a game can keep its whole effect catalogue resident and
+reuse the handles. The limit of eight applies to *playback* (hardware channels),
+not to how many sounds are loaded.
+
 ## files
 
 | Function | Description |

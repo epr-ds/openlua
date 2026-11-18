@@ -41,6 +41,8 @@ modules on top of the hardware:
   needs a kernel driver.
 - Native WAV/VMA/MP3 audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
+- Built-in Entity Component System through `ecs.world`, with generational
+  handles so destroyed entities can never alias a later spawn.
 - Archive listing and extraction through `files.scan`/`extract`/`extractfile`:
   ZIP (stored/deflate, ZIP64), TAR, TAR.GZ, TAR.BZ2, GZIP and BZIP2.
 - Read-only battery telemetry through the OneLua `batt` table.
@@ -122,6 +124,7 @@ See [docs/API.md](docs/API.md) for every function and its current caveats.
 | Sound (WAV/VMA/MP3) | Implemented; host-tested ([#25]) |
 | Buttons | Implemented; OneLua stateful booleans, `held`/`released`, analog, `interval`, `waitforkey`, `analogtodpad` |
 | Timers | Implemented; elapsed-time fix [#21] |
+| ECS worlds (`ecs`) | Implemented; host-tested; generational handles prevent stale entities ([#46]) |
 | OneLua math helpers | Implemented; host-tested and PPSSPP-verified ([#32]) |
 | Battery telemetry | Implemented; host-tested and PPSSPP-verified ([#33]) |
 | Power management | Implemented; host-tested; `plugged`/`tick` PPSSPP-verified, lock/unlock HLE missing ([#34]) |
@@ -150,6 +153,7 @@ engine/
   snd/    WAV/VMA/MP3 decoder and PSP audio
   input/  controller polling
   util/   timers, OneLua math helpers
+  ecs/    entity/component/system worlds with generational handles
   fs/     portable VFS, files, INI, ZIP/TAR/GZIP/BZIP2 archive reader
   data/   JSON parser/serializer, PSMF header parser
   net/    shared network stack init/refcount, TCP/DNS helpers
@@ -270,4 +274,5 @@ used or modified.
 [#43]: https://github.com/epr-ds/openlua/issues/43
 [#44]: https://github.com/epr-ds/openlua/issues/44
 [#45]: https://github.com/epr-ds/openlua/issues/45
+[#46]: https://github.com/epr-ds/openlua/issues/46
 [#49]: https://github.com/epr-ds/openlua/issues/49

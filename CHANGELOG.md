@@ -6,6 +6,18 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- Built-in Entity Component System (`ecs`) with `ecs.world()`/`ecs.new()`,
+  `spawn`/`create`, component `set`/`get`/`has`/`remove`, `query`, systems,
+  `update` and `clear`. Entities are userdata handles carrying a slot
+  generation; `destroy` and `clear` bump the generation, so a stale handle
+  stays dead after its slot is reused, and handles from another world or from a
+  collected world are rejected without dereferencing anything. Components are
+  ordinary Lua values stored per world (table identity preserved, `false`
+  counts as present, `nil` removes), and systems run in registration order with
+  copied filters, an `enabled` flag and callback errors that propagate out of
+  `update`. Includes 116 host Lua assertions covering generations, foreign
+  worlds, queries during destroy/reuse, systems, clear, growth, GC churn and
+  handle collectability, plus API/architecture documentation (#46).
 - OneLua archive module: `files.scan`, `files.extract` and `files.extractfile`
   list and unpack ZIP (stored/deflate, ZIP64), TAR (ustar, GNU long names, pax
   `path`/`size`), TAR.GZ, TAR.BZ2, single-file GZIP and single-file BZIP2

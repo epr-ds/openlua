@@ -36,6 +36,7 @@
 #include "engine/sys/bluetooth.h"
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
+#include "engine/ecs/ecs.h"
 #include "engine/3d/amg.h"
 #include "engine/3d/cam3d.h"
 #include "engine/3d/model3d.h"
@@ -69,6 +70,7 @@ int main(int argc, char **argv)
     hardware_api_register(L);
     sound_api_register(L);
     timers_api_register(L);
+    ecs_api_register(L);
     olmath_api_register(L);
     splash_api_register(L);
     osk_api_register(L);

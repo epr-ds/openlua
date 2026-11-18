@@ -353,6 +353,73 @@ math.bitnot(0)             --> -1
 The `math.lua` demo visualises clamping and the low eight bits of the bitwise
 results; it does not require any external assets.
 
+## ecs
+
+A built-in Entity Component System. `ecs.world()` (or `ecs.new()`) creates an
+independent world; entities are userdata handles and components are ordinary
+Lua values.
+
+```lua
+local w = ecs.world()
+local player = w:spawn()
+w:set(player, "position", { x = 0, y = 0 })
+w:set(player, "velocity", { x = 60, y = 0 })
+
+w:system("move", { "position", "velocity" }, function(e, dt)
+    local p, v = w:get(e, "position"), w:get(e, "velocity")
+    p.x = p.x + v.x * dt
+    p.y = p.y + v.y * dt
+end)
+
+w:update(1 / 60)
+for e in w:query("position", "velocity") do
+    -- e is the canonical handle of a live entity
+end
+```
+
+| Method | Description |
+|---|---|
+| `w:spawn()` / `w:create()` | Create a live entity and return its handle. |
+| `w:destroy(e)` | Destroy `e`; returns `true`, or `false` if the handle was already dead or foreign. |
+| `w:alive(e)` | `true` while the handle still names a live entity. |
+| `w:count()` | Number of live entities. |
+| `w:set(e, name, value)` | Store a component; `nil` removes it, and `false` is a present value. Returns `false` for stale/foreign handles. |
+| `w:get(e, name)` | Component value, or `nil` when absent or dead. |
+| `w:has(e, name)` | `true` when the component is present, including `false`. |
+| `w:remove(e, name)` | Remove a component; returns `true` only if it existed. |
+| `w:query(...)` | Iterator over live entities that have every named component, in slot order. With no names it visits every live entity. |
+| `w:system([name], filter, fn)` | Register a system and return its `{ name, filter, enabled }` table. The filter table is copied. |
+| `w:remove_system(name)` | Remove a system by name; returns `true` if found. |
+| `w:update(dt, ...)` | Run enabled systems in registration order as `fn(entity, dt, ...)`; returns the total number of callbacks. |
+| `w:clear()` | Destroy every entity, keep systems and return how many entities were destroyed. |
+
+### Stale and foreign handles
+
+Each slot carries a generation that is bumped on `destroy` (and on `clear`).
+A handle records the generation it was created with, so handles kept after
+destruction stay dead even when the slot is reused by a later entity. Handles
+from another world are rejected the same way. A handle also never dereferences
+a freed world: if the world is garbage-collected first, the handle is simply
+dead, and `tostring(e)` still works.
+
+Component tables are keyed by the canonical handle, so reusing a slot never
+inherits components from the previous entity. Table values keep their identity
+(`w:get(e, "target") == shared`) and are released when the entity is destroyed
+or the world is cleared.
+
+### Queries and systems
+
+`w:query` returns an iterator closure that keeps its world alive. Destroying
+the current entity during iteration is safe, and slots reused behind the
+iterator cursor are not visited twice. A later query does see the reused slot.
+
+Systems filter on component presence and run in registration order. A system
+can destroy the entity it is visiting; later systems in the same update then
+skip it. Set `system.enabled = false` to skip one system without removing it.
+Errors raised by a callback propagate out of `w:update` after leaving the world
+usable. `w:clear` keeps registered systems but resets all entities and
+components.
+
 ## battery
 
 The `batt` table exposes read-only battery telemetry. The read-only calls are

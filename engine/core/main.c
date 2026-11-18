@@ -19,6 +19,7 @@
 #include "engine/util/olmath.h"
 #include "engine/util/timers.h"
 #include "engine/util/textwrap.h"
+#include "engine/ecs/ecs.h"
 
 #include "engine/font/font.h"
 #include "engine/fs/files.h"
@@ -143,6 +144,7 @@ static void register_api(lua_State *L)
     draw_api_register(L);
     buttons_api_register(L);
     timers_api_register(L);
+    ecs_api_register(L);     /* ecs.*      (world/spawn/component/system)  */
     olmath_api_register(L);  /* OneLua math helpers (extends Lua's math)   */
     font_api_register(L);   /* font table + screen.print / screen.font hooks */
     sound_api_register(L);  /* sound table (load/play/loop/vol/...)          */

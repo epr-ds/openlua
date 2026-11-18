@@ -83,21 +83,25 @@ helpers, `RESULT: 60 passed, 0 failed` for the hardware helpers,
 `mp3_stream: 11 checks, 0 failed`,
 `sfont C: 20 checks, 0 failure(s)` and `pgf C: 17 checks, 0 failure(s)`
 (769 C checks total), then `RESULT: 46 passed, 0 failed`,
-`RESULT: 21 passed, 0 failed` for timers, `RESULT: 23 passed, 0 failed` for
-math, `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for
-JSON, `RESULT: 64 passed, 0 failed` for savedata,
-`RESULT: 22 passed, 0 failed` for battery, `RESULT: 14 passed, 0 failed` for
-power, `RESULT: 61 passed, 0 failed` for the OS Lua surface,
-`RESULT: 67 passed, 0 failed` for hardware, `RESULT: 13 passed, 0 failed` for
-sound, `sfont Lua: 19 assertions, 0 failure(s)`,
-`pgf Lua: 20 assertions, 0 failure(s)`, `RESULT: 33 passed, 0 failed` for
-the 3D handle/API surface, `splash Lua: 20 assertions, 0 failure(s)`,
+`RESULT: 21 passed, 0 failed` for timers, `RESULT: 116 passed, 0 failed` for
+ECS, `RESULT: 23 passed, 0 failed` for math, `RESULT: 24 passed, 0 failed` for
+INI, `RESULT: 89 passed, 0 failed` for JSON, `RESULT: 64 passed, 0 failed` for
+savedata, `RESULT: 22 passed, 0 failed` for battery,
+`RESULT: 14 passed, 0 failed` for power, `RESULT: 61 passed, 0 failed` for the
+OS Lua surface, `RESULT: 67 passed, 0 failed` for hardware,
+`RESULT: 13 passed, 0 failed` for sound, `sfont Lua: 19 assertions,
+0 failure(s)`, `pgf Lua: 20 assertions, 0 failure(s)`,
+`RESULT: 33 passed, 0 failed` for the 3D handle/API surface,
+`splash Lua: 20 assertions, 0 failure(s)`,
 `osk Lua: 54 assertions, 0 failure(s)`,
 `game Lua: 46 assertions, 0 failure(s)`,
 `cam Lua: 90 assertions, 0 failure(s)`,
 `archive Lua: 44 assertions, 0 failure(s)`, `peripherals Lua: 89 assertions,
-0 failure(s)` and `net Lua: 94 assertions, 0 failure(s)` (1010 Lua assertions
-total). The PGF
+0 failure(s)` and `net Lua: 94 assertions, 0 failure(s)` (1126 Lua assertions
+total). The ECS suite covers generational handle invalidation after slot reuse,
+foreign-world rejection, component identity and `false` values, query ordering
+and mutation during iteration, system filters/order/error propagation, clear,
+growth and GC churn. The PGF
 tests use `test/host/pspfont_stub.c` in place of the PSP system library; real
 PGF rendering is checked separately in PPSSPP. The 3D host test exercises
 parse/load/transform/render bookkeeping only; GE output is checked in PPSSPP.

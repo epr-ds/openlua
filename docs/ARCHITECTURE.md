@@ -556,6 +556,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
+| `engine/ecs` | entity/component/system worlds with generational slots | `ecs.*` |
 | `engine/fs` | files, INI, archive reader, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser, PBP/PARAM.SFO parser | `json.*`, PMF validation, PBP metadata |
 | `engine/net` | shared network-stack refcount, TCP/DNS helpers | used by the networking modules |
@@ -565,3 +566,20 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/gfx/gfx3d.c` | GE 3D state and textured triangle submission | shared by the 3D modules |
 | `engine/video` | PMF playback through `sceMpeg` | `pmf.*` |
 | `third_party` | Lua 5.1.5, stb_image/stb_image_write, miniz (ZIP/deflate), bzip2 | — |
+
+### ECS handle safety
+
+`engine/ecs/ecs.c` keeps a per-world slot array with a generation counter, an
+`alive` flag and a free list. An entity handle is a small userdata holding
+`(world id, slot, generation)`; it never stores a C pointer to the world.
+`destroy` bumps the slot generation before pushing the slot onto the free list,
+so any handle from an older generation compares unequal and all operations
+return their documented dead value. A handle whose world was collected has
+nothing left to dereference and is safely dead.
+
+The component and system tables live in the world userdata's Lua environment,
+keyed by the canonical handle for each live slot. Table values therefore keep
+normal Lua identity and are reclaimed by Lua when the entity dies or the world
+is cleared. The world's `__gc` only has to free the three C arrays; it cannot
+leave component or entity references behind. `query` and `update` walk slots in
+order, which keeps entity ordering stable across growth and reuse.

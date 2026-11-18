@@ -222,6 +222,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/net/net.c" \
     "$ROOT/engine/util/olmath.c" \
     "$ROOT/engine/util/timers.c" \
+    "$ROOT/engine/ecs/ecs.c" \
     "$ROOT/engine/3d/obj.c" \
     "$ROOT/engine/3d/amg.c" \
     "$ROOT/engine/3d/cam3d.c" \
@@ -235,6 +236,7 @@ cd "$BUILD"
 ./host_test "$ROOT/test/host/test_phase3.lua"
 OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_archive.lua"
 ./host_test "$ROOT/test/host/test_timers.lua"
+./host_test "$ROOT/test/host/test_ecs.lua"
 ./host_test "$ROOT/test/host/test_math.lua"
 ./host_test "$ROOT/test/host/test_ini.lua"
 ./host_test "$ROOT/test/host/test_json.lua"

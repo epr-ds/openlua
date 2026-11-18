@@ -41,6 +41,8 @@ modules on top of the hardware:
   needs a kernel driver.
 - Native WAV/VMA/MP3 audio, pumped from `screen.flip()`.
 - Portable storage: files, INI, JSON, save slots, M2/PSP Go volumes and tilemaps.
+- Archive listing and extraction through `files.scan`/`extract`/`extractfile`:
+  ZIP (stored/deflate, ZIP64), TAR, TAR.GZ, TAR.BZ2, GZIP and BZIP2.
 - Read-only battery telemetry through the OneLua `batt` table.
 - Power management through the OneLua `power` table.
 - OS system queries and safe utilities through an extended Lua `os` table.
@@ -71,7 +73,7 @@ published automatically by GitHub Actions on every push to `main`; see
 Host tests (no PSP toolchain required):
 
 ```bash
-bash test/host/run.sh              # 676 C checks + 966 Lua assertions
+bash test/host/run.sh              # 769 C checks + 1010 Lua assertions
 bash tools/check_repo_hygiene.sh   # no tracked build artifacts
 ```
 
@@ -148,7 +150,7 @@ engine/
   snd/    WAV/VMA/MP3 decoder and PSP audio
   input/  controller polling
   util/   timers, OneLua math helpers
-  fs/     portable VFS, files, INI
+  fs/     portable VFS, files, INI, ZIP/TAR/GZIP/BZIP2 archive reader
   data/   JSON parser/serializer, PSMF header parser
   net/    shared network stack init/refcount, TCP/DNS helpers
   sys/    save slots, battery, power, OS queries, hardware info/audio, cam,
@@ -159,6 +161,8 @@ engine/
 third_party/
   lua/    Lua 5.1.5
   stb/    stb_image, stb_image_write
+  miniz/  miniz (ZIP reader + inflate/deflate)
+  bzip2/  libbzip2 decompressor (BSD-like)
 assets/   shared demo/test assets
 demos/    runnable Lua demos
 docs/     architecture, API, roadmap, development guide
@@ -223,7 +227,7 @@ for a local toolchain build, host tests and debugging.
 | `sio` | `init`, `baud`, `available`, `read`, `write`, `print`, `putstring`, `term` | Registered for compatibility; user-mode PSPSDK has no safe SIO syscall, so `init` is `0`, `read` is `-1` and sending is a no-op ([#44]) |
 | `ir` | `init`, `baud`, `state`, `get`, `put`, `read`, `write`, `term` | Registered for compatibility; raw IR needs a kernel SIRC/IrDA driver, so `init` is `0`, `get` is `-1`, `read` is `nil` and `write` is `-1` ([#44]) |
 | `sound` | `load`, `play`, `pause`, `stop`, `loop`, `vol` | WAV/VMA plus streamed MP3 via minimp3; host-tested ([#25]) |
-| `files` | `exists`, `copy`, `move`, `delete`, `list`, ... | Archives pending |
+| `files` | `exists`, `copy`, `move`, `delete`, `list`, `scan`, `extract`, `extractfile`, ... | ZIP/TAR/GZIP/BZIP2; RAR/7z/xz detected but unsupported ([#49]) |
 | `ini` | `read`, `write` | Implemented; host-tested |
 | `savedata` | `data.save/load/delete` | Plain-text slots |
 | `maps` | `map.new/blit/set/get` | Host-tested ([#26]) |
@@ -266,3 +270,4 @@ used or modified.
 [#43]: https://github.com/epr-ds/openlua/issues/43
 [#44]: https://github.com/epr-ds/openlua/issues/44
 [#45]: https://github.com/epr-ds/openlua/issues/45
+[#49]: https://github.com/epr-ds/openlua/issues/49

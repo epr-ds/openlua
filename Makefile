@@ -3,6 +3,8 @@ PSP_EBOOT_TITLE = OpenLua
 
 LUADIR = third_party/lua/src
 STBDIR = third_party/stb
+MINIZDIR = third_party/miniz
+BZIP2DIR = third_party/bzip2
 
 LUAOBJS = \
 	$(LUADIR)/lapi.o \
@@ -35,6 +37,21 @@ LUAOBJS = \
 	$(LUADIR)/lvm.o \
 	$(LUADIR)/lzio.o
 
+MINIZOBJS = \
+	$(MINIZDIR)/miniz.o \
+	$(MINIZDIR)/miniz_tdef.o \
+	$(MINIZDIR)/miniz_tinfl.o \
+	$(MINIZDIR)/miniz_zip.o
+
+BZIP2OBJS = \
+	$(BZIP2DIR)/bzlib.o \
+	$(BZIP2DIR)/blocksort.o \
+	$(BZIP2DIR)/compress.o \
+	$(BZIP2DIR)/crctable.o \
+	$(BZIP2DIR)/decompress.o \
+	$(BZIP2DIR)/huffman.o \
+	$(BZIP2DIR)/randtable.o
+
 OBJS = engine/core/main.o \
 	engine/core/olreg.o \
 	engine/core/color.o \
@@ -57,6 +74,7 @@ OBJS = engine/core/main.o \
 	engine/snd/minimp3_impl.o \
 	engine/fs/olfs.o \
 	engine/fs/files.o \
+	engine/fs/archive.o \
 	engine/fs/ini.o \
 	engine/data/json.o \
 	engine/data/psmf.o \
@@ -86,9 +104,11 @@ OBJS = engine/core/main.o \
 	engine/3d/obj.o \
 	engine/3d/texture3d.o \
 	engine/3d/model3d.o \
+	$(MINIZOBJS) \
+	$(BZIP2OBJS) \
 	$(LUAOBJS)
 
-INCDIR = . $(LUADIR) $(STBDIR)
+INCDIR = . $(LUADIR) $(STBDIR) $(MINIZDIR) $(BZIP2DIR)
 
 CFLAGS = -O2 -G0 -Wall -DOPENLUA_NO_PGF
 ASFLAGS = $(CFLAGS)

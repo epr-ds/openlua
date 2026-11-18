@@ -47,6 +47,8 @@ Expected result: `46 passed, 0 failed`.
 | `engine/` | Engine modules (one directory per area) |
 | `third_party/lua` | Lua 5.1.5 |
 | `third_party/stb` | stb_image / stb_image_write |
+| `third_party/miniz` | miniz (ZIP and deflate) |
+| `third_party/bzip2` | libbzip2 (bzip2 decompression) |
 | `assets/` | Demo and test assets |
 | `demos/` | Runnable Lua scripts |
 | `docs/` | Architecture, API, roadmap, development guide |

@@ -67,7 +67,7 @@ file paths; the `ef0:` internal-storage path still needs real hardware.
 
 ### Not started
 - IRC client
-- Archive extraction (`files.extract`, zip/rar)
+- RAR/7z and xz decoding (ZIP/TAR/GZIP/BZIP2 landed in #49)
 - VSH save dialog
 - MP4 container support (PMF/PSMF playback is implemented)
 

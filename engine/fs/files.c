@@ -15,13 +15,18 @@
  *    files.list(path)        -> table of {name,path,size,ext,directory,mode}
  *    files.listfiles(path)   -> same, files only
  *    files.listdirs(path)    -> same, directories only
+ *    files.scan(src)         -> table of {name,size,directory} in an archive
+ *    files.extract(src,dst)  -> 1 on success, else 0, reason
+ *    files.extractfile(src, name, dst) -> 1 on success, else 0, reason
  *
- * Not implemented yet (tracked on board): files.scan / files.extract /
- * files.extractfile / thread* variants (zip+rar) - needs an archive backend.
+ * Archive members are read by engine/fs/archive.c (ZIP, TAR, TAR.GZ, GZIP,
+ * TAR.BZ2 and BZIP2).  The OneLua thread variants are registered as
+ * synchronous aliases; the PSP build is single-threaded by design.
  */
 
 #include "engine/fs/files.h"
 #include "engine/fs/olfs.h"
+#include "engine/fs/archive.h"
 #include "engine/core/olreg.h"
 
 #include <lauxlib.h>
@@ -190,6 +195,77 @@ static int l_list(lua_State *L)      { return l_list_core(L, -1); }
 static int l_listfiles(lua_State *L) { return l_list_core(L, 0); }
 static int l_listdirs(lua_State *L)  { return l_list_core(L, 1); }
 
+/* ---- archive helpers --------------------------------------------------- */
+
+typedef struct {
+    lua_State *L;
+    int index;
+} ScanCtx;
+
+static void push_scan_entry(void *user, const OLArchiveEntry *e)
+{
+    ScanCtx *ctx = user;
+
+    lua_newtable(ctx->L);
+    lua_pushstring(ctx->L, e->name);
+    lua_setfield(ctx->L, -2, "name");
+    lua_pushinteger(ctx->L, (lua_Integer)e->size);
+    lua_setfield(ctx->L, -2, "size");
+    lua_pushboolean(ctx->L, e->is_dir);
+    lua_setfield(ctx->L, -2, "directory");
+    lua_rawseti(ctx->L, -2, ctx->index++);
+}
+
+static int l_scan(lua_State *L)
+{
+    const char *src = check_path(L, 1);
+    ScanCtx ctx;
+    int rc;
+
+    lua_newtable(L);
+    ctx.L = L;
+    ctx.index = 1;
+
+    rc = ol_archive_list(src, push_scan_entry, &ctx, NULL);
+    if (rc != OL_ARCHIVE_OK) {
+        lua_pop(L, 1);
+        lua_pushnil(L);
+        lua_pushstring(L, ol_archive_strerror(rc));
+        return 2;
+    }
+    return 1;
+}
+
+static int l_extractfile(lua_State *L)
+{
+    const char *src = check_path(L, 1);
+    const char *name = check_path(L, 2);
+    const char *dst = check_path(L, 3);
+    int found = 0;
+    int rc = ol_archive_extract_entry(src, name, dst, &found);
+
+    lua_pushinteger(L, rc == OL_ARCHIVE_OK ? 1 : 0);
+    if (rc != OL_ARCHIVE_OK) {
+        lua_pushstring(L, ol_archive_strerror(rc));
+        return 2;
+    }
+    return 1;
+}
+
+static int l_extract(lua_State *L)
+{
+    const char *src = check_path(L, 1);
+    const char *dst = check_path(L, 2);
+    int rc = ol_archive_extract_all(src, dst, NULL);
+
+    lua_pushinteger(L, rc == OL_ARCHIVE_OK ? 1 : 0);
+    if (rc != OL_ARCHIVE_OK) {
+        lua_pushstring(L, ol_archive_strerror(rc));
+        return 2;
+    }
+    return 1;
+}
+
 /* ---- registration ------------------------------------------------------ */
 
 static const luaL_Reg files_funcs[] = {
@@ -207,6 +283,11 @@ static const luaL_Reg files_funcs[] = {
     { "list",       l_list },
     { "listfiles",  l_listfiles },
     { "listdirs",   l_listdirs },
+    { "scan",              l_scan },
+    { "extract",           l_extract },
+    { "extractfile",       l_extractfile },
+    { "threadextract",     l_extract },
+    { "threadextractfile", l_extractfile },
     { NULL, NULL }
 };
 

@@ -6,6 +6,19 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua archive module: `files.scan`, `files.extract` and `files.extractfile`
+  list and unpack ZIP (stored/deflate, ZIP64), TAR (ustar, GNU long names, pax
+  `path`/`size`), TAR.GZ, TAR.BZ2, single-file GZIP and single-file BZIP2
+  archives. ZIP and raw deflate use the vendored MIT `miniz` 3.1.2; bzip2
+  streams use the vendored BSD-like libbzip2 1.0.8 decompressor; the gzip
+  header/trailer and TAR records are parsed in-tree, so no zlib or LGPL decoder
+  is linked. Member names with `..`, absolute paths or device prefixes are
+  rejected, extraction writes `<dst>.part` and renames on success, and
+  encrypted or non-store/deflate ZIP entries are refused. RAR, 7z and xz are
+  recognised by magic and reported as `unsupported archive format`.
+  `threadextract`/`threadextractfile` are registered as synchronous aliases.
+  Includes 78 C checks, 44 Lua assertions, committed fixtures with
+  `tools/gen_archive_fixtures.py`, and API/architecture documentation (#49).
 - OneLua compatibility layer for running unmodified OneLua games, verified by
   booting and playing `halo-zero-infinity-psp` in PPSSPP from start screen
   through menu navigation, Settings, Play and live gameplay:
@@ -48,7 +61,7 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   - The module-level `timer` table (`timer.new/start/time/gettime/stoptime/
     reset/startreset`) is registered alongside the original `timers` table.
   - `test/host/test_compat.lua` (57 assertions) covers the added surface; the
-    full host suite now runs 676 C checks and 966 Lua assertions.
+    full host suite then ran 676 C checks and 966 Lua assertions.
 - MP3 audio streaming through the vendored minimp3 decoder (CC0, `MINIMP3_NO_SIMD`).
   `sound.load` detects `.mp3`, ID3v2 tags or a raw MPEG frame sync, keeps the
   compressed file on storage and decodes one frame per output chunk, downmixing

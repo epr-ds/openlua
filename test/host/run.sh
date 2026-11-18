@@ -48,6 +48,26 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     -o "$BUILD/pbp_test"
 "$BUILD/pbp_test"
 
+# bzip2 predates modern warning hygiene; build it as a plain object group.
+BZIP2SRC="$ROOT/third_party/bzip2"
+BZOBJS=()
+for f in bzlib blocksort compress crctable decompress huffman randtable; do
+    run gcc -O2 -I"$BZIP2SRC" -c "$BZIP2SRC/$f.c" -o "$BUILD/bz_$f.o"
+    BZOBJS+=("$BUILD/bz_$f.o")
+done
+
+run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" -I"$ROOT/third_party/miniz" \
+    -I"$ROOT/third_party/bzip2" \
+    "$ROOT/test/host/test_archive.c" \
+    "$ROOT/engine/fs/archive.c" "$ROOT/engine/fs/olfs.c" \
+    "$ROOT/third_party/miniz/miniz.c" \
+    "$ROOT/third_party/miniz/miniz_tdef.c" \
+    "$ROOT/third_party/miniz/miniz_tinfl.c" \
+    "$ROOT/third_party/miniz/miniz_zip.c" \
+    "${BZOBJS[@]}" \
+    -o "$BUILD/archive_test"
+(cd "$BUILD" && ./archive_test "$ROOT/test/host/fixtures")
+
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT" \
     "$ROOT/engine/3d/obj.c" \
     "$ROOT/test/host/test_obj.c" \
@@ -158,11 +178,18 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
 "$BUILD/pgf_test" "$ROOT/assets"
 
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
-    -I"$ROOT/third_party/stb" \
+    -I"$ROOT/third_party/stb" -I"$ROOT/third_party/miniz" \
+    -I"$ROOT/third_party/bzip2" \
     "$ROOT/test/host/host_main.c" \
     "$ROOT/engine/core/olreg.c" "$ROOT/engine/fs/olfs.c" \
     "$ROOT/engine/core/color.c" \
     "$ROOT/engine/fs/files.c" \
+    "$ROOT/engine/fs/archive.c" \
+    "$ROOT/third_party/miniz/miniz.c" \
+    "$ROOT/third_party/miniz/miniz_tdef.c" \
+    "$ROOT/third_party/miniz/miniz_tinfl.c" \
+    "$ROOT/third_party/miniz/miniz_zip.c" \
+    "${BZOBJS[@]}" \
     "$ROOT/engine/fs/ini.c" \
     "$ROOT/engine/data/json.c" \
     "$ROOT/engine/data/pbp.c" \
@@ -203,9 +230,10 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "${OBJS[@]}" \
     -lpthread -lm -o "$BUILD/host_test"
 
-rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork "$BUILD"/jsonwork "$BUILD"/data "$BUILD"/objwork
+rm -rf "$BUILD"/t3work "$BUILD"/PSP "$BUILD"/iniwork "$BUILD"/soundwork "$BUILD"/jsonwork "$BUILD"/data "$BUILD"/objwork "$BUILD"/archivework "$BUILD"/archive_lua
 cd "$BUILD"
 ./host_test "$ROOT/test/host/test_phase3.lua"
+OPENLUA_ROOT="$ROOT" ./host_test "$ROOT/test/host/test_archive.lua"
 ./host_test "$ROOT/test/host/test_timers.lua"
 ./host_test "$ROOT/test/host/test_math.lua"
 ./host_test "$ROOT/test/host/test_ini.lua"

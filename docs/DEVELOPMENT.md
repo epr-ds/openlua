@@ -63,9 +63,10 @@ make clean
 
 Host-testable pieces (VFS, timers, OneLua math/battery/OS/hardware helpers,
 power/OS/hardware bindings, transform math, OBJ/MTL parsing, PBP/SFO parsing,
-PGF/SFont atlas packing, splash image loading, OSK argument handling, game
-image extraction, camera value mapping and absent-hardware behaviour, network
-URL/response parsing and loopback TCP/HTTP/FTP paths, Lua modules):
+archive containers, PGF/SFont atlas packing, splash image loading, OSK argument
+handling, game image extraction, camera value mapping and absent-hardware
+behaviour, network URL/response parsing and loopback TCP/HTTP/FTP paths, Lua
+modules):
 
 ```bash
 bash test/host/run.sh
@@ -73,14 +74,15 @@ bash test/host/run.sh
 
 Expected: `olfs: 47 checks, 0 failed`, `transform: 176 checks, 0 failed`,
 `textwrap: 25 checks, 0 failed`, `psmf: 20 checks, 0 failed`,
-`pbp: 53 checks, 0 failure(s)`,
+`pbp: 53 checks, 0 failure(s)`, `archive: 78 checks, 0 failed`,
 `obj: 26 checks, 0 failed`, `battery: 16 checks, 0 failed`,
 `cam: 23 checks, 0 failure(s)`, `umd: 12 checks, 0 failure(s)`,
 `net: 79 checks, 0 failure(s)`, `RESULT: 10 passed, 0 failed` for the OS C
 helpers, `RESULT: 60 passed, 0 failed` for the hardware helpers,
-`maps: 26 checks, 0 failed`, `sound: 66 checks, 0 failed`,
+`maps: 26 checks, 0 failed`, `sound: 70 checks, 0 failed`,
+`mp3_stream: 11 checks, 0 failed`,
 `sfont C: 20 checks, 0 failure(s)` and `pgf C: 17 checks, 0 failure(s)`
-(676 C checks total), then `RESULT: 46 passed, 0 failed`,
+(769 C checks total), then `RESULT: 46 passed, 0 failed`,
 `RESULT: 21 passed, 0 failed` for timers, `RESULT: 23 passed, 0 failed` for
 math, `RESULT: 24 passed, 0 failed` for INI, `RESULT: 89 passed, 0 failed` for
 JSON, `RESULT: 64 passed, 0 failed` for savedata,
@@ -93,8 +95,9 @@ the 3D handle/API surface, `splash Lua: 20 assertions, 0 failure(s)`,
 `osk Lua: 54 assertions, 0 failure(s)`,
 `game Lua: 46 assertions, 0 failure(s)`,
 `cam Lua: 90 assertions, 0 failure(s)`,
-`peripherals Lua: 89 assertions, 0 failure(s)` and
-`net Lua: 94 assertions, 0 failure(s)` (966 Lua assertions total). The PGF
+`archive Lua: 44 assertions, 0 failure(s)`, `peripherals Lua: 89 assertions,
+0 failure(s)` and `net Lua: 94 assertions, 0 failure(s)` (1010 Lua assertions
+total). The PGF
 tests use `test/host/pspfont_stub.c` in place of the PSP system library; real
 PGF rendering is checked separately in PPSSPP. The 3D host test exercises
 parse/load/transform/render bookkeeping only; GE output is checked in PPSSPP.
@@ -162,7 +165,7 @@ engine/
   snd/    sound.c/h (WAV/VMA/MP3 + PSP audio), minimp3_impl.c
   input/  buttons.c/h
   util/   timers.c/h, olmath.c/h (OneLua math helpers)
-  fs/     olfs.c/h (platform VFS), files.c/h, ini.c/h
+  fs/     olfs.c/h (platform VFS), files.c/h, archive.c/h, ini.c/h
   data/   json.c/h, psmf.c/h, pbp.c/h (PBP + PARAM.SFO parser)
   net/    net.c/h (shared stack refcount, TCP/DNS helpers)
   sys/    savedata.c/h, battery.c/h, power.c/h, os.c/h, osk.c/h, game.c/h,
@@ -173,6 +176,8 @@ engine/
 third_party/
   lua/src Lua 5.1.5
   stb/    stb_image.h, stb_image_write.h
+  miniz/  miniz.c/h, miniz_zip, miniz_tdef, miniz_tinfl
+  bzip2/  bzlib, blocksort, compress, decompress, huffman, crctable, randtable
 assets/   demo/test assets (including assets/3d/ and the splash PNGs)
 demos/    runnable Lua demos
 docs/     architecture, API, roadmap, reference

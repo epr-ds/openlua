@@ -589,11 +589,49 @@ not to how many sounds are loaded.
 | `files.list(path)` | Table of entries. |
 | `files.listfiles(path)` | Files only. |
 | `files.listdirs(path)` | Directories only. |
+| `files.scan(src)` | Archive members as `{name,size,directory}`. |
+| `files.extract(src, dst)` | Extract every archive member below `dst`. |
+| `files.extractfile(src, name, dst)` | Extract one archive member. |
 
 Each entry has `name`, `path`, `size`, `ext`, `directory` (boolean) and `mode`
 (a three-character `RWE` string).
 
-`files.scan`, `files.extract` and archive/thread variants are not implemented.
+### Archives
+
+```lua
+local entries = files.scan(src)                 -- {name,size,directory}
+local ok      = files.extract(src, dst)
+local ok      = files.extractfile(src, name, dst)
+```
+
+`files.scan` lists archive members as `name` (forward slashes), `size`
+(uncompressed bytes) and `directory`. It returns `nil` plus a reason when the
+archive cannot be read or its format is unsupported. A single-file `.bz2`
+stream stores no size, so scanning decompresses it once to count the bytes and
+verify the CRCs; listing `.tar.bz2` decompresses the stream in the same way.
+
+`files.extract` writes every regular file and directory below `dst`; missing
+directories are created. `files.extractfile` extracts one member. When `dst`
+is an existing directory (or ends in `/`) the member's base name is appended;
+otherwise `dst` is the destination file path. Both return `1` on success or
+`0` plus a reason on failure.
+
+Supported containers:
+
+| Format | Notes |
+|---|---|
+| ZIP | Stored and deflate entries, ZIP64, directories. Encrypted entries and other compression methods are rejected. |
+| TAR | ustar, GNU long names and pax `path`/`size` headers. |
+| TAR.GZ / TGZ | gzip-compressed tar, detected from the decompressed stream. |
+| TAR.BZ2 / TBZ2 / TBZ | bzip2-compressed tar, detected from the decompressed stream. |
+| GZIP | Single compressed file; the member name is the file name with the `.gz` (or `.tgz`) suffix removed. |
+| BZIP2 | Single compressed file; the member name is the file name with the `.bz2`, `.tbz2` or `.tbz` suffix removed. |
+
+RAR, 7z and xz are recognised but return an `unsupported archive format` reason:
+no suitable decoder for those containers is vendored. Member names containing
+`..`, absolute paths or device prefixes are rejected before any file is
+written. The OneLua `threadextract`/`threadextractfile` names are registered as
+synchronous aliases; extraction blocks the caller.
 
 ## ini
 
@@ -1271,7 +1309,7 @@ implemented yet.
 
 | Module | Status |
 |---|---|
-| Archive extraction (`files.extract`, zip/rar) | Not implemented |
+| Archive extraction (`files.extract`) | ZIP, TAR, TAR.GZ, GZIP, TAR.BZ2 and BZIP2 implemented; RAR/7z/xz recognised but unsupported |
 | VSH save dialog | Not implemented |
 | IRC client | Not implemented |
 | MP4 container support | Not implemented (PMF/PSMF playback works) |
@@ -1288,6 +1326,7 @@ implemented yet.
 | Adhoc matching/PDP | `sendrequest` returns `false`, `getrequest` `{}`, `accept`/`reject` do nothing, `send` returns `0` and `recv` returns `nil`; peer-list scanning is implemented | #45 |
 | Bluetooth | Compatibility stub; all calls return `false` because the PSP has no built-in radio and PSPSDK has no stack | #45 |
 | Network verification | Loopback socket/HTTP/FTP paths are host-tested; PPSSPP verified the registered modules and safe absence only. No WiFi, adhoc, Bluetooth or real-LAN hardware was available | #45 |
+| Archives | ZIP (stored/deflate), TAR, TAR.GZ, GZIP, TAR.BZ2 and BZIP2; RAR, 7z and xz are detected but return `unsupported archive format`. ZipCrypto/AES entries and non-store/deflate ZIP methods are rejected. `threadextract`/`threadextractfile` run synchronously | #49 |
 | Splash assets | `splash.show`/`old` share the same renderer and differ only in their default asset; `oldschool` is an original tribute rather than the historical OSLib artwork | #41 |
 | Splash timing | Fixed at about 2 s per image with a 250 ms fade-in and 300 ms fade-out; skip advances one image at a time | #41 |
 | OSK cancel verification | PPSSPP 1.20.4 has no OSK cancel control and its HLE always returns `RESULT_CHANGED`; confirm/edit is PPSSPP-verified, the `nil` cancel branch is host-tested and PSP-only | #42 |

@@ -373,6 +373,7 @@ logic and are host-testable:
 | Module | API | Storage |
 |---|---|---|
 | `files.c` | `files.*` | any mounted path |
+| `archive.c` | `files.scan/extract/extractfile` | ZIP, TAR, GZIP, BZIP2 |
 | `ini.c` | `ini.read/write` | text INI, section-aware |
 | `savedata.c` | `data.save/load/delete` | `ROOT/PSP/SAVEDATA/<GAMEID>/` |
 | `json.c` | `json.decode/encode/load/save` | bounded files + atomic writes |
@@ -385,6 +386,20 @@ roots for loads and deletes. Volume joins always include the canonical `/`
 after the device prefix. `olfs_move` first tries `sceIoRename`, then falls back
 to a recursive copy + delete when the source and destination are on different
 volumes; the fallback refuses to overwrite an existing destination.
+
+`engine/fs/archive.c` feeds the OneLua archive functions in `files.c`. ZIP
+uses the vendored miniz reader (stored/deflate, ZIP64); TAR is parsed directly,
+including ustar prefixes, GNU long names and pax `path`/`size` records. GZIP
+members are parsed locally (header flags, CRC32/ISIZE trailer) and the raw
+deflate payload is inflated with miniz, so `.gz` and `.tar.gz` share one code
+path without a zlib dependency. BZIP2 streams use the vendored libbzip2
+decompressor, which verifies block and combined CRCs itself; `.tar.bz2` is
+recognised by decompressing the first tar block. RAR, 7z and xz are identified
+by magic and reported as unsupported. Extraction writes to `<dst>.part` and
+renames it on success, and every member name is checked for `..`, absolute
+paths and device prefixes before any file is created. The sequential TAR path
+can skip payloads with `fseek` on plain files and inflates or bunzips then
+discards for compressed streams.
 
 ## Battery telemetry
 
@@ -520,13 +535,13 @@ The PSP headers keep most graphics/input code out of host builds. The storage
 layer, timers, OneLua math helpers, battery formatting and host mocks, power
 bindings and stubs, OS formatting and host mocks, hardware formatting/clamping
 and host mocks, transform math, OBJ/MTL parsing, map geometry, sound parsing
-and channel bookkeeping, PBP/SFO parsing, URL/HTTP response parsing, loopback
-TCP/HTTP/FTP paths, `engine/core/olreg.c`, and the Lua sources compile and run
-on the host. `test/host/run.sh` covers OLFS paths/cwd, transforms, OBJ/MTL
-parsing, PBP/SFO parsing, map geometry, sound, battery/OS/hardware formatting,
-networking, and Lua-level
-files/INI/savedata/timers/math/battery/power/os/hardware/sound/3D/splash/osk/game/
-network tests.
+and channel bookkeeping, PBP/SFO parsing, archive containers, URL/HTTP response
+parsing, loopback TCP/HTTP/FTP paths, `engine/core/olreg.c`, and the Lua sources
+compile and run on the host. `test/host/run.sh` covers OLFS paths/cwd,
+transforms, OBJ/MTL parsing, PBP/SFO parsing, archive listing/extraction, map
+geometry, sound, battery/OS/hardware formatting, networking, and Lua-level
+files/INI/archives/savedata/timers/math/battery/power/os/hardware/sound/3D/
+splash/osk/game/network tests.
 `.github/workflows/build.yml`
 runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 
@@ -541,7 +556,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |
-| `engine/fs` | files, INI, portable VFS | `files.*`, `ini.*` |
+| `engine/fs` | files, INI, archive reader, portable VFS | `files.*`, `ini.*` |
 | `engine/data` | JSON parser/serializer, PSMF header parser, PBP/PARAM.SFO parser | `json.*`, PMF validation, PBP metadata |
 | `engine/net` | shared network-stack refcount, TCP/DNS helpers | used by the networking modules |
 | `engine/sys` | save slots, battery, power, OS queries, hardware info/audio, OSK, PBP metadata, networking | `data.*` / `savedata.*`, `batt.*`, `power.*`, `os.*`, `hw.*`, `osk.*`, `game.*`, `wlan.*`, `socket.*`, `http.*`, `ftp.*`, `adhoc.*`, `bluetooth.*` |
@@ -549,4 +564,4 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/3d` | OBJ/MTL parser, camera/model/texture state, 3D scene control | `amg.*`, `cam3d.*`, `texture3d.*`, `model3d.*` |
 | `engine/gfx/gfx3d.c` | GE 3D state and textured triangle submission | shared by the 3D modules |
 | `engine/video` | PMF playback through `sceMpeg` | `pmf.*` |
-| `third_party` | Lua 5.1.5, stb_image/stb_image_write | — |
+| `third_party` | Lua 5.1.5, stb_image/stb_image_write, miniz (ZIP/deflate), bzip2 | — |

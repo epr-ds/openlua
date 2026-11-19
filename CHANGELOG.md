@@ -282,6 +282,18 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
   networking) to the project board.
 
 ### Fixed
+- Mono output no longer reaches the hardware as stereo, which is what still
+  garbled music after the 0.1.9 audio rework. `pspaudio.h` declares
+  `PSP_AUDIO_FORMAT_MONO` as an `enum`, so the `#ifndef` fallback was always
+  taken and quietly redefined it to `0` — `PSP_AUDIO_FORMAT_STEREO` (the real
+  mono value is `0x10`). Every channel was therefore reserved as stereo and
+  asked to read 2048 samples out of a 1024-sample mono buffer: double pitch,
+  twice the buffer overrun, and interleaved noise. The fallback now only applies
+  off-PSP, and a `snd_audio_format_check` typedef fails the PSP build if the two
+  constants ever collide again. Verified in PPSSPP with a synthetic 441 Hz tone
+  (dump shows a clean 441 Hz, 100-sample period, `L == R`) and with the game's
+  music: engine-captured PCM matches `menu_9.mp3` at correlation 0.9988 and
+  ratio 1.000, and the emulator's dump matches that capture at 0.979.
 - Sound now plays at the right pitch and without stutter or garbling on a PSP.
   `sceAudioChReserve` has no rate argument: hardware channels 0..7 always mix
   at 44100 Hz, while the module resampled everything to 22050 Hz, so music and

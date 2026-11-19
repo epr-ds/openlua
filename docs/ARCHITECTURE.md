@@ -335,7 +335,13 @@ Bluetooth or real-LAN hardware was available.
    mid-frame, and every frame that refers back into it then fails. That cost
    about 1% of a track before the refill guard was added.
 4. `sound.play` reserves a hardware channel (`sceAudioChReserve`); explicit
-   channels 1..8 and automatic next-free allocation share the same path.
+   channels 1..8 and automatic next-free allocation share the same path. The
+   reserve call names `PSP_AUDIO_FORMAT_MONO` (0x10) because the staging buffer
+   is mono; `pspaudio.h` declares that as an `enum`, so an `#ifndef` fallback
+   would redefine it to `0` — the stereo value — and make the driver read twice
+   the samples out of every buffer. `sound.c` only supplies a fallback for host
+   builds and a `snd_audio_format_check` typedef stops the PSP build if the
+   constants ever become equal.
 5. On PSP, `sound.play` also starts a per-sound output thread. It fills one of
    two private 1024-sample buffers and hands it over with
    `sceAudioOutputBlocking`, which paces the loop off the hardware clock. A

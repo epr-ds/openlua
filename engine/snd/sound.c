@@ -78,7 +78,7 @@ static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return 0; }
 #ifndef PSP_AUDIO_CHANNEL_MAX
 #define PSP_AUDIO_CHANNEL_MAX 8
 #endif
-#ifndef PSP_AUDIO_FORMAT_MONO
+#if !defined(__PSP__) && !defined(PSP_AUDIO_FORMAT_MONO)
 #define PSP_AUDIO_FORMAT_MONO 0
 #endif
 #ifndef PSP_AUDIO_VOLUME_MAX
@@ -86,6 +86,16 @@ static inline int sceAudioGetChannelRestLen(int c)      { (void)c; return 0; }
 #endif
 #ifndef PSP_AUDIO_NEXT_CHANNEL
 #define PSP_AUDIO_NEXT_CHANNEL (-1)
+#endif
+
+#if defined(__PSP__)
+/* pspaudio.h declares the formats as an enum, so an "#ifndef" fallback would
+ * happily redefine PSP_AUDIO_FORMAT_MONO to 0 - which is the stereo value.
+ * Handing this engine's mono output to a stereo channel makes the hardware
+ * read twice as many samples per buffer: double pitch, overrun, garbled
+ * audio.  Fail the build instead of shipping that again. */
+typedef char snd_audio_format_check[
+    (PSP_AUDIO_FORMAT_MONO != PSP_AUDIO_FORMAT_STEREO) ? 1 : -1];
 #endif
 
 /* Loaded sounds live in slots that are created on demand: a game keeps its

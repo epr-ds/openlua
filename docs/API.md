@@ -46,10 +46,11 @@ nothing, because OpenLua colours are already concrete ABGR words.
 | `screen.textwidth(text [, handle])` | Legacy OpenLua form: measure text in pixels. |
 | `screen.textwidth(text [, size])` | OneLua form: measure with the default font at `size`. |
 | `screen.textwidth(font, text [, size])` | OneLua form with an explicit font. |
-| `screen.textheight([font [, size]])` | Measure the line height at `size` (default 1.0). |
-| `screen.textheight(size)` | Measure the default font's line height at `size`. |
+| `screen.textheight([font [, size]])` | Height of the font's glyph ink box in pixels (the OneLua value). The `size` argument is accepted but ignored, matching OneLua. |
+| `screen.textheight(size)` | Same height for the default font; the size value is ignored. |
 
-`size` is a scale factor (`1.0` is the font's native cell height). `color` is
+`size` scales drawing and text width (`1.0` is the font's native cell height);
+`screen.textheight` ignores it, as OneLua does. `color` is
 an ABGR tint, `shadow` is an ABGR shadow colour (a 1 px offset scaled with the
 text) and `align` accepts `__ALEFT`, `__ACENTER`, `__ARIGHT` or `__AFULL`.
 Centred and right-aligned text is positioned per line. The OneLua shadow-style
@@ -158,34 +159,28 @@ facings. The explicit `set` argument is an OpenLua extension; OneLua's
 
 ### PGF system fonts (`font`)
 
-`font.load(path)` is the OneLua PGF loader. It opens the PGF through the PSP
-system library `sceLibFont`, rasterizes printable ASCII (`0x20`..`0x7E`) once
-into a cached RGBA atlas, and returns a 1-based handle. No PGF file is bundled
-with OpenLua; use a system font such as `flash0:/font/ltn0.pgf`. A failed load
-returns `nil` rather than raising a Lua error.
+`font.load(path)` is the OneLua PGF loader. It decodes the revision-2 PGF
+container in-process (`engine/font/pgf.c`), rasterizes printable ASCII
+(`0x20`..`0x7E`) once into a cached RGBA atlas, and returns a 1-based handle.
+No Sony `sceLibFont`/`libfont.prx` is required, so custom game fonts work on
+real hardware and in PPSSPP. No PGF file is bundled with OpenLua; a failed
+load returns `nil` rather than raising a Lua error.
 
-> **PSP limitation.** The standard PSP EBOOT is built with `OPENLUA_NO_PGF` and
-> does not link `sceLibFont`. On real hardware `sceLibFont` is exported by the
-> per-game user module `libfont.prx` (`USRDIR/module/libfont.prx`), not by a
-> flash0 kernel module, so a static import makes the firmware refuse to start
-> the EBOOT with `8002013C` (`SCE_KERNEL_ERROR_LIBRARY_NOTFOUND`). In the
-> standard build `font.load(path)` therefore cannot decode the PGF itself and
-> `font.*` PGF calls are no-ops. PGF remains enabled in host builds and in
-> opt-in PSP builds compiled without `-DOPENLUA_NO_PGF` (for example, a build
-> that ships and loads `libfont.prx`).
+> **Decoder scope.** The software decoder supports revision 2 PGF files with
+> one-byte-per-pixel 4-bit glyph bitmaps, the usual metric/index tables and
+> the printable ASCII character map. Revision 3 or truncated files are
+> rejected and fall through to the atlas fallback below.
 >
 > **Atlas fallback.** When a `.pgf` cannot be decoded, `font.load(path)` looks
 > for a sibling `.png` with the same stem (`assets/font/halo5-ltn0.pgf` →
-> `assets/font/halo5-ltn0.png`) and loads it with the SFont loader. This makes
-> games that ship custom PGF fonts run on the standard build without Sony's
-> library; the PNG must be baked from the same font so advances and glyphs
-> match. `font.load` returns `nil` only when neither the PGF nor the atlas can
-> be loaded.
+> `assets/font/halo5-ltn0.png`) and loads it with the SFont loader. This keeps
+> older games that rely on baked atlases working; `font.load` returns `nil`
+> only when neither the PGF nor the atlas can be loaded.
 
 
 | Function | Description |
 |---|---|
-| `font.load(path)` | Load a PGF system font. Returns a handle or nil. |
+| `font.load(path)` | Load a PGF font with the built-in decoder. Returns a handle or nil. |
 | `font.setdefault(handle)` | Select an already-loaded font for `screen.print`. |
 | `font.setdefault(path)` | Load a PGF and select it. Returns nothing. |
 | `font.setdefault()` | Return the current default handle, or nil. This getter is an OpenLua extension; in OneLua the no-argument form refers to its built-in default font. |
@@ -200,6 +195,12 @@ Newlines advance by one line height; tabs advance by four space advances.
 PGF advances and bearings are taken from the font metrics, so text is
 proportionally spaced. `screen.print` and `screen.textwidth` use the default
 selected by `font.setdefault` unless a handle is passed explicitly.
+
+`screen.textheight(font)` reports the font's ink-box height (the span from the
+tallest glyph top to the lowest glyph bottom) and ignores the text size, as
+OneLua does. Consider `oneFont.pgf`: 20 px. The vertical text anchor is
+`0.7 * maxAscender`, OneLua's default-size baseline, so glyphs land at the
+same rows as OneLua for the same `x`/`y` regardless of the requested scale.
 
 ### Fixed-cell PNG fonts (`font.new`)
 
@@ -218,25 +219,23 @@ loads a PNG sheet with `cellW` x `cellH` cells, glyphs starting at space
 | `font.textwidth(handle, text)` or `font.textwidth(text, handle)` | Measure a string. |
 | `font.free(handle)` | Release the handle and its surface. |
 
-For new code, prefer `font.new(path, cellW, cellH)` with a bundled PNG. On host
-builds and opt-in PGF builds, `font.load("flash0:/font/ltn0.pgf")` uses the PSP
-system font. Existing code that calls `font.load(path, cellW, cellH)` keeps
-working unchanged. A one-argument `font.load` means PGF; it does not auto-detect
-arbitrary PNG files, but in the standard PSP build it does fall back to a
-same-stem `.png` atlas next to the `.pgf` (see the atlas-fallback note above).
+For new code, prefer `font.new(path, cellW, cellH)` with a bundled PNG. The
+one-argument `font.load(path)` decodes PGF with the built-in software decoder
+and falls back to a same-stem `.png` atlas next to the `.pgf` when the
+container is unsupported (see the atlas-fallback note above). Existing code
+that calls `font.load(path, cellW, cellH)` keeps working unchanged.
 
 ### Default font
 
 At startup OpenLua looks for `oneFont.pgf` in the working directory (the EBOOT
 directory) and loads it as the default for `screen.print`, `screen.textwidth`,
-`screen.textheight` and `draw.print`. The standard PSP build cannot decode PGF
-without Sony's `libfont.prx`, so it uses the sibling `oneFont.png` atlas baked
-from the same font; a lone `oneFont.png` is also accepted. If neither file is
-present — for example in host tests or apps that ship their own fonts — the
-default stays unset until `font.setdefault(handle)` or `screen.font(handle)` is
-called. Loading a font with `font.load`, `font.new` or `sfont.load` never
-changes the default implicitly. `font.setdefault()` with no arguments returns
-the current handle.
+`screen.textheight` and `draw.print`. The software decoder handles the PGF
+directly; if decoding fails, the sibling `oneFont.png` atlas baked from the
+same font is accepted instead. If neither file is present — for example in
+host tests or apps that ship their own fonts — the default stays unset until
+`font.setdefault(handle)` or `screen.font(handle)` is called. Loading a font
+with `font.load`, `font.new` or `sfont.load` never changes the default
+implicitly. `font.setdefault()` with no arguments returns the current handle.
 
 ### Classic variable-width SFont (`sfont`)
 
@@ -1422,7 +1421,8 @@ implemented yet.
 | Hardware volume/mute | Uses `/CONFIG/SYSTEM/SOUND`; PPSSPP 1.20.4 lacks that registry category, so the session fallback `27`/`0` is reported and writes are not applied to the emulator mixer | #36 |
 | Hardware audio route | `hw.audioout(mode)` uses `sceAudioRoutingSetMode`; PPSSPP 1.20.4's `GetMode` HLE always returns `0` | #36 |
 | Compound assignment | OpenLua's vendored Lua 5.1 lexer/parser accepts OneLua's `+=`, `-=`, `*=`, `/=`, `%=` and `^=`. This is a source-language extension, not a new runtime module | — |
-| PGF without `libfont.prx` | The standard build cannot decode PGF natively; custom fonts must ship a same-stem `.png` atlas and are loaded through the SFont path. Native PGF metrics require an opt-in build with Sony's `libfont.prx` | — |
-| Default font | OpenLua loads `oneFont.pgf` beside the EBOOT (or its baked `oneFont.png` on the standard build) as the default at startup, matching OneLua. Apps without those files keep a nil default until `font.setdefault` is called | — |
+| PGF decoding | OpenLua decodes revision-2 PGF files in-process (`engine/font/pgf.c`), without Sony's `sceFont`/`libfont.prx`. Unsupported or truncated containers fall back to a same-stem `.png` SFont atlas | — |
+| Text height | `screen.textheight` returns the font's ink-box span and ignores the size argument, matching OneLua (for example `oneFont.pgf` → 20). Glyphs are anchored at `0.7 * maxAscender` so text lands on the same rows as OneLua | — |
+| Default font | OpenLua loads `oneFont.pgf` beside the EBOOT (or its baked `oneFont.png` fallback) as the default at startup, matching OneLua. Apps without those files keep a nil default until `font.setdefault` is called | — |
 | MP3 audio | Streamed through the vendored minimp3 decoder (CC0), resampled to 44100 Hz mono (the PSP channel rate) by a per-sound output thread; S3M/other tracker formats are still unsupported | — |
 | `screen.print` scale default | OneLua defaults the size argument to `0.7`; OpenLua defaults to `1.0` to preserve the existing OpenLua behaviour. Pass an explicit size for OneLua-identical output | — |

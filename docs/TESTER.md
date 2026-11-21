@@ -76,15 +76,13 @@ when `tools/bootprobe/EBOOT.PBP` exists; override with `OPENLUA_PROBE_EBOOT`.
 
 The menu needs no bundled system font. It tries, in order:
 
-1. `flash0:/font/ltn0.pgf` through the PGF loader (opt-in builds only; the
-   standard EBOOT is built with `OPENLUA_NO_PGF`, so this step returns `nil`),
+1. `flash0:/font/ltn0.pgf` through the built-in PGF decoder,
 2. `assets/font.png` as a fixed-cell font,
 3. a built-in 5x7 bitmap font.
 
-The standard PSP build does not link `sceLibFont`: on real hardware it is
-provided by the per-game user module `libfont.prx`, and a static import makes
-the firmware reject the EBOOT with `8002013C`. The PNG and built-in fallbacks
-therefore keep the menu readable without PGF.
+PGF decoding is fully in-process; no Sony `sceLibFont`/`libfont.prx` is
+required. The PNG and built-in fallbacks keep the menu readable if the PGF is
+missing or uses an unsupported revision.
 
 ## Controls
 
@@ -196,15 +194,15 @@ TOTAL 225 checks: 185 pass, 0 fail, 21 info, 19 skip
 `INFO` items are values PPSSPP cannot emulate (for example `ef0:` absent,
 UMD metadata, kernel-only hardware IDs, battery capacity/voltage). `SKIP`
 items are interactive-only tests (including camera init/begin/render), the
-deliberately unrun destructive calls, and `FONT.LOAD PGF` (the standard build
-does not link `sceLibFont`; an opt-in PGF build adds the remaining checks).
+deliberately unrun destructive calls, and `FONT.LOAD PGF` when the build cannot
+reach a PGF fixture.
 Zero `FAIL` confirms that every module's non-interactive surface works in the
 emulator; it does **not** prove real-hardware behaviour.
 
 ## Current real-hardware result
 
 A PSP-1000 (FAT) on firmware 6.61, launched from `ms0:/PSP/GAME/OpenLua/`,
-produced the same totals with the standard PGF-disabled build:
+produced the same totals with the standard build:
 
 ```text
 TOTAL 225 checks: 185 pass, 0 fail, 21 info, 19 skip
@@ -237,8 +235,10 @@ Things PPSSPP cannot verify and that need a real PSP:
 - The GO! CAM accessory and real camera frames.
 - WLAN profiles, access points, adhoc peers and an actual connection.
 - Infrared and serial hardware (the user-mode build is a documented stub).
-- PGF rendering from the real `flash0:` font (PGF is disabled in the standard
-  build; use an opt-in `OPENLUA_NO_PGF`-less build that loads `libfont.prx`).
+- PGF rendering from a real `flash0:` font: the software decoder is exercised
+  by the host fixture and by game fonts in PPSSPP, but a retail-firmware
+  `flash0:/font/ltn0.pgf` sample and any revision-3 font should be checked on
+  hardware too.
 - PMF playback and the OSK cancel/confirm variants (PPSSPP's OSK HLE has no
   cancel control).
 - `power.lock`/`unlock` on firmware where PSPSDK HLE is missing in PPSSPP.

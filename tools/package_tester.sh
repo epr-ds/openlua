@@ -104,10 +104,10 @@ Notes
 -----
 - FAT / Slim / 3000 / Street / Go are user-declared profiles.  hw.getmodel()
   only distinguishes the Go; use SELECT to match the physical unit.
-- The standard build does not link sceLibFont.  On real hardware sceLibFont is
-  provided by each game's libfont.prx, so font.load() returns nil and the menu
-  uses assets/font.png or its built-in 5x7 font instead.  PNG and SFont loaders
-  are unaffected.
+- PGF fonts are decoded by OpenLua's built-in software decoder; no Sony
+  sceLibFont/libfont.prx is needed.  If a PGF is missing or uses an unsupported
+  revision the menu uses a same-stem PNG atlas, assets/font.png, or its built-in
+  5x7 font.  PNG and SFont loaders are unaffected.
 - USB mass storage and the GO! CAM cannot be active at the same time.
 - WLAN tests need the wireless switch on and a configured access point.
 - HTTP is plaintext; the PSPSDK build has no TLS.

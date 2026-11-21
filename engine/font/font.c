@@ -115,9 +115,9 @@ int font_alloc_pgf(const char *path)
     OL_PgfFont *pgf = pgf_load(path);
 
     if (!pgf) {
-        /* Atlas fallback: a PGF that cannot be decoded (the standard
-         * PSP build has no sceLibFont) falls back to a sibling PNG
-         * atlas, e.g. assets/font/halo-ltn0.pgf -> halo-ltn0.png.
+        /* Atlas fallback: a PGF the decoder cannot handle (for example a
+         * revision-3 or truncated file) falls back to a sibling PNG atlas,
+         * e.g. assets/font/halo-ltn0.pgf -> halo-ltn0.png.
          * font_alloc_sfont handles both classic SFont sheets and
          * 95-cell fixed grids. */
         if (path && has_pgf_ext(path)) {
@@ -273,6 +273,17 @@ int font_cellw(int h)
 int font_cellh(int h)
 {
     if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used) return 0;
+    return g_fonts[h - 1].cellH;
+}
+
+/* Height OneLua reports for `screen.textheight(font)`: PGF fonts use the
+ * ink-box span derived from the glyph data; atlas fonts keep their cell
+ * height.  The value is deliberately independent of the text `size`. */
+int font_textheight(int h)
+{
+    if (h < 1 || h > FONT_MAX || !g_fonts[h - 1].used) return 0;
+    if (g_fonts[h - 1].kind == FONT_KIND_PGF)
+        return pgf_textheight(g_fonts[h - 1].pgf);
     return g_fonts[h - 1].cellH;
 }
 
@@ -682,8 +693,8 @@ unsigned int font_tint(void)          { return g_defaultTint; }
  * loaded before the first script runs.  OpenLua follows the same convention
  * so `screen.print`/`draw.print` have a font without an explicit handle.
  *
- * The standard PSP build has no sceLibFont, so `font_alloc_pgf` falls back to
- * the sibling `oneFont.png` atlas baked from the PGF.  Loading is only
+ * `font_alloc_pgf` decodes the PGF in-process; if that fails it falls back to
+ * the sibling `oneFont.png` atlas baked from the font.  Loading is only
  * attempted when the file actually exists, which keeps host tests and
  * non-OneLua apps at a nil default until they call `font.setdefault`. */
 static void load_default_font(void)
@@ -1079,21 +1090,19 @@ static int l_screen_textheight(lua_State *L)
 {
     int top = lua_gettop(L);
     int h = g_defaultFont;
-    float scale = 1.0f;
 
     if (top >= 2 && lua_type(L, 1) == LUA_TNUMBER && lua_isnumber(L, 2)) {
-        /* OneLua: screen.textheight(font, size) */
+        /* OneLua: screen.textheight(font, size) - the size is ignored. */
         h = (int)luaL_checkinteger(L, 1);
-        scale = (float)lua_tonumber(L, 2);
     } else if (top >= 1 && lua_isnumber(L, 1)) {
-        /* OneLua: screen.textheight(font) or screen.textheight(size) */
+        /* screen.textheight(font) or screen.textheight(size); only a real
+         * font handle selects the font, a bare size still uses the default. */
         if (ol_is_font_handle(L, 1))
             h = (int)luaL_checkinteger(L, 1);
-        else
-            scale = (float)lua_tonumber(L, 1);
     }
 
-    lua_pushinteger(L, (int)((float)font_cellh(h) * scale + 0.5f));
+    /* OneLua returns the same height for every `size`. */
+    lua_pushinteger(L, font_textheight(h));
     return 1;
 }
 

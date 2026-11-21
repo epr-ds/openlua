@@ -6,6 +6,19 @@ APIs may still change; see [docs/API.md](docs/API.md) for the current surface.
 ## Unreleased
 
 ### Added
+- OneLua text parity through OpenLua's own PGF decoder: `font.load(path)` now
+  decodes revision-2 PGF files in-process (`engine/font/pgf.c`) instead of
+  linking Sony's `sceLibFont`/`libfont.prx`, so `oneFont.pgf` and game fonts
+  render on real hardware and in PPSSPP. The decoder uses a bounds-checked
+  LSB-first bit reader with per-glyph seeks, packs printable ASCII
+  (`0x20`..`0x7E`) into a <=512 px atlas and expands 4-bit coverage to white
+  ABGR. `screen.textheight` returns the glyph ink-box span (for example 20 px
+  for `oneFont.pgf`) and ignores its size argument like OneLua, while text is
+  anchored at `0.7 * maxAscender` so glyphs land on the same rows as OneLua at
+  any requested scale. Revision-3 or truncated PGFs fall back to the same-stem
+  `.png` atlas. Removes the `OPENLUA_NO_PGF` build split and its sceFont stubs;
+  adds `tools/gen_pgf_fixture.py` and committed fixture PGFs, with host coverage
+  (`pgf C: 36 checks`, `pgf Lua: 20 assertions`, `compat: 57`).
 - Built-in Entity Component System (`ecs`) with `ecs.world()`/`ecs.new()`,
   `spawn`/`create`, component `set`/`get`/`has`/`remove`, `query`, systems,
   `update` and `clear`. Entities are userdata handles carrying a slot

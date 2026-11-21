@@ -111,7 +111,7 @@ OBJS = engine/core/main.o \
 
 INCDIR = . $(LUADIR) $(STBDIR) $(MINIZDIR) $(BZIP2DIR)
 
-CFLAGS = -O2 -G0 -Wall -DOPENLUA_NO_PGF
+CFLAGS = -O2 -G0 -Wall
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -L.
 

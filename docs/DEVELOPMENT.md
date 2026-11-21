@@ -41,13 +41,11 @@ Outputs:
 - `EBOOT.PBP` — deploy to `PSP/GAME/OpenLua/`
 - `openlua.elf` — intermediate ELF
 
-The PGF font path uses the PSPSDK's `sceLibFont` and loads a system font such
-as `flash0:/font/ltn0.pgf` at runtime; no Sony PGF asset is bundled. The
-standard PSP build defines `OPENLUA_NO_PGF` and does **not** link `-lpspfont`:
-on real hardware `sceLibFont` comes from the per-game user module
-`libfont.prx`, so a static import fails at boot with `8002013C`. Host builds
-and opt-in PSP builds compile `engine/font/pgf.c` without that define to keep
-the real implementation.
+The PGF font path uses OpenLua's own revision-2 decoder in
+`engine/font/pgf.c`; it does not link Sony's `sceLibFont` and does not need a
+game's `libfont.prx`, so PGF fonts such as `oneFont.pgf` load on real hardware
+and in PPSSPP. No Sony PGF asset is bundled. Unsupported containers fall back
+to a same-stem `.png` atlas.
 
 Do not run `bash docker/build.sh clean all` in one invocation: the PSPSDK
 makefile parallelises them and the link can race.
@@ -165,7 +163,7 @@ engine/
           splash.c/h (splash screens)
   img/    image.c/h (Lua image module, stb decode), image_mem.c (in-memory
           decode for extracted data)
-  font/   font.c/h (handles + fixed-cell/SFont), pgf.c/h (sceLibFont PGF)
+  font/   font.c/h (handles + fixed-cell/SFont), pgf.c/h (software PGF decoder)
   snd/    sound.c/h (WAV/VMA/MP3 + PSP audio), minimp3_impl.c
   input/  buttons.c/h
   util/   timers.c/h, olmath.c/h (OneLua math helpers)

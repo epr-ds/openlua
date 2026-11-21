@@ -1,8 +1,9 @@
 /* OpenLua - font system (public API)
  *
- * `font.load(path)` / `font.setdefault(path)` load a PSP PGF system font
- * through sceLibFont. `font.new(path, cellW, cellH)` loads the fixed-cell
- * PNG extension; `sfont.load(path)` loads classic variable-width SFonts.
+ * `font.load(path)` / `font.setdefault(path)` load a PSP PGF font with the
+ * built-in software decoder. `font.new(path, cellW, cellH)` loads the
+ * fixed-cell PNG extension; `sfont.load(path)` loads classic variable-width
+ * SFonts.
  *
  * Fonts are handled by numeric (1-based) font handles, OneLua-style:
  *
@@ -28,8 +29,9 @@
  *  on first draw. */
 int font_alloc(const char *path, int cellW, int cellH);
 
-/** Load a PSP PGF system font through sceLibFont. Printable ASCII is rendered
- *  once into a <=512px RGBA atlas. Returns a 1-based handle, or 0 on error. */
+/** Load a PSP PGF font with the in-process software decoder. Printable ASCII
+ *  is rasterized once into a <=512px RGBA atlas. Returns a 1-based handle, or
+ *  0 on error (callers may fall back to a sibling PNG atlas). */
 int font_alloc_pgf(const char *path);
 
 /** Load a OneLua-style SFONT image without explicit cell dimensions.
@@ -44,6 +46,10 @@ int font_nchars(int h);
 /** Glyph cell width/height in pixels. */
 int font_cellw(int h);
 int font_cellh(int h);
+
+/** Text height for `screen.textheight(font)` (OneLua-compatible ink span,
+ *  independent of the requested text size). */
+int font_textheight(int h);
 
 /** Draw one glyph (ASCII 0x20..0x7E) at scene coords (dx,dy).
  *  tint = ABGR color to modulate glyph pixels (0xFFFFFFFF = no tint). */

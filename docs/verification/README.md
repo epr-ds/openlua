@@ -129,11 +129,11 @@ cross-volume move fallback itself is covered on the host by
 `test/host/test_olfs.c` (`/tmp` vs `/dev/shm`). No PSP Go, M2 card or `ef0:`
 hardware was available.
 
-On a separate desktop run (PPSSPP v1.19.3 on Windows), the standard
-`OPENLUA_NO_PGF` EBOOT was copied next to **Halo Zero Infinity PSP** and booted
-from its own folder. The game's `script.lua` uses OneLua compound assignment and
-its PGF fonts (`halo-ltn0`, `halo5-ltn0`) resolve through the sibling `.png`
-atlases. Verified:
+On a separate desktop run (PPSSPP v1.19.3 on Windows), the standard OpenLua
+EBOOT was copied next to **Halo Zero Infinity PSP** and booted from its own
+folder. The game's `script.lua` uses OneLua compound assignment and its PGF
+fonts (`oneFont.pgf`, `halo-ltn0`, `halo5-ltn0`) are decoded by the software
+PGF decoder. Verified:
 
 - the “PRESS START” splash with the Halo title and button glyph;
 - the six-entry main menu, with one d-pad Down moving exactly one row
@@ -145,8 +145,10 @@ atlases. Verified:
 - live platform gameplay with camera scrolling, sprites, platforms and HUD,
   including a 1.5 s walk to the right.
 - the menu body text drawn with the game's bundled `oneFont.pgf` (loaded as the
-  startup default, through the baked `oneFont.png` atlas in the
-  `OPENLUA_NO_PGF` build), while titles keep the explicitly passed Halo fonts;
+  startup default and decoded in-process), while titles keep the explicitly
+  passed Halo fonts; `screen.textheight` matched OneLua (20 px for `oneFont`),
+  the menu row pitch matched (22 px), and the title rows landed within 1 px of
+  OneLua;
 - the Settings, Play and Forge backgrounds visible under OneLua's translucent
   dimmer instead of a black overlay;
 - menu music: the MP3 stream stayed active on a hardware channel with

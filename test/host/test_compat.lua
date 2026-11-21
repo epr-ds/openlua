@@ -80,17 +80,17 @@ check(type(screen.textheight) == "function", "screen.textheight registered")
 
 local f = font.load("../assets/test.pgf")
 check(f ~= nil, "host PGF loads")
-check(font.cell(f) == 7 and select(2, font.cell(f)) == 20,
+check(font.cell(f) == 6 and select(2, font.cell(f)) == 18,
       "host PGF cell metrics")
 
 -- font-first form
-check(screen.textwidth(f, "AB", 1.0) == 14, "textwidth(font, text, 1.0)")
-check(screen.textwidth(f, "AB", 0.5) == 7,  "textwidth(font, text, 0.5)")
-check(screen.textheight(f, 1.0) == 20, "textheight(font, 1.0)")
-check(screen.textheight(f, 0.5) == 10, "textheight(font, 0.5)")
+check(screen.textwidth(f, "AB", 1.0) == 12, "textwidth(font, text, 1.0)")
+check(screen.textwidth(f, "AB", 0.5) == 6,  "textwidth(font, text, 0.5)")
+check(screen.textheight(f, 1.0) == 8, "textheight(font, 1.0) is the ink span")
+check(screen.textheight(f, 0.5) == 8, "textheight(font, 0.5) ignores size")
 
 local ex = screen.print(f, 10, 20, "AB", 1.0, color.white, color.black, __ALEFT)
-check(ex == 24, "print(font, x, y, text, size, color, shadow, align)")
+check(ex == 22, "print(font, x, y, text, size, color, shadow, align)")
 check(type(screen.print(f, 10, 20, "AB", 0.5, color.red, color.black,
                         __ACENTER)) == "number",
       "print with center alignment")
@@ -100,8 +100,8 @@ check(type(screen.print(f, 10, 20, "AB", 0.5, color.white, color.black,
 
 -- text-first form uses the default font, with a size argument
 font.setdefault(f)
-check(screen.textwidth("AB", 0.5) == 7, "textwidth(text, size) uses default")
-check(screen.textheight(0.5) == 10, "textheight(size) uses default")
+check(screen.textwidth("AB", 0.5) == 6, "textwidth(text, size) uses default")
+check(screen.textheight(0.5) == 8, "textheight(size) ignores size, uses default")
 check(type(screen.print(10, 20, "AB", 0.5, color.white, color.black,
                         __ALEFT)) == "number",
       "print(x, y, text, size, color, shadow, align)")
@@ -110,14 +110,14 @@ check(type(screen.print(10, 20, "AB")) == "number",
 
 -- Lines longer than the internal stack buffer must not be truncated.
 local long = string.rep("A", 300)
-check(screen.print(0, 0, long, 1.0) == 2100,
+check(screen.print(0, 0, long, 1.0) == 1800,
       "print does not truncate long lines")
 
 -- legacy forms still work
-check(screen.textwidth("AB", f) == 14, "legacy textwidth(text, handle)")
-check(screen.print(10, 20, "AB", f, color.red) == 24,
+check(screen.textwidth("AB", f) == 12, "legacy textwidth(text, handle)")
+check(screen.print(10, 20, "AB", f, color.red) == 22,
       "legacy print(x, y, text, handle, tint)")
-check(screen.print(10, 20, "AB", f) == 24, "legacy print(x, y, text, handle)")
+check(screen.print(10, 20, "AB", f) == 22, "legacy print(x, y, text, handle)")
 
 -- ---- .pgf -> sibling .png atlas fallback ------------------------------
 local src = io.open("../assets/font.png", "rb")
@@ -129,8 +129,8 @@ if src then
     dst:write(data)
     dst:close()
 
-    -- The host sceLibFont stub rejects paths containing "not-a-font",
-    -- so font.load() must fall back to not-a-font.png.
+    -- "not-a-font.pgf" is not a valid PGF, so font.load() must fall back
+    -- to the sibling not-a-font.png atlas.
     local fb = font.load("not-a-font.pgf")
     check(fb ~= nil, "pgf load falls back to sibling png")
     if fb then

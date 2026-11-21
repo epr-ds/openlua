@@ -95,20 +95,22 @@ for `image` and `timers`, primarily to attach `__gc`.
 ### Fonts
 
 `engine/font/font.c` keeps up to eight font handles and dispatches three
-loaders. `font.load(path)` opens a PGF through `sceLibFont` (`pgf.c`) in host
-and opt-in PSP builds; the standard PSP build defines `OPENLUA_NO_PGF`, because
-`sceLibFont` comes from a per-game user module and a static import makes the
-firmware reject the EBOOT with `8002013C`. `font.new(path, cellW, cellH)`
-describes a fixed cell grid from a PNG, and `sfont.load` accepts a classic
-SFont strip with magenta top-row separators and variable advances (or a fixed
-95-cell sheet as a fallback). All three share the same handle table,
-print/textwidth path and `gfx_blit` renderer.
+loaders. `font.load(path)` decodes a revision-2 PGF with the in-process
+software decoder in `pgf.c`; no Sony `sceLibFont`/`libfont.prx` is linked or
+required. `font.new(path, cellW, cellH)` describes a fixed cell grid from a
+PNG, and `sfont.load` accepts a classic SFont strip with magenta top-row
+separators and variable advances (or a fixed 95-cell sheet as a fallback). All
+three share the same handle table, print/textwidth path and `gfx_blit`
+renderer.
 
-PGF loading asks the system library for printable ASCII (`0x20`..`0x7E`)
-glyph metrics and 4-bit coverage bitmaps, packs those bitmaps into a <=512 px
-atlas, and expands them to white ABGR with alpha. Advances and bearings remain
-26.6 fixed-point internally, so PGF text is proportionally spaced. No PGF file
-is bundled: the demo uses `flash0:/font/ltn0.pgf`.
+PGF loading parses the container's metric and index tables, reads printable
+ASCII (`0x20`..`0x7E`) 4-bit coverage bitmaps with a bounds-checked LSB-first
+bit reader, packs those bitmaps into a <=512 px atlas, and expands them to
+white ABGR with alpha. Advances and horizontal bearings remain 26.6
+fixed-point internally, so PGF text is proportionally spaced. `screen.textheight`
+returns the ink-box span derived from the glyph data and ignores the size
+argument; the vertical anchor is `0.7 * maxAscender`, mirroring OneLua's default
+text size. No PGF file is bundled: the demo uses `flash0:/font/ltn0.pgf`.
 
 The PNG and SFont loaders decode the source image and repack its glyphs into a
 texture atlas no wider than 512 px on first draw. The PSP GE cannot address
@@ -558,7 +560,7 @@ runs the suite and produces an `EBOOT.PBP` artifact on every push and PR.
 | `engine/core` | boot, Lua registration | `color`, `screen.clear/flip` |
 | `engine/gfx` | surfaces, GE, primitives, splash screens | `draw.*`, `splash.*` |
 | `engine/img` | image decode (file and memory), blits, transforms | `image.*` |
-| `engine/font` | PGF via `sceLibFont` (host/opt-in), PNG/SFont loaders, atlas packer | `font.*`, `sfont.*`, `screen.print` |
+| `engine/font` | Software PGF decoder (revision 2), PNG/SFont loaders, atlas packer | `font.*`, `sfont.*`, `screen.print` |
 | `engine/snd` | audio decode and output | `sound.*` |
 | `engine/input` | controller polling | `buttons.*` |
 | `engine/util` | millisecond timers, OneLua math helpers | `timers.*`, `math.*` |

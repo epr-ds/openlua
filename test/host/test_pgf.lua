@@ -1,5 +1,6 @@
 -- OneLua PGF font API tests (run by test/host/host_main).
--- sceLibFont is stubbed on the host; PPSSPP verifies the real system PGF.
+-- The asset is the synthetic revision 2 PGF built by
+-- tools/gen_pgf_fixture.py; PPSSPP verifies real game fonts.
 
 local ok, fails = 0, 0
 local function check(cond, msg)
@@ -18,20 +19,20 @@ local f = font.load("../assets/test.pgf")
 check(f ~= nil, "PGF loads through font.load")
 check(font.nchars(f) == 95, "PGF exposes printable ASCII")
 local cw, ch = font.cell(f)
-check(cw == 7 and ch == 20, "PGF cell metrics")
-check(font.textwidth(f, "AB") == 14, "PGF width")
-check(font.textwidth("AB", f) == 14, "PGF width text-first form")
-check(font.print(f, 10, 20, "AB") == 24, "PGF print returns final X")
+check(cw == 6 and ch == 18, "PGF cell metrics")
+check(font.textwidth(f, "AB") == 12, "PGF width")
+check(font.textwidth("AB", f) == 12, "PGF width text-first form")
+check(font.print(f, 10, 20, "AB") == 22, "PGF print returns final X")
 
 font.setdefault(f)
 check(font.setdefault() == f, "font.setdefault selects a handle")
-check(screen.print(10, 20, "AB") == 24, "screen.print uses the PGF default")
-check(screen.textwidth("AB") == 14, "screen.textwidth uses the PGF default")
+check(screen.print(10, 20, "AB") == 22, "screen.print uses the PGF default")
+check(screen.textwidth("AB") == 12, "screen.textwidth uses the PGF default")
 
 font.setdefault("../assets/test.pgf")
 local g = font.setdefault()
 check(g ~= nil and g ~= f, "font.setdefault(path) loads a new handle")
-check(screen.print(10, 20, "A B") == 29, "screen.print keeps PGF spacing")
+check(screen.print(10, 20, "A B") == 26, "screen.print keeps PGF spacing")
 
 -- Existing SFont users keep their paths: fixed-cell load alias and font.new.
 local fixed = font.load("../assets/font.png", 8, 16)

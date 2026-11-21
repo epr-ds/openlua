@@ -16,10 +16,11 @@ modules on top of the hardware:
 - Lua 5.1 interpreter (vendored; accepts OneLua's `+=`/`-=`/`*=`/`/=`/`%=`/`^=`
   compound assignment and provides `table.unpack`).
 - GE sprite renderer: PNG loading, frames, flips, scale, rotation, tint.
-- OneLua PGF system fonts with `font.load`/`font.setdefault`, plus fixed-cell
-  PNG and classic variable-width SFont text with `font`/`sfont` and
-  `screen.print`. A `.pgf` that cannot be decoded falls back to a same-stem
-  `.png` atlas, so custom OneLua fonts work without Sony's `libfont.prx`.
+- OneLua PGF fonts with `font.load`/`font.setdefault`, decoded by OpenLua's
+  own software PGF decoder, plus fixed-cell PNG and classic variable-width
+  SFont text with `font`/`sfont` and `screen.print`. No Sony `sceFont` or
+  `libfont.prx` is required; a `.pgf` the decoder cannot handle falls back to
+  a same-stem `.png` atlas.
 - OneLua 3D subset: `amg` scene control, `cam3d` cameras, `texture3d` textures
   and `model3d` OBJ/MTL models rendered through the GE.
 - Start-up splash screens with `splash.show`, `splash.old` and
@@ -220,7 +221,7 @@ for a local toolchain build, host tests and debugging.
 | `power` | `plugged`, `suspend`, `lock`, `unlock`, `tick`, `off` | Implemented; `off` requests standby because PSPSDK lacks software shutdown; PPSSPP 1.20.4 lacks lock/unlock HLE; host-tested ([#34]) |
 | `os` | `delay`, `getdate`, `nick`, `mac`, `language`, `password`, `ram`, `totalram`, `cpu`, `bus`, `infoms0`, `infoef0`, `cfw`, `versiontxt`, `restart`, dialogs/PRX | Extends stock Lua `os`; host-tested and PPSSPP-verified; password/CFW and dialog/PRX limits documented ([#35]) |
 | `hw` | `getmodel`, `firmware`, `region`, `baryon`, `tachyon`, `pommel`, `fuseid`, `fusecfg`, `kirk`, `spock`, `nandseed`, `ofwinitial`, `board`, `gen`, `pandora`, `nand`, `volume`, `mute`, `headphone`, `audioout`, `led` | Host-tested and PPSSPP-verified; ID/fuse/NAND/LED values need kernel mode and return documented fallbacks; volume/mute use the sound registry with a session fallback; audio routing uses `sceAudioRouting` ([#36]) |
-| `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF system fonts when built with `sceLibFont`; the standard PSP EBOOT falls back to a same-stem `.png` atlas so custom `.pgf` fonts still render. `oneFont.pgf` (or its baked `oneFont.png`) beside the EBOOT is loaded as the startup default like OneLua. Fixed-cell PNG and classic variable-width sheets remain supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
+| `font` / `sfont` | `font.load`/`setdefault`, `font.new`/`print`/`textwidth`; `sfont.load`, `print`, `width`, `letters` | PGF fonts are decoded by OpenLua's built-in software decoder (no `sceLibFont`); unsupported PGFs fall back to a same-stem `.png` atlas. `oneFont.pgf` beside the EBOOT is loaded as the startup default like OneLua. `screen.textheight` returns the font's ink-box height and ignores the size argument, matching OneLua. Fixed-cell PNG and classic variable-width sheets remain supported; sheets are repacked to <=512px GE atlases ([#37], [#38]) |
 | `amg` / `cam3d` / `texture3d` / `model3d` | Scene control, camera, textures, OBJ/MTL models | Static textured models with depth testing; lighting, animation and transparent passes are not implemented ([#39]) |
 | `splash` | `show`, `old`, `oldschool` | Single images or slideshows, timing and skip input, built-in missing-asset fallback ([#41]) |
 | `osk` | `init` | Normal/numeric keyboard, length/line/language options, blocking edit/confirm and `nil` cancel; restores GE/display state ([#42]) |

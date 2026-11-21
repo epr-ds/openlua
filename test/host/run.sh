@@ -161,7 +161,6 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     -I"$ROOT/third_party/stb" \
     "$ROOT/test/host/test_sfont.c" "$ROOT/test/host/font_stub.c" \
     "$ROOT/engine/font/font.c" "$ROOT/engine/font/pgf.c" \
-    "$ROOT/test/host/pspfont_stub.c" \
     "$ROOT/engine/core/stb_impl.c" \
     "$ROOT/engine/core/olreg.c" "${OBJS[@]}" \
     -lm -o "$BUILD/sfont_test"
@@ -170,7 +169,6 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
 run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     -I"$ROOT/third_party/stb" \
     "$ROOT/test/host/test_pgf.c" "$ROOT/test/host/font_stub.c" \
-    "$ROOT/test/host/pspfont_stub.c" \
     "$ROOT/engine/font/font.c" "$ROOT/engine/font/pgf.c" \
     "$ROOT/engine/core/stb_impl.c" \
     "$ROOT/engine/core/olreg.c" "${OBJS[@]}" \
@@ -198,7 +196,7 @@ run gcc "${HOST_CFLAGS[@]}" -I"$ROOT/test/host/stub" -I"$LUASRC" -I"$ROOT" \
     "$ROOT/engine/img/image.c" \
     "$ROOT/engine/img/image_mem.c" \
     "$ROOT/engine/core/stb_impl.c" \
-    "$ROOT/test/host/font_stub.c" "$ROOT/test/host/pspfont_stub.c" \
+    "$ROOT/test/host/font_stub.c" \
     "$ROOT/engine/snd/sound.c" \
     "$ROOT/engine/snd/minimp3_impl.c" \
     "$ROOT/engine/sys/savedata.c" \

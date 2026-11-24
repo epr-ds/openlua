@@ -9,8 +9,8 @@
  *    os.nick()                sceUtilityGetSystemParamString(NICKNAME)
  *    os.mac()                 sceWlanGetEtherAddr()
  *    os.language()            sceUtilityGetSystemParamInt(LANGUAGE)
- *    os.ram()                 sceKernelTotalFreeMemSize()
- *    os.totalram()            free memory cached at registration
+ *    os.ram()                 free system + unused newlib heap reservation
+ *    os.totalram()            system free + full heap reservation at start
  *    os.cpu([mhz])            scePowerGet/SetCpuClockFrequency()
  *    os.bus()                 scePowerGetBusClockFrequency()
  *    os.infoms0()/infoef0()   statvfs() over ms0:/ and ef0:/
@@ -37,6 +37,7 @@
 #if defined(__PSP__)
 #include "engine/fs/olfs.h"
 
+#include <malloc.h>
 #include <pspkernel.h>
 #include <psploadexec.h>
 #include <psppower.h>
@@ -207,10 +208,57 @@ static int l_password(lua_State *L)
     return 1;
 }
 
+/* Program-visible free memory.
+ *
+ * newlib hands the whole declared heap to itself in one partition block on
+ * the first malloc (`_sbrk`), so sceKernelTotalFreeMemSize() stops moving
+ * once Lua starts allocating: the memory is still free, just inside the
+ * heap.  OneLua reports it as free, and its os.ram()/os.totalram() figures
+ * include it, so add the heap reservation back and subtract what the
+ * allocator has actually handed out.
+ *
+ * `sce_newlib_heap_kb_size` is emitted by PSP_HEAP_SIZE_KB() in main.c and
+ * read by newlib's _sbrk(); it is the exact size of the reserved block.
+ * mallinfo().arena is only the part dlmalloc has sbrk()ed so far, which is
+ * why it cannot be used to recover the full reservation. */
+#if defined(__PSP__)
+/* Weak: PSP_HEAP_SIZE_KB() in main.c provides the strong definition.  If a
+ * build ever omits it, newlib sizes the heap dynamically and we report the
+ * plain system figure instead of failing to link. */
+extern int sce_newlib_heap_kb_size __attribute__((weak));
+
+static lua_Number os_heap_ram(void)
+{
+    if (&sce_newlib_heap_kb_size && sce_newlib_heap_kb_size > 0)
+        return (lua_Number)sce_newlib_heap_kb_size * 1024;
+    return 0;
+}
+
+static lua_Number os_free_ram(void)
+{
+    struct mallinfo mi = mallinfo();
+    lua_Number owned = os_heap_ram();
+
+    if ((lua_Number)mi.uordblks < owned)
+        owned -= (lua_Number)mi.uordblks;
+    else
+        owned = 0;
+
+    return (lua_Number)sceKernelTotalFreeMemSize() + owned;
+}
+
+/* Everything the program can draw from once the heap exists: system free
+ * outside the heap plus the entire heap reservation. */
+static lua_Number os_total_ram(void)
+{
+    return (lua_Number)sceKernelTotalFreeMemSize() + os_heap_ram();
+}
+#endif
+
 static int l_ram(lua_State *L)
 {
 #if defined(__PSP__)
-    lua_pushnumber(L, (lua_Number)sceKernelTotalFreeMemSize());
+    lua_pushnumber(L, os_free_ram());
 #else
     lua_pushnumber(L, (lua_Number)HOST_FREE_RAM);
 #endif
@@ -451,7 +499,7 @@ void os_api_register(lua_State *L)
 {
     if (g_total_ram == 0) {
 #if defined(__PSP__)
-        g_total_ram = (lua_Number)sceKernelTotalFreeMemSize();
+        g_total_ram = os_total_ram();
 #else
         g_total_ram = (lua_Number)HOST_TOTAL_RAM;
 #endif

@@ -509,8 +509,8 @@ entries below add the OneLua PSP surface. Host tests never call `os.exit` or
 | `os.mac()` | String | Uppercase `XX:XX:XX:XX:XX:XX` from `sceWlanGetEtherAddr()`; all-zero when unavailable. |
 | `os.language()` | String | Uppercase system language name, or `"UNKNOWN"`. |
 | `os.password()` | `""` | PSPSDK has no public user-mode parental-password API. |
-| `os.ram()` | Number | Free memory in bytes at the time of the call. |
-| `os.totalram()` | Number | Free memory cached when the module registers; this is not physical installed RAM. |
+| `os.ram()` | Number | Free program memory in bytes: system free plus the unused part of the newlib heap reservation. |
+| `os.totalram()` | Number | Total program memory cached when the module registers: system free plus the full heap reservation. This is not physical installed RAM. |
 | `os.cpu()` | Number | Current CPU clock in MHz. |
 | `os.cpu(mhz)` | `nil` | Requests `mhz` in the 1..333 range; invalid values are a no-op. |
 | `os.bus()` | Number | Current bus clock in MHz. |

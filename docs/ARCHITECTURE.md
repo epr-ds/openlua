@@ -468,8 +468,8 @@ with an `HLE N/A` note; `plugged` and `tick` work in the emulator.
 | `os.nick()` | `sceUtilityGetSystemParamString(PSP_SYSTEMPARAM_ID_STRING_NICKNAME, ...)` |
 | `os.mac()` | `sceWlanGetEtherAddr()` |
 | `os.language()` | `sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_LANGUAGE, ...)` |
-| `os.ram()` | `sceKernelTotalFreeMemSize()` |
-| `os.totalram()` | `sceKernelTotalFreeMemSize()` cached at module registration |
+| `os.ram()` | `sceKernelTotalFreeMemSize()` plus the unused part of the newlib heap reservation |
+| `os.totalram()` | `sceKernelTotalFreeMemSize()` plus the full heap reservation, cached at module registration |
 | `os.cpu([mhz])` | `scePowerGetCpuClockFrequency()` / `scePowerSetCpuClockFrequency()` |
 | `os.bus()` | `scePowerGetBusClockFrequency()` |
 | `os.infoms0()` / `os.infoef0()` | `statvfs()` on `ms0:/` and `ef0:/` |

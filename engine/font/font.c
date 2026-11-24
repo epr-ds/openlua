@@ -643,7 +643,15 @@ int font_textwidth_scaled(const char *text, int h, float scale)
 {
     if (!(scale > 0.0f))
         scale = 1.0f;
-    return (int)((float)font_textwidth(text, h) * scale + 0.5f);
+
+    /* PGF layout keeps quarter-pixel precision until the end, so let the
+     * decoder scale it instead of scaling an already-truncated width. */
+    if (h >= 1 && h <= FONT_MAX && g_fonts[h - 1].used &&
+        g_fonts[h - 1].kind == FONT_KIND_PGF)
+        return pgf_textwidth_scaled(g_fonts[h - 1].pgf, text, scale);
+
+    /* OneLua truncates the scaled width (intraFontMeasureText result). */
+    return (int)((float)font_textwidth(text, h) * scale);
 }
 
 int font_textwidth(const char *text, int h)

@@ -59,9 +59,10 @@
 #define PGF_METRIC_BEARING_Y 0x10
 #define PGF_METRIC_ADVANCE 0x20
 
-/* One decoded glyph record.  Metrics are in 26.6 fixed point. */
+/* One decoded glyph record.  Metrics are in 26.6 fixed point unless noted. */
 typedef struct {
     int w, h;                /* bitmap size in pixels                    */
+    int left7;               /* 7-bit signed bearing, pixels (intraFont) */
     int xadj;                /* 26.6 bearing from pen to bitmap left     */
     int yadj;                /* 26.6 ascender metric (unused by drawing) */
     int topB;                /* bitmap top bearing above the baseline    */
@@ -87,15 +88,15 @@ struct OL_PgfFont {
     int atlasY[PGF_COUNT];
     int glyphW[PGF_COUNT];
     int glyphH[PGF_COUNT];
-    int shiftX[PGF_COUNT];
-    int shiftY[PGF_COUNT];
-    int advance[PGF_COUNT];
+    int shiftX[PGF_COUNT];   /* bearing from pen to bitmap left, pixels  */
+    int shiftY[PGF_COUNT];   /* bitmap top bearing, pixels               */
+    int advance[PGF_COUNT];  /* advance in 1/4 pixels (intraFont units)  */
 
     int height;              /* ink box span, pixels (OneLua text height) */
     int baseline;            /* OneLua text anchor, pixels below line top  */
     int lineH;               /* line height, pixels                       */
     int cellW;               /* widest advance, pixels                    */
-    int spaceAdv;            /* 26.6 space/tab advance                    */
+    int spaceAdv;            /* space/tab advance, 1/4 pixels            */
 };
 
 /* ----------------------------------------------------------------------
@@ -262,7 +263,7 @@ static int pgf_parse_record(const unsigned char *rec, size_t recLen,
     (void)pgf_bits(&b, 14);           /* uncompressed bitmap size */
     c->w = (int)pgf_bits(&b, 7);
     c->h = (int)pgf_bits(&b, 7);
-    (void)pgf_sign7(pgf_bits(&b, 7)); /* left bearing  */
+    c->left7 = pgf_sign7(pgf_bits(&b, 7)); /* left bearing */
     c->topB = pgf_sign7(pgf_bits(&b, 7)); /* top bearing */
     flags = (int)pgf_bits(&b, 6);
     (void)pgf_bits(&b, 2);            /* shadow flags  */
@@ -611,14 +612,19 @@ OL_PgfFont *pgf_load(const char *path)
         f->atlasY[i] = c->atlasY;
         f->glyphW[i] = c->hasBitmap ? c->w : 0;
         f->glyphH[i] = c->hasBitmap ? c->h : 0;
-        f->shiftX[i] = c->xadj;
+        /* intraFont positions glyphs with the record's 7-bit pixel
+         * bearing, not the 26.6 x-adjust metric. */
+        f->shiftX[i] = c->left7;
         f->shiftY[i] = c->topB;
-        f->advance[i] = c->adv;
+        /* intraFont truncates the advance to 1/4 pixels before use, so
+         * text layout accumulates quarter-pixel steps rather than the
+         * raw 26.6 value. */
+        f->advance[i] = c->adv / 16;
     }
 
-    f->spaceAdv = cells[0].adv;
+    f->spaceAdv = cells[0].adv / 16;
     if (f->spaceAdv <= 0)
-        f->spaceAdv = maxAdv > 0 ? maxAdv / 2 : (4 << 6);
+        f->spaceAdv = maxAdv > 0 ? maxAdv / 32 : 16;
 
     free(raw);
     free(px);
@@ -678,9 +684,20 @@ int pgf_textheight(const OL_PgfFont *font)
  * Drawing
  * ------------------------------------------------------------------- */
 
-static int pgf_pen_px(int pen)
+/* intraFont works in quarter-pixel advances: `advance_raw / 16` truncated,
+ * then multiplied by 0.25 on use.  We keep the pen in those quarter-pixel
+ * units so the truncation happens exactly where OneLua does it.
+ *
+ * Glyph positions are rounded to the nearest pixel (the GU rasterizes a
+ * float sprite by pixel centre), while measured widths truncate. */
+static int pgf_pen_round(int pen)
 {
-    return pen >> 6;
+    return (pen + 2) >> 2;
+}
+
+static int pgf_pen_floor(int pen)
+{
+    return pen >> 2;
 }
 
 static void pgf_blit_glyph(OL_PgfFont *f, int pen, int yTop, int idx,
@@ -689,7 +706,7 @@ static void pgf_blit_glyph(OL_PgfFont *f, int pen, int yTop, int idx,
     if (f->glyphW[idx] <= 0 || f->glyphH[idx] <= 0)
         return;
     gfx_blit(f->sheet,
-             pgf_pen_px(pen) + (f->shiftX[idx] >> 6),
+             pgf_pen_round(pen) + f->shiftX[idx],
              yTop + f->baseline - f->shiftY[idx],
              f->atlasX[idx], f->atlasY[idx],
              f->glyphW[idx], f->glyphH[idx],
@@ -715,7 +732,7 @@ void pgf_draw_glyph(OL_PgfFont *font, int x, int y, unsigned char c,
 {
     if (!font || !font->sheet || c < PGF_FIRST || c > PGF_LAST)
         return;
-    pgf_blit_glyph(font, x << 6, y, (int)c - PGF_FIRST, tint);
+    pgf_blit_glyph(font, x * 4, y, (int)c - PGF_FIRST, tint);
 }
 
 int pgf_draw_text(OL_PgfFont *font, int x, int y, const char *text,
@@ -724,14 +741,14 @@ int pgf_draw_text(OL_PgfFont *font, int x, int y, const char *text,
     if (!font || !font->sheet || !text)
         return x;
 
-    int pen = x << 6;
+    int pen = x * 4;
     int lineY = y;
 
     for (size_t i = 0; text[i]; i++) {
         unsigned char ch = (unsigned char)text[i];
         if (ch == '\n') {
             lineY += font->lineH;
-            pen = x << 6;
+            pen = x * 4;
         } else if (ch == '\t') {
             pen += font->spaceAdv * 4;
         } else if (ch >= PGF_FIRST && ch <= PGF_LAST) {
@@ -740,9 +757,10 @@ int pgf_draw_text(OL_PgfFont *font, int x, int y, const char *text,
             pen += font->advance[idx];
         }
     }
-    return pgf_pen_px(pen);
+    return pgf_pen_floor(pen);
 }
 
+/* intraFont stops measuring at the first newline. */
 int pgf_textwidth(OL_PgfFont *font, const char *text)
 {
     if (!font || !text)
@@ -752,13 +770,13 @@ int pgf_textwidth(OL_PgfFont *font, const char *text)
     for (size_t i = 0; text[i]; i++) {
         unsigned char ch = (unsigned char)text[i];
         if (ch == '\n')
-            continue;
+            break;
         if (ch == '\t')
             pen += font->spaceAdv * 4;
         else if (ch >= PGF_FIRST && ch <= PGF_LAST)
             pen += font->advance[(int)ch - PGF_FIRST];
     }
-    return pgf_pen_px(pen);
+    return pgf_pen_floor(pen);
 }
 
 void pgf_draw_glyph_scaled(OL_PgfFont *font, int x, int y, unsigned char c,
@@ -769,13 +787,14 @@ void pgf_draw_glyph_scaled(OL_PgfFont *font, int x, int y, unsigned char c,
     if (!(scale > 0.0f))
         scale = 1.0f;
     int idx = (int)c - PGF_FIRST;
-    float gx = (float)x + (float)(font->shiftX[idx] >> 6) * scale;
+    float gx = (float)x + (float)font->shiftX[idx] * scale;
     float gy = (float)y + (float)font->baseline -
                (float)font->shiftY[idx] * scale;
     pgf_blit_glyph_scaled(font, gx, gy, idx, tint, scale);
 }
 
-/* Keep the pen in 26.6 units so advances stay exact, but scale the pixels. */
+/* Pen stays in float pixels; each glyph contributes its truncated quarter-
+ * pixel advance scaled by `size`, exactly like intraFont. */
 int pgf_draw_text_scaled(OL_PgfFont *font, int x, int y, const char *text,
                          unsigned int tint, float scale)
 {
@@ -784,32 +803,44 @@ int pgf_draw_text_scaled(OL_PgfFont *font, int x, int y, const char *text,
     if (!(scale > 0.0f))
         scale = 1.0f;
 
-    int pen = x << 6;
+    float pen = (float)x;
     int lineY = y;
 
     for (size_t i = 0; text[i]; i++) {
         unsigned char ch = (unsigned char)text[i];
         if (ch == '\n') {
             lineY += (int)((float)font->lineH * scale + 0.5f);
-            pen = x << 6;
+            pen = (float)x;
         } else if (ch == '\t') {
-            pen += (int)((float)font->spaceAdv * 4.0f * scale + 0.5f);
+            pen += (float)font->spaceAdv * 0.25f * scale;
         } else if (ch >= PGF_FIRST && ch <= PGF_LAST) {
             int idx = (int)ch - PGF_FIRST;
-            float gx = (float)(pen >> 6) +
-                       (float)(font->shiftX[idx] >> 6) * scale;
+            float gx = pen + (float)font->shiftX[idx] * scale;
             float gy = (float)lineY + (float)font->baseline -
                        (float)font->shiftY[idx] * scale;
             pgf_blit_glyph_scaled(font, gx, gy, idx, tint, scale);
-            pen += (int)((float)font->advance[idx] * scale + 0.5f);
+            pen += (float)font->advance[idx] * 0.25f * scale;
         }
     }
-    return pgf_pen_px(pen);
+    return (int)pen;
 }
 
 int pgf_textwidth_scaled(OL_PgfFont *font, const char *text, float scale)
 {
+    if (!font || !text)
+        return 0;
     if (!(scale > 0.0f))
         scale = 1.0f;
-    return (int)((float)pgf_textwidth(font, text) * scale + 0.5f);
+
+    float pen = 0.0f;
+    for (size_t i = 0; text[i]; i++) {
+        unsigned char ch = (unsigned char)text[i];
+        if (ch == '\n')
+            break;
+        if (ch == '\t')
+            pen += (float)font->spaceAdv * 0.25f * scale;
+        else if (ch >= PGF_FIRST && ch <= PGF_LAST)
+            pen += (float)font->advance[(int)ch - PGF_FIRST] * 0.25f * scale;
+    }
+    return (int)pen;
 }
